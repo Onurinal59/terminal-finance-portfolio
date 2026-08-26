@@ -51,3 +51,7 @@ Türkçe ve URL ile açılan İngilizce masaüstü görünümünde dil anahtarı
 Masaüstü doğrulamasında Pano yalnızca İzleme Listesi, Fiyat & Finansallar, Piyasa Özeti ve sağ Finansal Analiz kolonunu gösteriyor. Grafik ve özet aynı satırda, aynı panel yüksekliğiyle hizalandı; özet hücreleri dikey merkezli hiyerarşiyle boşluk hissini azaltıyor. TR/EN anahtarı üst araç şeridinin sağında, yenileme ve bildirim simgelerinden ayrı görünüyor. Profil görünümü kişisel/resume yüzeyine; Raporlar ve Bağlantı görünümleri ise kendi tam genişlikli görev odaklı ekranlarına ayrıldı.
 
 Mobil doğrulamada Pano’nun yeni masaüstü iki sütun kuralı tek sütuna geri çekildi: İzleme listesi, grafik, piyasa özeti, kısa yollar ve finansal analiz güvenli şekilde sırayla akıyor. Dil anahtarı mobil üst şeritte TR/EN olarak bildirimden ayrık ve dokunulabilir kaldı. Profil sayfasında özet, CV indirme başlangıç butonu, eğitim/araştırma/iş birliği kartları ve başarı şeridi okunur tek sütun yapısında görüntülendi.
+
+## Terminal v1.3 — 26 Ağustos 2026
+
+Pano masaüstünde profil paneli, finansal grafik, piyasa özeti ve Eğitim & Araştırma kartını tekrar çok panelli terminal kompozisyonunda gösterdi. Sol izleme ve sağ finansal analiz dock’ları ana panellerin toplam akışıyla aynı alt bitişe ulaştı. Profil görünümü iki ayrı terminal çerçevesinde özgeçmiş ve kişisel dosya alanlarına ayrıldı. Raporlar ve Bağlantı ekranlarına ikinci terminal paneli eklendi; her ikisi de mobilde açıklama, kart ve eylemlerini tek sütunda okunur biçimde korudu.
