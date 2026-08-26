@@ -165,4 +165,4 @@
 - [x] Profil, Piyasa Özeti, Korelasyon, Yıllık Finansallar ve Grafik için dolu fakat taşmayan sabit satır yükseklikleri kur; sayfanın tam ekran sınırını koru. 270px üst satır, 260px analiz satırı ve kalan alanda grafik ile sabit görünüm alanı korundu.
 - [x] Dock ve panel gövdelerinde yalnızca gerektiğinde ince iç kaydırma bırak; içerik genişliklerini bozmadan ekranda okunur kıl. İzleme Listesi dikey akışa zorlandı; yatay taşma engellendi ve yalnızca panel gövdeleri kayar kaldı.
 - [x] Sabit tam ekran terminal düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu dengeli sabit terminal düzenini checkpoint olarak kaydet ve teslim et.
+- [x] Bu dengeli sabit terminal düzenini checkpoint olarak kaydet ve teslim et. v1.8 sürümü `ca38221e` checkpoint olarak kaydedildi.
