@@ -172,3 +172,9 @@
 - [x] İç panel kaydırmalarını yalnızca uzun İzleme Listesi ve gerektiğinde uzun finansal içeriklerle sınırla; profil/özet ve ana grafik sıkışmasın. Sol liste ve sağ dock iç kaydırmaya devam eder; merkezi paneller doğal boyunda kalır.
 - [x] Akışlı Pano düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu dengeli akışlı Pano düzenini checkpoint olarak kaydet ve teslim et. v1.9 sürümü `b00ab4d3` checkpoint olarak kaydedildi.
+- [x] Onur İnal Profil panelini içindeki özet, etiket ve CV yüzeyini kesmeden kapsayacak doğal genişlik/yüksekliğe getir. Üst satır 500px’e alındı; profilin özet ve CV CTA alanı tek panelde tam görünür.
+- [x] Yıllık Finansallar panelini ana Pano orta gridinden çıkar ve sağdaki Finansal Analiz dock’unun doğrudan altına dikey ikinci analiz yüzeyi olarak taşı. FUNDAMENTALS paneli sağ dock’ta FİNANSAL ANALİZ’in hemen altında yer alıyor.
+- [x] Sağ dock’ta fiyat/sinyal/mali kalem hiyerarşisini okunur dikey ölçülerle düzenle; uzun mali verileri kendi panelinde kaydır. Sağ sütun 260px’e genişletildi; yıllık gelir, bilanço ve nakit akışı tek sütunda aşağı akar.
+- [x] Orta Pano gridini Profil + Piyasa Özeti üst satırı, Korelasyon yüzeyi ve geniş Grafik araştırma alanına göre yeniden dengele. Korelasyon iki merkezi sütunu kapladı, Yıllık Finansallar çıkarılınca ana grafik geniş araştırma alanını korudu.
+- [x] Yeni profil ölçüsünü ve dikey finansal dock düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu profil/finansal dock yerleşim güncellemesini checkpoint olarak kaydet ve teslim et.

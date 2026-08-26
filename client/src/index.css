@@ -208,3 +208,21 @@ html::-webkit-scrollbar,body::-webkit-scrollbar { width: 0; height: 0; }
   html[data-terminal-view="DASHBOARD"] .right-dock .quick-links { flex: 0 0 175px; height: auto; overflow: visible; }
   html[data-terminal-view="DASHBOARD"] .right-dock .analysis-dock { flex: 1 1 auto !important; height: auto !important; min-height: 0; overflow-y: auto; scrollbar-width: none; }
 }
+
+/* v2.0: profil tam içerik, tek geniş korelasyon alanı ve sağda dikey yıllık finansallar */
+@media (min-width: 821px) {
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { grid-template-columns: 250px minmax(0,1fr) 260px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { grid-template-rows: 500px 420px minmax(560px,auto) !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel { min-height: 500px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel { grid-column: 1 / -1 !important; min-height: 420px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel > .panel-body { height: calc(100% - 28px); }
+  html[data-terminal-view="DASHBOARD"] .right-dock { position: static; height: auto; min-height: 0; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .right-dock .analysis-dock { flex: 0 0 auto !important; height: auto !important; max-height: none; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel { display: flex; flex-direction: column; min-height: 620px; overflow: hidden; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel > .panel-body { flex: 1; min-height: 0; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel .annual-financials-terminal { height: 100%; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel .annual-financials-grid { grid-template-columns: 1fr; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel .annual-financials-grid section { border-right: 0; border-bottom: 1px solid #2b434d; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel .annual-financials-grid section:last-child { border-bottom: 0; }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel .annual-financials-grid p { padding: 8px 10px; }
+}
