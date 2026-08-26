@@ -123,4 +123,4 @@
 - [x] Cash Flow görünümünde faaliyet nakdi, capex, yatırım/finansman nakdi, borç/iade, serbest nakit akışı ve dönem sonu nakit gibi kapsamlı yıllık kalemleri sağ dock’ta göster. Yahoo yıllık seri anahtarlarıyla sekiz kalemlik Cash Flow sözlüğü eklendi.
 - [x] Yıllık Finansallar panelini Eğitim & Araştırma panelinin alt hizasına kadar uzat; panel içini gerçek kalem yoğunluğuyla doldur. Sağ analiz dock’u merkezi araştırma sütununa esneyerek Eğitim & Araştırma alt hizasına ulaşıyor; mali kalem alanı kullanılabilir yüksekliği dolduruyor.
 - [x] Mali kalem kapsamını, seçili görünüm geçişlerini, sağ dock hizasını ve responsive düzeni doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri; pnpm check, 12 Vitest testi ve pnpm build başarılı.
-- [ ] Bu zenginleştirilmiş Yıllık Finansallar dock güncellemesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu zenginleştirilmiş Yıllık Finansallar dock güncellemesini checkpoint olarak kaydet ve teslim et. Sürüm `89898763` checkpoint olarak kaydedildi.
