@@ -5,3 +5,17 @@
 - [x] Kök nedenleri düzelterek etkileşimleri ve görselleri yeniden çalışır hâle getir. Sabit olmayan üst başlık ve sessiz belge durumları giderildi.
 - [x] Tür denetimi, üretim derlemesi ve responsive görünümü doğrula. `pnpm check` ve `pnpm build` geçti; mobil görünüm kontrol edildi.
 - [x] Düzeltilmiş sürümü kontrol noktası olarak kaydet ve teslim et.
+- [x] Geliştirme sunucusunun ve önizleme erişiminin mevcut durumunu doğrula. Sayfa yeniden başlatma öncesi ve sonrası yanıt veriyor.
+- [x] Gerekirse sunucuyu yeniden başlatıp bağlantıyı tekrar test et. Sunucu temiz şekilde yeniden başlatıldı; önizleme adresi normal yükleniyor.
+- [x] Kullanıcıya güncel erişim adımını ve kalıcı yayın notunu paylaş.
+- [x] Ön yayın alan adının HTTP yanıtını ve çalışma zamanı durumunu incele. Tarayıcıda normal yüklendi ve HTTPS üzerinden HTTP 200 yanıtı verdi.
+- [x] Geçersiz yanıtın kaynağını düzelt ve yeni sürümün erişilebilir olduğundan emin ol. Bu incelemede kalıcı bir çalışma zamanı veya dağıtım hatası bulunmadı; geçici ön yayın yanıtı sorunu giderilmiş görünüyor.
+- [x] Yapılandırma değişikliği gerekmediğini doğrula. HTTP 200 veren aktif ön yayın sürümü korunarak gereksiz dağıtım değişikliği yapılmadı.
+- [x] Ön yayın adresini yeniden test ederek sonucu kullanıcıyla paylaş.
+- [x] Ön yayın görüntülemesini yeniden aç ve erişim bağlantısını kullanıcıyla paylaş.
+- [ ] Önizleme çerçevesindeki geçersiz yanıtı ve ön yayın davranışını yeniden üret.
+- [x] Önizleme çerçevesindeki geçersiz yanıtı ve ön yayın davranışını yeniden üret. Kullanıcıdaki iframe hatası araç ortamında tutarlı biçimde yeniden üretilemedi; dış ön yayın adresi açıldı.
+- [x] Dağıtım/çalışma zamanı kök nedenini uzman hata analiziyle tespit et. Üretim paketi, gerçek `dist/public` yolu ve `NODE_ENV=production` ile yerel smoke testte HTTP 200 döndü; uygulama kaynaklı sürekli bir yanıt hatası kanıtı bulunmadı.
+- [ ] Yeni ve temiz bir ön yayın sürümü oluşturarak kullanıcı tarafındaki önizleme oturumunu yenile.
+- [ ] Sorunu giderip yeni sürümün önizleme ve ön yayın erişimini doğrula.
+- [ ] Kullanıcıya doğrulanmış kalıcı çözümü ilet.
