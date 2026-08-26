@@ -249,3 +249,98 @@ html::-webkit-scrollbar,body::-webkit-scrollbar { width: 0; height: 0; }
   html[data-terminal-view="DASHBOARD"] .annuals-dock-panel > .panel-body { overflow-y: auto; scrollbar-width: none; }
   html[data-terminal-view="DASHBOARD"] .annuals-dock-panel > .panel-body::-webkit-scrollbar { width: 0; height: 0; }
 }
+
+/* v2.2: sayfa akışlı, panel içi scrollsuz ve kırılım bazlı simetrik Pano */
+html[data-terminal-view="DASHBOARD"] .terminal-layout,
+html[data-terminal-view="DASHBOARD"] .terminal-workspace,
+html[data-terminal-view="DASHBOARD"] .left-dock,
+html[data-terminal-view="DASHBOARD"] .right-dock,
+html[data-terminal-view="DASHBOARD"] .dashboard-grid,
+html[data-terminal-view="DASHBOARD"] .workspace-panel,
+html[data-terminal-view="DASHBOARD"] .workspace-panel > .panel-body,
+html[data-terminal-view="DASHBOARD"] .watchlist-panel,
+html[data-terminal-view="DASHBOARD"] .watchlist-panel > .panel-body,
+html[data-terminal-view="DASHBOARD"] .annuals-dock-panel,
+html[data-terminal-view="DASHBOARD"] .annuals-dock-panel > .panel-body,
+html[data-terminal-view="DASHBOARD"] .analysis-dock,
+html[data-terminal-view="DASHBOARD"] .quick-links {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+html[data-terminal-view="DASHBOARD"] .terminal-layout { align-items: stretch; }
+html[data-terminal-view="DASHBOARD"] .left-dock,
+html[data-terminal-view="DASHBOARD"] .right-dock { align-self: stretch; }
+html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel { height: 100% !important; }
+html[data-terminal-view="DASHBOARD"] .watchlist-filters { flex-wrap: wrap; overflow: visible; }
+html[data-terminal-view="DASHBOARD"] .dashboard-grid { align-items: stretch; align-content: start; }
+html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel { display: flex; flex-direction: column; }
+html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel > .panel-body { display: flex; flex: 1 0 auto; flex-direction: column; }
+html[data-terminal-view="DASHBOARD"] .profile-terminal,
+html[data-terminal-view="DASHBOARD"] .summary-terminal,
+html[data-terminal-view="DASHBOARD"] .correlation-terminal,
+html[data-terminal-view="DASHBOARD"] .annual-financials-terminal { flex: 1 0 auto; }
+html[data-terminal-view="DASHBOARD"] .summary-terminal { display: grid; grid-template-rows: auto 1fr auto; }
+html[data-terminal-view="DASHBOARD"] .summary-grid { align-items: stretch; }
+html[data-terminal-view="DASHBOARD"] .summary-card { display: flex; flex-direction: column; justify-content: space-between; }
+html[data-terminal-view="DASHBOARD"] .summary-bottom { align-items: stretch; }
+html[data-terminal-view="DASHBOARD"] .summary-bottom > div { display: flex; flex-direction: column; justify-content: space-between; }
+html[data-terminal-view="DASHBOARD"] .annual-financials-terminal { display: flex; flex-direction: column; }
+html[data-terminal-view="DASHBOARD"] .annual-financials-grid { flex: 1; grid-auto-rows: 1fr; }
+html[data-terminal-view="DASHBOARD"] .annual-financials-grid section { display: flex; flex-direction: column; justify-content: space-between; }
+html[data-terminal-view="DASHBOARD"] .annual-financials-grid p { flex: 1 1 auto; display: grid; align-content: center; }
+html[data-terminal-view="DASHBOARD"] .panel-title { font-size: clamp(8px, .64vw, 11px); }
+html[data-terminal-view="DASHBOARD"] .panel-code,
+html[data-terminal-view="DASHBOARD"] .panel-titlebar button { font-size: clamp(6px, .5vw, 8px); }
+html[data-terminal-view="DASHBOARD"] .profile-summary p,
+html[data-terminal-view="DASHBOARD"] .summary-card b,
+html[data-terminal-view="DASHBOARD"] .analysis-price b { font-size: clamp(10px, 1vw, 16px); }
+html[data-terminal-view="DASHBOARD"] .watch-row b,
+html[data-terminal-view="DASHBOARD"] .watch-row strong { font-size: clamp(8px, .72vw, 10px); }
+
+@media (min-width: 1100px) {
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { grid-template-columns: minmax(220px,.7fr) minmax(0,2.25fr) minmax(240px,.8fr) !important; gap: clamp(7px, .7vw, 12px); }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-template-rows: auto auto auto !important; gap: clamp(7px, .7vw, 12px); }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel { min-height: 0 !important; height: auto !important; grid-row: 1; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel { grid-column: 1 / -1 !important; grid-row: 2 !important; min-height: clamp(430px, 42vw, 560px) !important; height: auto !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel { grid-column: 1 / -1 !important; grid-row: 3 !important; min-height: 0 !important; height: auto !important; }
+  html[data-terminal-view="DASHBOARD"] .right-dock { display: flex; gap: clamp(7px, .7vw, 12px); }
+  html[data-terminal-view="DASHBOARD"] .annuals-dock-panel { flex: 1 0 auto; }
+}
+
+@media (min-width: 701px) and (max-width: 1099px) {
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { grid-template-columns: 1fr !important; gap: 10px; }
+  html[data-terminal-view="DASHBOARD"] .left-dock { order: 1; }
+  html[data-terminal-view="DASHBOARD"] .terminal-workspace { order: 2; }
+  html[data-terminal-view="DASHBOARD"] .right-dock { order: 3; display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  html[data-terminal-view="DASHBOARD"] .quick-links { grid-column: 1 / -1; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-template-rows: auto auto auto !important; gap: 10px; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel { grid-column: 1 / -1 !important; grid-row: auto !important; min-height: 420px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel { min-height: 0 !important; height: auto !important; }
+}
+
+@media (max-width: 700px) {
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { display: grid !important; grid-template-columns: 1fr; gap: 8px; padding: 6px; }
+  html[data-terminal-view="DASHBOARD"] .left-dock,
+  html[data-terminal-view="DASHBOARD"] .terminal-workspace,
+  html[data-terminal-view="DASHBOARD"] .right-dock { display: block !important; margin: 0; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { display: grid !important; grid-template-columns: 1fr !important; grid-template-rows: auto !important; gap: 8px; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel,
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel { grid-column: 1 !important; grid-row: auto !important; min-height: 0 !important; }
+  html[data-terminal-view="DASHBOARD"] .right-dock > * { margin-bottom: 8px; }
+  html[data-terminal-view="DASHBOARD"] .summary-grid,
+  html[data-terminal-view="DASHBOARD"] .summary-bottom { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html[data-terminal-view="DASHBOARD"] .correlation-matrix { grid-template-columns: minmax(38px,.8fr) repeat(var(--correlation-size),minmax(0,1fr)); overflow: visible; padding: 8px 6px; }
+  html[data-terminal-view="DASHBOARD"] .correlation-corner,
+  html[data-terminal-view="DASHBOARD"] .correlation-column,
+  html[data-terminal-view="DASHBOARD"] .correlation-label,
+  html[data-terminal-view="DASHBOARD"] .correlation-cell { min-height: 24px; font-size: clamp(5px, 1.45vw, 7px); }
+  html[data-terminal-view="DASHBOARD"] .profile-identity h1 { font-size: clamp(20px, 7vw, 28px); }
+}
