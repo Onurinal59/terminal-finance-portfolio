@@ -233,20 +233,33 @@ export async function getQuotes(symbols: string[]) {
   return results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
 }
 
-export async function searchSymbols(query: string) {
+export type YahooSearchResult = { symbol: string; name: string; exchange: string; type: string };
+
+export function mapYahooSearchResults(quotes: Array<Record<string, unknown>>, requestedTypes: string[] = []): YahooSearchResult[] {
+  const typeFilter = new Set(requestedTypes.map((type) => type.trim().toUpperCase()).filter(Boolean));
+  return quotes
+    .filter((quote) => typeof quote.symbol === "string")
+    .map((quote) => {
+      const type = typeof quote.quoteType === "string" && quote.quoteType.trim() ? quote.quoteType.trim().toUpperCase() : "OTHER";
+      return {
+        symbol: canonicalSymbol(String(quote.symbol)),
+        name: typeof quote.longname === "string" ? quote.longname : typeof quote.shortname === "string" ? quote.shortname : String(quote.symbol),
+        exchange: typeof quote.exchange === "string" && quote.exchange ? quote.exchange : "Yahoo Finance",
+        type,
+      };
+    })
+    .filter((quote) => typeFilter.size === 0 || typeFilter.has(quote.type));
+}
+
+export async function searchSymbols(query: string, requestedTypes: string[] = []) {
   const input = query.trim();
-  if (input.length < 2) return [];
+  if (input.length < 1) return [];
   const payload = await yahooFetch(`/v1/finance/search?q=${encodeURIComponent(input)}&quotesCount=10&newsCount=0&enableFuzzyQuery=false`);
   const quotes = (payload as { quotes?: Array<Record<string, unknown>> }).quotes ?? [];
-  const mapped = quotes
-    .filter((quote) => typeof quote.symbol === "string" && ["EQUITY", "ETF", "INDEX", "MUTUALFUND", "CRYPTOCURRENCY", "CURRENCY"].includes(String(quote.quoteType)))
-    .map((quote) => ({
-      symbol: canonicalSymbol(String(quote.symbol)),
-      name: typeof quote.longname === "string" ? quote.longname : typeof quote.shortname === "string" ? quote.shortname : String(quote.symbol),
-      exchange: typeof quote.exchange === "string" ? quote.exchange : "",
-      type: String(quote.quoteType),
-    }));
+  const mapped = mapYahooSearchResults(quotes, requestedTypes);
   if (mapped.length > 0) return mapped;
+  const normalizedTypes = requestedTypes.map((type) => type.trim().toUpperCase()).filter(Boolean);
+  if (normalizedTypes.length > 0 && !normalizedTypes.includes("EQUITY")) return [];
   const normalized = canonicalSymbol(input);
   if (!/^[A-Z0-9.-]{2,12}$/.test(normalized)) return [];
   const candidates = Array.from(new Set([normalized.endsWith(".IS") ? normalized : `${normalized}.IS`, normalized]));

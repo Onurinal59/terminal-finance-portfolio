@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSymbol, parseChart, parseFinancialStatements, resolveWithStaleCache, timeframes } from "./market";
+import { canonicalSymbol, mapYahooSearchResults, parseChart, parseFinancialStatements, resolveWithStaleCache, timeframes } from "./market";
 
 describe("market data mapping", () => {
   it("normalizes symbols and exposes expected timeframe controls", () => {
@@ -23,6 +23,18 @@ describe("market data mapping", () => {
     const cached = { value: { price: 102 }, expiresAt: 0 };
     await expect(resolveWithStaleCache(cached, async () => { throw new Error("network unavailable"); })).resolves.toEqual({ price: 102 });
     await expect(resolveWithStaleCache(undefined, async () => { throw new Error("network unavailable"); })).rejects.toThrow("network unavailable");
+  });
+
+  it("keeps Yahoo asset classes and exchange metadata available for filtered symbol search", () => {
+    const results = mapYahooSearchResults([
+      { symbol: "AAPL", shortname: "Apple Inc.", exchange: "NMS", quoteType: "EQUITY" },
+      { symbol: "BTC-USD", shortname: "Bitcoin USD", exchange: "CCC", quoteType: "CRYPTOCURRENCY" },
+      { symbol: "US10Y", shortname: "US Treasury", exchange: "CBOT", quoteType: "BOND" },
+    ], ["BOND", "CRYPTOCURRENCY"]);
+    expect(results).toEqual([
+      { symbol: "BTC-USD", name: "Bitcoin USD", exchange: "CCC", type: "CRYPTOCURRENCY" },
+      { symbol: "US10Y", name: "US Treasury", exchange: "CBOT", type: "BOND" },
+    ]);
   });
 
   it("maps annual financial rows by fiscal period and disables chart comparisons across currencies", () => {

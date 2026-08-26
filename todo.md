@@ -136,3 +136,10 @@
 - [x] Piyasa Keşfi’ni izleme listesi kadar yoğunlaştır; sembol aramasını tek seferlik grafiği açan keşif akışı olarak bırak. Keşif araması, son incelemeler ve üç yoğun piyasa grubu aynı yüzeyde toplandı.
 - [x] Yeni Piyasa Özeti/Keşif düzenini masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri; pnpm check, 14 Vitest testi ve pnpm build başarılı.
 - [x] Bu piyasa özeti ve keşif yüzeyi güncellemesini checkpoint olarak kaydet ve teslim et. Doğrulanmış piyasa yüzeyi sürümü checkpoint için hazır.
+- [x] Mobil ve tablette Onur İnal Profili panelini ilk görünür çalışma alanı olarak önceliklendir; sonraki panelleri okunabilir doğal sırada akıt. Sol izleme dock’u bu kırılımlarda gizleniyor; Profil → Fiyat & Finansallar → Piyasa Özeti → Eğitim & Araştırma akışı uygulanıyor.
+- [x] Yahoo sembol aramasını Piyasa Keşfi içinden çıkarıp üst navigasyona taşı; yazıldıkça arama sonucu, varlık türü ve kayıtlı borsa bilgisini göster. Tek karakterden başlayan arama üst şeritte; sonuç satırlarında sınıf ve borsa birlikte görünüyor.
+- [x] Üst aramaya Yahoo’nun döndürdüğü türler için hisse, endeks, fon/ETF, tahvil, döviz, kripto ve diğer varlık sınıfı filtrelerini ekle. İstemci filtresi Yahoo’nun döndürdüğü genişletilmiş tür sözlüğü üzerinde çalışıyor.
+- [x] Fiyat grafiğinin görsel hiyerarşisini, eksenlerini ve etkileşimli OHLC inceleme yüzeyini iyileştir. Mum/çizgi, hacim, imleç, klavye ile nokta seçimi ve rafine eksen/tooltip yüzeyi eklendi.
+- [x] Income, Balance ve Cash Flow görünümlerini daha anlaşılır, etkileşimli yıllık finansal trend grafiklerine dönüştür. Her görünümde mali kalem seçici, yıllık çubuk+trend çizgisi ve imleç detay kutusu eklendi.
+- [x] Yeni responsive sıra, üst arama ve grafik akışlarını masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri, tek karakterli Yahoo arama smoke testi; pnpm check, 15 Vitest testi ve pnpm build başarılı.
+- [x] Bu navigasyon ve grafik yenilemesini checkpoint olarak kaydet ve teslim et. Doğrulanmış responsive, arama ve grafik sürümü checkpoint için hazır.
