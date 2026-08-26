@@ -195,4 +195,4 @@
 - [x] Panel içi padding/gap değerlerini keskin ve tutarlı küçük ölçülere indir; metin panellerindeki gereksiz dikey boşlukları azalt. Profil, Özet, analiz ve yıllık finansal içerik aralıkları 4–12px profesyonel terminal ritmine geçirildi.
 - [x] OHLC grafik ve Korelasyon yüzeyinin geniş araştırma alanını korurken metin tabanlı yan panelleri doğal, üst hizalı içerik akışında tut. Grafik/Korelasyon genişliğini koruyor; metin panellerinin altındaki alan içerik zorlanmadan boş kalıyor.
 - [x] Yoğun veri görünümünü masaüstü/tablet/mobilde görsel olarak doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu yüksek veri yoğunluklu Pano iyileştirmesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu yüksek veri yoğunluklu Pano iyileştirmesini checkpoint olarak kaydet ve teslim et. v2.3 sürümü `4301292f` checkpoint olarak kaydedildi.
