@@ -189,4 +189,4 @@
 - [x] Profil, Piyasa Özeti, Grafik, Korelasyon, İzleme Listesi ve sağ analiz yüzeylerinin iç içeriklerini flex dağılımıyla ölü boşluksuz hâle getir. Profil/özet/mali yüzeylerde esnek iç dağılım, merkezi satırlarda eşit panel alt hizaları uygulandı.
 - [x] Tipografi, ikon, aralık ve kontrol ölçülerini `clamp()` ile ekran genişliğine göre ölçekle; taşmayı engelle. Başlıklar, metrik değerler ve izleme satırları kırılım uyumlu clamp ölçeklerine geçti.
 - [x] No-internal-scroll, eşit hizalar, responsive grid ve okunurluğu mobil/tablet/masaüstünde görsel olarak doğrula; tür denetimi, testler ve üretim derlemesini çalıştır. 1360px masaüstü, 820px tablet, 390px mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu simetrik responsive Pano dönüşümünü checkpoint olarak kaydet ve teslim et.
+- [x] Bu simetrik responsive Pano dönüşümünü checkpoint olarak kaydet ve teslim et. v2.2 sürümü `5f47274c` checkpoint olarak kaydedildi.
