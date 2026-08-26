@@ -196,3 +196,9 @@
 - [x] OHLC grafik ve Korelasyon yüzeyinin geniş araştırma alanını korurken metin tabanlı yan panelleri doğal, üst hizalı içerik akışında tut. Grafik/Korelasyon genişliğini koruyor; metin panellerinin altındaki alan içerik zorlanmadan boş kalıyor.
 - [x] Yoğun veri görünümünü masaüstü/tablet/mobilde görsel olarak doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu yüksek veri yoğunluklu Pano iyileştirmesini checkpoint olarak kaydet ve teslim et. v2.3 sürümü `4301292f` checkpoint olarak kaydedildi.
+- [x] Pano dış gridindeki `stretch`, sabit ortak satır yüksekliği ve yan dock uzatma kurallarını kaldır. Eşit yükseklik zorunluluğu ve dock uzatma override’ları doğal akışla etkisizleştirildi.
+- [x] Sol, orta ve sağ sütunları `align-self: start` ile bağımsız dikey akışa geçir; panelleri `fit-content`/doğal yüksekliğinde tut. Masaüstünde üç sütun bağımsız üstten başlar; yan docklar merkez grafiğin uzunluğuna uzamaz.
+- [x] Metin panellerindeki kalıntı `flex: 1` ve dikey yayılma kurallarını kaldır; panel gövdelerini `justify-content: start` ile doğal sıralamaya al. Metin panelleri ve panel gövdeleri doğal yükseklik/üst hizaya dönüştü.
+- [x] İzleme Listesi ve sağ mali satırları sıkı kompakt çizgide tutarken OHLC Grafik ve Korelasyon için geniş araştırma yüzeylerini koru. İzleme 32px satır ritminde; finansallar sıkı kalırken Grafik/Korelasyon geniş araştırma yüzeyi korundu.
+- [x] Bağımsız doğal yükseklikli sütun akışını masaüstü/tablet/mobilde görsel olarak doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu doğal yükseklikli bağımsız Pano düzenini checkpoint olarak kaydet ve teslim et.

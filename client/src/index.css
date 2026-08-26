@@ -397,3 +397,64 @@ html[data-terminal-view="DASHBOARD"] .watchlist-filters { gap: 1px; padding: 4px
 html[data-terminal-view="DASHBOARD"] .watchlist-footnote { padding: 7px 8px; line-height: 1.35; }
 html[data-terminal-view="DASHBOARD"] .chart-panel,
 html[data-terminal-view="DASHBOARD"] .correlation-panel { align-self: stretch; }
+
+/* v2.4: bağımsız sütunlar ve fit-content paneller — eşit yükseklik zorunluluğu kaldırıldı */
+html[data-terminal-view="DASHBOARD"] .terminal-layout {
+  align-items: start !important;
+}
+html[data-terminal-view="DASHBOARD"] .left-dock,
+html[data-terminal-view="DASHBOARD"] .right-dock,
+html[data-terminal-view="DASHBOARD"] .terminal-workspace {
+  align-self: start !important;
+}
+html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel,
+html[data-terminal-view="DASHBOARD"] .right-dock .quick-links,
+html[data-terminal-view="DASHBOARD"] .right-dock .analysis-dock,
+html[data-terminal-view="DASHBOARD"] .right-dock .annuals-dock-panel {
+  flex: 0 0 auto !important;
+  height: fit-content !important;
+}
+html[data-terminal-view="DASHBOARD"] .dashboard-grid {
+  align-items: start !important;
+  align-content: start !important;
+  grid-auto-rows: auto !important;
+}
+html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel {
+  align-self: start !important;
+  height: fit-content !important;
+}
+html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel > .panel-body {
+  flex: 0 0 auto !important;
+}
+html[data-terminal-view="DASHBOARD"] .profile-terminal,
+html[data-terminal-view="DASHBOARD"] .summary-terminal,
+html[data-terminal-view="DASHBOARD"] .annual-financials-terminal {
+  flex: 0 0 auto !important;
+  height: fit-content !important;
+}
+html[data-terminal-view="DASHBOARD"] .summary-terminal {
+  min-height: 0 !important;
+}
+html[data-terminal-view="DASHBOARD"] .summary-card,
+html[data-terminal-view="DASHBOARD"] .summary-bottom > div,
+html[data-terminal-view="DASHBOARD"] .annual-financials-grid section,
+html[data-terminal-view="DASHBOARD"] .analysis-dock > * {
+  flex: 0 0 auto !important;
+}
+html[data-terminal-view="DASHBOARD"] .chart-panel {
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: clamp(430px,42vw,560px) !important;
+}
+html[data-terminal-view="DASHBOARD"] .correlation-panel {
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: 330px !important;
+}
+html[data-terminal-view="DASHBOARD"] .watch-row { min-height: 32px; padding-block: 2px; }
+html[data-terminal-view="DASHBOARD"] .annual-financials-grid p { padding-block: 4px; }
+@media (max-width: 1099px) {
+  html[data-terminal-view="DASHBOARD"] .left-dock,
+  html[data-terminal-view="DASHBOARD"] .right-dock,
+  html[data-terminal-view="DASHBOARD"] .terminal-workspace { align-self: stretch !important; }
+}
