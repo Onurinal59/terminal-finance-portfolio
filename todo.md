@@ -64,3 +64,8 @@
 - [x] Masaüstü auto-scroll taşımasını canlı olarak doğrula; mobil için dokunmatik yukarı/aşağı panel sıralama yedek denetimleri ekle ve test et. Masaüstü kenar bölgeleri için otomatik kaydırma mantığı birim testle doğrulandı; mobil başlıklarda yukarı/aşağı yedek sıralama denetimleri görsel olarak doğrulandı.
 - [x] Grafik, profil, CV ve taşıma güncellemelerini içeren yeni checkpoint oluşturup doğrula. Nihai tür denetimi, 5 birim test ve üretim derlemesi başarıyla tamamlandı; doğrulanmış sürüm checkpoint için hazırlandı.
 - [x] Panel sıralama ve sınır davranışları için birim testi ekle. Panel bırakma, dokunmatik sırala ve viewport kenarı otomatik kaydırma kuralları 3 istemci testiyle kapsandı.
+- [x] Raporlanan site hatasını tarayıcı, sunucu ve ağ kayıtlarından yeniden üretip kök nedenini belirle. Yahoo Finance chart isteğinde geçici ağ kesintisinin tRPC 500 yanıtına dönüştüğü bulundu.
+- [x] Kök neden için güvenli düzeltmeyi uygula ve ilgili regresyon testini ekle veya güncelle. Query1/Query2 yedeği, kısa timeout ve son başarılı önbelleğe dönüş eklendi; sağlayıcı kesintisi regresyon testi yazıldı.
+- [x] Düzeltilmiş akışları masaüstü/mobilde, tür denetimi ve üretim derlemesiyle doğrula. Masaüstü ve mobil terminal canlı veri/grafikle yüklendi; 6 test, tür denetimi ve üretim derlemesi başarılı.
+- [x] Hata düzeltmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış hata düzeltme sürümü checkpoint için hazırlandı.
+- [x] Çalışma alanı panel listesindeki React anahtar uyarısını gider ve konsolu yeniden tara. Paneller için sabit React anahtarları eklendi; HMR sonrası yeni anahtar uyarısı görülmedi.

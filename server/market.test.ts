@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSymbol, parseChart, timeframes } from "./market";
+import { canonicalSymbol, parseChart, resolveWithStaleCache, timeframes } from "./market";
 
 describe("market data mapping", () => {
   it("normalizes symbols and exposes expected timeframe controls", () => {
@@ -17,5 +17,11 @@ describe("market data mapping", () => {
     expect(result.quote.changePercent).toBe(2);
     expect(result.points).toHaveLength(2);
     expect(result.points[1]).toMatchObject({ close: 102, volume: 300 });
+  });
+
+  it("keeps the last known provider result available during a transient fetch failure", async () => {
+    const cached = { value: { price: 102 }, expiresAt: 0 };
+    await expect(resolveWithStaleCache(cached, async () => { throw new Error("network unavailable"); })).resolves.toEqual({ price: 102 });
+    await expect(resolveWithStaleCache(undefined, async () => { throw new Error("network unavailable"); })).rejects.toThrow("network unavailable");
   });
 });

@@ -31,6 +31,7 @@ type Cached<T> = { expiresAt: number; value: T };
 const quoteCache = new Map<string, Cached<MarketQuote>>();
 const chartCache = new Map<string, Cached<{ quote: MarketQuote; points: ChartPoint[] }>>();
 const CACHE_MS = 45_000;
+const YAHOO_ORIGINS = ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"];
 
 export const timeframes = {
   "1G": { range: "1d", interval: "5m" },
@@ -87,12 +88,29 @@ export function parseChart(symbol: string, payload: YahooChart): { quote: Market
 }
 
 async function yahooFetch(path: string) {
-  const response = await fetch(`https://query1.finance.yahoo.com${path}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; AnalizPortfolio/1.0)" },
-    signal: AbortSignal.timeout(12_000),
-  });
-  if (!response.ok) throw new Error(`Veri sağlayıcısı ${response.status} yanıtı verdi.`);
-  return response.json();
+  let failure: unknown;
+  for (const origin of YAHOO_ORIGINS) {
+    try {
+      const response = await fetch(`${origin}${path}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; AnalizPortfolio/1.0)" },
+        signal: AbortSignal.timeout(7_500),
+      });
+      if (!response.ok) throw new Error(`Veri sağlayıcısı ${response.status} yanıtı verdi.`);
+      return response.json();
+    } catch (error) {
+      failure = error;
+    }
+  }
+  throw new Error("Piyasa sağlayıcısı geçici olarak yanıt vermiyor.", { cause: failure });
+}
+
+export async function resolveWithStaleCache<T>(cached: { value: T } | undefined, load: () => Promise<T>): Promise<T> {
+  try {
+    return await load();
+  } catch (error) {
+    if (cached) return cached.value;
+    throw error;
+  }
 }
 
 export async function getChart(symbolInput: string, timeframe: Timeframe) {
@@ -101,11 +119,13 @@ export async function getChart(symbolInput: string, timeframe: Timeframe) {
   const cacheKey = `${symbol}:${timeframe}`;
   const cached = chartCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
-  const payload = await yahooFetch(`/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}&includePrePost=false`);
-  const value = parseChart(symbol, payload as YahooChart);
-  chartCache.set(cacheKey, { value, expiresAt: Date.now() + CACHE_MS });
-  quoteCache.set(symbol, { value: value.quote, expiresAt: Date.now() + CACHE_MS });
-  return value;
+  return resolveWithStaleCache(cached, async () => {
+    const payload = await yahooFetch(`/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}&includePrePost=false`);
+    const value = parseChart(symbol, payload as YahooChart);
+    chartCache.set(cacheKey, { value, expiresAt: Date.now() + CACHE_MS });
+    quoteCache.set(symbol, { value: value.quote, expiresAt: Date.now() + CACHE_MS });
+    return value;
+  });
 }
 
 export async function getQuotes(symbols: string[]) {
