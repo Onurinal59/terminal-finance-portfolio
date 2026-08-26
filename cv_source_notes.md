@@ -42,3 +42,11 @@ Kullanıcı, CV dosyalarının kendisi ayrıca talimat verene kadar siteye yükl
 Profil modülü eğitim, çift ana dal, GPA, ödül ve yetkinlik bilgilerini gösteriyor. CV eylemi, dosya indirmek yerine kullanıcının isteğine uygun biçimde “beklemede” açıklama penceresini açıyor. Bağlantı modülü `mailto:onurinal815@gmail.com` ve doğrulanan LinkedIn URL’sine yönlenen erişim kanallarını gösteriyor.
 
 İzleme listesi araması `ASELS` sorgusuyla tek satıra daraldı. Bu satır seçildiğinde grafik, fiyat eksenleri ve emir derinliği `ASELS` değerleriyle birlikte güncellendi; kullanıcıya seçim bildirimini gösterdi.
+
+Grafik türü denetimi canlı testte mum grafiği çizgi grafiğe dönüştürdü; grafik etiketi “ÇİZGİ GRAFİK” olarak güncellendi ve kullanıcıya durum bildirimi gösterildi. Panel başlıklarındaki küçültme, tam ekran ve seçenek kontrolleri erişilebilir etiketlerle görünür hâle getirildi.
+
+SMA(5) kontrolü teknik gösterge çizgisini ekledi ve grafik etiketi “ÇİZGİ GRAFİK · SMA(5)” olarak güncellendi. Fiyat grafiği tam ekran denetimi, paneli genişletilmiş çalışma alanına taşıdı ve aynı kontrolün etiketi “tam ekranı kapat” durumuna geçti.
+
+Grafik seçenek menüsü; görünümü sıfırlama, SMA(5) aç/kapat ve grafik türünü değiştirme eylemlerini açtı. Sıfırlama eylemi, tam ekrandaki çizgi/SMA kombinasyonunu 5G mum grafik varsayılanına başarıyla geri döndürdü ve durum bildirimi verdi.
+
+Emir derinliği panelinin küçültme eylemi, panel gövdesini kapattı ve kontrol etiketini “panelini aç” durumuna çevirdi. Aynı denetim tekrar kullanıldığında gövdeyi yeniden açmak üzere durum saklıyor.

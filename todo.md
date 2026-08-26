@@ -31,3 +31,7 @@
 - [x] Ekrandaki terminal modüllerini çalışır filtre, seçim, panel geçişi, durum mesajı ve arama davranışlarıyla tamamla. İzleme listesi araması, sembol seçimi, grafik/derinlik güncellemesi, zaman aralığı, modül geçişi, odak modu, ayarlar, yardım ve rapor ayrıntı pencereleri çalışıyor.
 - [x] CV dosyalarının indirme/ekleme işlemlerini kullanıcının sonraki onayına kadar devre dışı ve beklemede tut. Profilde yalnızca açıklayıcı bekleme penceresi gösteriliyor; indirilebilir dosya eklenmedi.
 - [x] Güncellenen terminali masaüstü ve mobilde doğrula; yeni checkpoint oluşturup teslim et. Masaüstü değerlendirmesi, mobil ekran kontrolü, `pnpm check` ve `pnpm build` başarılı.
+- [x] Her panel başlığındaki küçültme, büyütme ve seçenek simgesini görünür bir durum değişimine bağla. Küçültme/açma, tam ekran/normal görünüm ve yenileme/tam ekran seçenek menüsü eklendi.
+- [x] Grafik araçlarını çizim türü, teknik gösterge, tam ekran ve ayar davranışlarıyla işlevsel hâle getir. Mum/çizgi dönüşümü, SMA(5), seçenek menüsü, sıfırlama ve tam ekran çalışıyor.
+- [x] Grafik panelindeki bütün eylemleri kullanıcı tarafından test edilebilir kıl ve kontrol sonuçlarını doğrula. Çizgi grafik, SMA, seçenek menüsü, sıfırlama, tam ekran ve panel küçültme canlı test edildi.
+- [x] Kontrol güncellemesini checkpoint olarak kaydedip teslim et.
