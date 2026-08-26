@@ -171,4 +171,4 @@
 - [x] Sayfa dikey kaydırmasını mouse tekerleği/trackpad için açık tutarken tarayıcı scrollbar göstergesini görünmez yap. Sistem scrollbar göstergesi CSS ile gizlenirken sayfa kaydırması açık tutuldu.
 - [x] İç panel kaydırmalarını yalnızca uzun İzleme Listesi ve gerektiğinde uzun finansal içeriklerle sınırla; profil/özet ve ana grafik sıkışmasın. Sol liste ve sağ dock iç kaydırmaya devam eder; merkezi paneller doğal boyunda kalır.
 - [x] Akışlı Pano düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu dengeli akışlı Pano düzenini checkpoint olarak kaydet ve teslim et.
+- [x] Bu dengeli akışlı Pano düzenini checkpoint olarak kaydet ve teslim et. v1.9 sürümü `b00ab4d3` checkpoint olarak kaydedildi.
