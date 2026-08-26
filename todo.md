@@ -146,3 +146,10 @@
 - [x] Sağ Finansal Analiz dock’undaki geniş/seyrek fiyat kutularını diğer panel ritmiyle uyumlu kompakt metrik kartlarına dönüştür. Dikey dock için fiyat, aralık, sinyal ve mali satır aralıkları azaltıldı; uzun mali liste kaydırılabilir tutuldu.
 - [x] Korelasyon haritası ve kompakt dock’u masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil görünüm; pnpm check, 12 Vitest testi ve pnpm build başarıyla doğrulandı.
 - [x] Bu piyasa interaktivitesi güncellemesini yeni checkpoint olarak kaydet ve teslim et. v1.5 sürümü `557c5137` checkpoint olarak kaydedildi.
+- [x] Piyasa Korelasyon Haritası’nı profil içinden çıkarıp kendi bağımsız, taşınabilir terminal paneline dönüştür. 20/60 günlük gerçek getiri matrisi artık kendine ait CORR_MATRIX panelinde.
+- [x] Sağ Finansal Analiz dock’undaki Yıllık Finansallar yüzeyini ana Pano’da bağımsız, taşınabilir finansal metrik paneli olarak sun. Gelir Tablosu, Bilanço ve Nakit Akışı ana Pano’daki FUNDAMENTALS paneline ayrıldı.
+- [x] Pano’yu tarayıcı görünüm alanını dolduran masaüstü gridine yerleştir; profil, özet, korelasyon, yıllık finansallar ve fiyat grafiğini dengeli slotlarda göster. Üstte Profil/Özet, ortada Korelasyon/Yıllık Finansallar, altta tam genişlikte Grafik yerleşimi uygulandı.
+- [x] Panel başlığındaki büyüt/küçült eylemini grid span değişimiyle bağla; büyütülen panelde komşu paneller yeniden akarak yer açsın. Başlıktaki büyütme denetimi seçilen paneli iki sütuna yayar ve diğer panelleri otomatik olarak sonraki grid alanına taşır.
+- [x] Taşıma, kilit, sıfırlama, büyüt/küçült ve mobil tek sütun davranışlarını yeni panel kimlikleriyle uyumlu hâle getir. Sıra kalıcılığı v7’ye güncellendi, büyütme tercihi saklanıyor, sıfırlama tam düzeni geri alıyor ve mobilde büyütme/taşıma kapalı.
+- [x] Yeni bağımsız panel düzenini masaüstü/mobilde doğrula; birim testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran görüntüleri; pnpm check, 13 Vitest testi ve pnpm build başarıyla tamamlandı.
+- [ ] Bu yeniden akışlı terminal grid güncellemesini checkpoint olarak kaydet ve teslim et.
