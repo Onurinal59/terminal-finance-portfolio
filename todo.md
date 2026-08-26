@@ -69,3 +69,15 @@
 - [x] Düzeltilmiş akışları masaüstü/mobilde, tür denetimi ve üretim derlemesiyle doğrula. Masaüstü ve mobil terminal canlı veri/grafikle yüklendi; 6 test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Hata düzeltmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış hata düzeltme sürümü checkpoint için hazırlandı.
 - [x] Çalışma alanı panel listesindeki React anahtar uyarısını gider ve konsolu yeniden tara. Paneller için sabit React anahtarları eklendi; HMR sonrası yeni anahtar uyarısı görülmedi.
+- [x] Piyasa Özetini gereksiz boşluğu kaldıran, terminal yoğunluğuna uygun yeni bir analiz panosu olarak yeniden tasarla. Oturum pusulası, risk iştahı, altı piyasa kartı, güçlü/zayıf hisse ve veri akışı tek yoğun panelde toplandı.
+- [x] CV seçimlerinden ATS/fotoğrafsız etiketlerini kaldır; yalnızca Türkçe ve İngilizce fotoğraflı PDF seçeneklerini koru. Seçim alanı iki fotoğraflı PDF sürümüne indirildi.
+- [x] Üst navigasyon ve kısa yollara bağlı, işlevsel Raporlar ile Bağlantı modülleri oluştur. Navigasyon ve sağ kısayollar ilgili terminal modülünü açacak şekilde bağlandı.
+- [x] Raporlar modülünde yatırım araştırmalarını incelemeye uygun filtreli, ayrıntı ön izlemesi olan profesyonel bir kütüphane kur. Kategori filtreleri, seçilebilir rapor listesi, metodoloji/period ön izlemesi ve kullanıcı kaynaklı gerçek PDF için dosya eylemleri eklendi.
+- [x] Bağlantı modülünde ziyaretçilerin e-posta istemcisini açarak mesaj gönderebileceği terminal stili iletişim masası oluştur. Doğrulanmış mailto taslak formu ile e-posta ve LinkedIn kanalları eklendi.
+- [x] İzleme listesinin sürüklenebilir görünümünü kaldır ve paneli sabit araç çubuğu gibi kilitle. Kilit simgesi ve sürükleme dışı panel davranışı uygulandı.
+- [x] Sağ dock alanını seçili hisse için finansal analiz/modül notları sunacak biçimde dönüştür. Son fiyat, dönem aralığı, fiyat konumu ve araştırma geçişi eklendi.
+- [x] Yeni modülleri masaüstü ve mobilde test et; tür denetimi, birim test ve üretim derlemesini çalıştır. Pano, rapor ve bağlantı modülleri masaüstü/mobil görsel olarak doğrulandı; 8 test, tür denetimi ve üretim derlemesi başarılı.
+- [x] Bu terminal yenilemesini gerçek rapor dosyaları bağlandıktan sonra yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış sürüm checkpoint için hazırlandı.
+- [x] Kullanıcının sağlayacağı rapor PDF’lerini storage’a yükleyip ilgili kütüphane kartlarına doğrudan açma/indirme eylemi olarak bağla. Sağlanan örnek PDF kalıcı storage yoluna yüklenip R-04 kartına bağlandı.
+- [x] `2064_sample.pdf` dosyasını inceleyip doğru rapor başlığı ve kategorisiyle kütüphaneye ekle. Morningstar kaynaklı Microsoft öz sermaye araştırması olarak EQUITY kategorisindeki R-04 kartına eklendi.
+- [x] Örnek raporun doğrudan açma ve indirme akışını masaüstü/mobilde doğrula. PDF’yi Aç ve İndir eylemleri iki görünümde de doğrulandı; storage yolu imzalı yönlendirme döndürüyor.

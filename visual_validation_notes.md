@@ -9,3 +9,13 @@ Mobil doğrulamada terminal tek sütuna geçti. Profil, grafik, piyasa özeti ve
 ## Sağlayıcı Dayanıklılığı — 26 Ağustos 2026
 
 Masaüstü ve 390×844 mobil doğrulamalarında terminal, canlı piyasa değerleri ve THYAO OHLC grafiğiyle normal olarak yüklendi. Yahoo Finance geçici ağ başarısızlıklarında ikinci sağlayıcı alan adı denenir; her iki kaynak erişilemezse mevcut önbellekteki son başarılı grafik korunur. Böylece geçici harici veri kesintisi tüm terminalin hata ekranına düşmesine neden olmaz.
+
+## Modül Düzeni v0.7 — 26 Ağustos 2026
+
+Masaüstü doğrulamasında kilit simgeli izleme listesi sabit bir dock olarak kaldı; sürükleme tutamacı taşımıyor. Piyasa özeti artık oturum pusulası, risk iştahı göstergesi, altı piyasa kartı ve güçlü/zayıf hisse akışı içeriyor. `?view=RESEARCH` rapor kütüphanesini, `?view=CONTACT` ise e-posta taslak formu ile doğrudan kanalları doğru açtı. Sağ dock, seçili sembol için finansal analiz ölçüleri ve fiyat konumu sunuyor.
+
+Mobil ikinci doğrulamada rapor listesi ile ön izleme tek sütuna alındı; bağlantı formu ve doğrudan kanallar da sırayla akıyor. Böylece dar ekranda rapor detayları ya da iletişim alanları sıkışmadan okunabiliyor.
+
+## Gerçek PDF Raporu — 26 Ağustos 2026
+
+Kullanıcının sağladığı `2064_sample.pdf`, kaynak etiketiyle **Microsoft Equity Research · Örnek** kartına bağlandı. Masaüstü ve mobil rapor kütüphanesinde seçili kartın ön izlemesi doğru göründü; **PDF’yi Aç** ve **İndir** eylemleri görünür durumdadır. Geliştirme sunucusu storage yoluna istek attığında dosya için imzalı yönlendirme üretiyor.
