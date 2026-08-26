@@ -130,3 +130,9 @@
 - [x] Eğitim & Araştırma panelini içerik yoğunluğuna uygun biçimde hafif büyüt; sağ bağımsız finansal panellerle alt hizayı dengeli kıl. Eğitim & Araştırma kartları 90px içerik yüksekliğine taşındı; merkezi ve sağ araştırma sonu daha dengeli hizalanıyor.
 - [x] Yeni panel ayrımını, Piyasa Özeti hizasını ve Eğitim & Araştırma oranını masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri; pnpm check, 12 Vitest testi ve pnpm build başarılı.
 - [x] Bu bağımsız finansal panel ve Pano hizalama güncellemesini checkpoint olarak kaydet ve teslim et. Sürüm `8507c88a` checkpoint olarak kaydedildi.
+- [x] Piyasa Özeti alt üçlü durum satırının çizgi/kolon hizasını düzelt; hücre yükseklik ve kenar kurallarını tam oturt. Üç eşit kolon, ortak kutu modeli ve tutarlı sağ kenar kuralları uygulandı.
+- [x] Piyasa Özeti’ne mevcut gerçek piyasa evreninden ek kısa göstergeler ekle; yoğunluğu artırırken hiyerarşiyi koru. BIST 30, NASDAQ 100 ve PETROL için ek gerçek zamanlı bağlam metrikleri eklendi.
+- [x] Kişisel izleme listesine sembol ekleme/kaldırma akışını ve ilgili tarayıcı saklama durumunu kaldır; varsayılan evreni sabit tut. Eski saklama anahtarı temizleniyor; arama sonuçları sabit evrene eklenmiyor.
+- [x] Piyasa Keşfi’ni izleme listesi kadar yoğunlaştır; sembol aramasını tek seferlik grafiği açan keşif akışı olarak bırak. Keşif araması, son incelemeler ve üç yoğun piyasa grubu aynı yüzeyde toplandı.
+- [x] Yeni Piyasa Özeti/Keşif düzenini masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri; pnpm check, 14 Vitest testi ve pnpm build başarılı.
+- [x] Bu piyasa özeti ve keşif yüzeyi güncellemesini checkpoint olarak kaydet ve teslim et. Doğrulanmış piyasa yüzeyi sürümü checkpoint için hazır.
