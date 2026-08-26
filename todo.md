@@ -207,4 +207,4 @@
 - [x] İzleme ve mali satırların padding/line-height değerlerini profesyonel yoğunlukta daralt; satırlar arası açıklığı sabitle. İzleme satırları 36px, mali satırlar 4–7px iç boşluk ve sıkı satır ritminde.
 - [x] Panel başlıkları, liste etiketleri, fiyat ve yüzde değişimlerini minimum okunur tipografiye taşı; kritik fiyat verilerini yarı kalın vurgula. Başlıklar 9–12px, liste değerleri 9–12px, ana fiyatlar 17–22px ölçeğinde; kritik değerler 600–700 ağırlıkta.
 - [x] Sıkı hizalama ve okunabilir tipografiyi masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px görsel denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu kompakt okunabilir terminal düzenini checkpoint olarak kaydet ve teslim et.
+- [x] Bu kompakt okunabilir terminal düzenini checkpoint olarak kaydet ve teslim et. v2.5 sürümü `38914ddd` checkpoint olarak kaydedildi.
