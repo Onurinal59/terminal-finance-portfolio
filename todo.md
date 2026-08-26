@@ -113,3 +113,8 @@
 - [x] Bu görsel ve etkileşim iyileştirmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.0 sürümü checkpoint için hazırlandı.
 - [x] Kullanıcının açık talebiyle v1.0 `bc10a9dd` checkpoint’ine geri dön. Geri dönüş sürümü `f02af7f2` olarak oluşturuldu.
 - [x] Geri dönen v1.0 terminalin açıldığını doğrula. Masaüstü görünümü; `pnpm check`, 11 Vitest testi ve `pnpm build` başarılı.
+- [x] Terminal genelindeki mikro metin, panel başlığı, liste değeri ve form etiketi tipografisini okunur kontrast/ölçülere çıkar. Başlıklar, liste değerleri, hızlı bağlantılar, analiz metrikleri ve form/sekme etiketleri görünür ölçü/kontrast hiyerarşisine taşındı.
+- [x] Birincil/ikincil butonların hit alanı, ağırlığı, hover, odak ve basılma durumlarını daha belirgin hâle getir. CV ve grafik kontrollerinin hit alanları büyütüldü; iki piksellik odak halkası, gölge/renk hover ve basılma geri bildirimi eklendi.
+- [x] Navigasyon, paneller, sekmeler ve veri satırlarına kısa, kontrollü terminal mikro etkileşimleri ekle; `prefers-reduced-motion` tercihini koru. Panel girişleri, hover yükselişi ve renk geçişleri 140–260ms aralığında; azaltılmış hareket tercihi etkin biçimde destekleniyor.
+- [x] Yeni tipografi/animasyon sisteminin masaüstü ve mobil okunurluğunu doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px görsel denetimleri; pnpm check, 11 Vitest testi ve pnpm build başarılı.
+- [ ] Bu okunurluk ve etkileşim iyileştirmesini checkpoint olarak kaydet ve teslim et.
