@@ -18,4 +18,11 @@
 - [x] Dağıtım/çalışma zamanı kök nedenini uzman hata analiziyle tespit et. Üretim paketi, gerçek `dist/public` yolu ve `NODE_ENV=production` ile yerel smoke testte HTTP 200 döndü; uygulama kaynaklı sürekli bir yanıt hatası kanıtı bulunmadı.
 - [ ] Yeni ve temiz bir ön yayın sürümü oluşturarak kullanıcı tarafındaki önizleme oturumunu yenile.
 - [ ] Sorunu giderip yeni sürümün önizleme ve ön yayın erişimini doğrula.
-- [ ] Kullanıcıya doğrulanmış kalıcı çözümü ilet.
+- [x] Kullanıcıya doğrulanmış kalıcı çözümü ilet.
+- [x] Matriks veri terminalinin çok panelli çalışma alanı davranışını referans alarak görünüm hedefini netleştir.
+- [x] Tek sayfa akışını sabit araç çubuğu, dock panelleri, grafik, emir derinliği ve araştırma pencerelerinden oluşan terminal kabuğuna dönüştür.
+- [x] Hakkımda, CV, rapor arşivi ve iletişim bilgilerini terminal pencerelerine bağla.
+- [x] Masaüstü ve mobil arayüzde terminal hissini test et; derleme ve erişilebilirlik kontrollerini tamamla. Masaüstü görsel değerlendirmesi, mobil ekran kontrolü, `pnpm check` ve `pnpm build` başarılı.
+- [x] Terminal modülleri arasındaki geçişleri doğrula. Raporlar modülü bağlam panelini ve terminal yolunu doğru güncelliyor.
+- [x] Önizleme paylaşım durumunu not et. Bu ekran önizleme modunda; kamuya açık erişim yalnızca yönetim arayüzündeki Publish akışından sonra mümkün.
+- [x] Yeniden tasarlanan terminal sürümünü yeni bir checkpoint olarak kaydet ve teslim et.

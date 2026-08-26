@@ -76,6 +76,16 @@ Metinsiz logo, üç yükselen sütun ve aralarından geçen ince bir fiyat çizg
 - Marka dili yalnızca koyu terminal yüzeyi, Sinyal Yeşili, kırık beyaz, mercan risk ve buz mavisi nötr veri renklerini kullanır; plansız ikincil vurgu renkleri kullanılmaz.
 - Her ana bölümde en az bir terminal yerel öğesi bulunur: modül numarası, durum satırı, varsayım etiketi, rapor durumu, metrik şeridi veya monospace meta veri.
 
+- Arayüz dili Türkçe-first’tür; İngilizce yalnızca küçük terminal kodu ya da sistem meta verisi olarak kullanılır.
+- Sözcük markası **ANALİZ // PORTFOLIO**, geometrik sinyal işaretiyle birlikte başlıkta, aktif modüllerde ve arşiv yüzeylerinde tekrar eden sistem imzasıdır.
+- Renk anlamları kesindir: Sinyal Yeşili eylem/pozitif/aktif tez; mercan risk/negatif hareket; buz mavisi nötr veri ve sistem bağlantısı için kullanılır.
+
+## Terminal Uygulaması Revizyonu
+
+Kullanıcı deneyimi artık uzun bir landing page akışı değil, doğrudan açılmış bir **finans araştırma terminali** olacaktır. Ekran, sabit program kromu, üst araç şeridi, sol izleme listesi, merkezde grafik/analiz yüzeyi, sağda emir derinliği ve portföy modülleri, altta ise araştırma arşivi bulunan yoğun bir masaüstü çalışma alanı şeklinde tasarlanır.
+
+Terminal hissi, büyük görsellerden değil; sıkı satır ritmi, tablo hücreleri, durum etiketleri, hareket eden sayısal vurgular, klasik pencere başlıkları, araç çubuğu ikonları ve panel bölücülerinden gelir. Hakkımda, CV, raporlar ve iletişim alanları ayrı web bölümleri yerine terminalin bağlama göre değişen panelleri olarak görünür. Gerçek piyasa verisi kullanılmadığı her yerde **SIMULATED** etiketi açıkça gösterilir.
+
 ## Uygulama İçeriği ve Yer Tutucu Politikası
 
 Kullanıcının gerçek adı, e-posta adresi, CV’si ve rapor PDF’leri henüz paylaşılmadığı için ilk sürümde bu unsurlar açıkça değiştirilebilir portföy alanları olarak işaretlenecektir. İletişim bölümü `mailto:` akışıyla çalışacak; e-posta adresi daha sonra tek bir içerik değişkeninden güncellenebilecektir. Rapor kartlarında yalnızca örnek başlıklar ve gerçek dosya bağlanması gerektiğini belirten durum etiketleri bulunacaktır.
