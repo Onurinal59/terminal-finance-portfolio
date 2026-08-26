@@ -166,3 +166,9 @@
 - [x] Dock ve panel gövdelerinde yalnızca gerektiğinde ince iç kaydırma bırak; içerik genişliklerini bozmadan ekranda okunur kıl. İzleme Listesi dikey akışa zorlandı; yatay taşma engellendi ve yalnızca panel gövdeleri kayar kaldı.
 - [x] Sabit tam ekran terminal düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu dengeli sabit terminal düzenini checkpoint olarak kaydet ve teslim et. v1.8 sürümü `ca38221e` checkpoint olarak kaydedildi.
+- [x] Masaüstü Pano’daki 100svh sıkıştırmasını kaldır; panel yüksekliğini içerik yoğunluğuna göre doğal biçimde akıt. Terminal çalışma alanı akışlı yüksekliğe döndü.
+- [x] Referanstaki hiyerarşiyle sol İzleme Listesi, üst Profil/Özet, orta Korelasyon/Yıllık Finansallar ve geniş Grafik paneli için okunur ölçüler belirle. 380px üst bağlam, 360px analiz yüzeyi ve minimum 560px grafik hiyerarşisi uygulandı.
+- [x] Sayfa dikey kaydırmasını mouse tekerleği/trackpad için açık tutarken tarayıcı scrollbar göstergesini görünmez yap. Sistem scrollbar göstergesi CSS ile gizlenirken sayfa kaydırması açık tutuldu.
+- [x] İç panel kaydırmalarını yalnızca uzun İzleme Listesi ve gerektiğinde uzun finansal içeriklerle sınırla; profil/özet ve ana grafik sıkışmasın. Sol liste ve sağ dock iç kaydırmaya devam eder; merkezi paneller doğal boyunda kalır.
+- [x] Akışlı Pano düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu dengeli akışlı Pano düzenini checkpoint olarak kaydet ve teslim et.

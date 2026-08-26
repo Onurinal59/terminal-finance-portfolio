@@ -185,3 +185,26 @@ html[data-terminal-view="DASHBOARD"] .terminal-layout { align-items: stretch; mi
   html[data-terminal-view="DASHBOARD"] .watch-panel-tabs,html[data-terminal-view="DASHBOARD"] .watchlist-tools,html[data-terminal-view="DASHBOARD"] .watchlist-filters,html[data-terminal-view="DASHBOARD"] .watchlist-label,html[data-terminal-view="DASHBOARD"] .watchlist-list,html[data-terminal-view="DASHBOARD"] .watchlist-footnote { width: 100%; min-width: 0; max-width: 100%; }
   html[data-terminal-view="DASHBOARD"] .watch-row,html[data-terminal-view="DASHBOARD"] .watch-row-select { min-width: 0; max-width: 100%; }
 }
+
+/* v1.9: referans oranlarında, doğal yükseklikli ve görünmez scrollbar’lı Pano */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar,body::-webkit-scrollbar { width: 0; height: 0; }
+@media (min-width: 821px) {
+  html,body,#root { width: 100%; height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+  body { overflow-x: hidden; overflow-y: auto; }
+  .terminal-app { height: auto; min-height: 100svh; padding: 82px 0 24px; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { align-items: start; height: auto; min-height: calc(100svh - 82px); padding: 7px; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .left-dock,html[data-terminal-view="DASHBOARD"] .right-dock { position: sticky; top: 89px; height: calc(100svh - 103px); min-height: 520px; overflow: hidden; }
+  html[data-terminal-view="DASHBOARD"] .terminal-workspace { height: auto; min-height: 0; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { display: grid; flex: initial; height: auto; min-height: 0; grid-template-columns: minmax(0,1.04fr) minmax(320px,.96fr) !important; grid-template-rows: 380px 360px minmax(560px,auto) !important; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .annuals-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel { height: auto !important; min-height: 0 !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel > .panel-body { flex: initial; min-height: 0; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel { min-height: 380px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .annuals-panel { min-height: 360px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel { min-height: 560px !important; }
+  html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel { height: 100%; min-height: 0; }
+  html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel > .panel-body { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+  html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel > .panel-body::-webkit-scrollbar,html[data-terminal-view="DASHBOARD"] .right-dock::-webkit-scrollbar { width: 0; height: 0; }
+  html[data-terminal-view="DASHBOARD"] .right-dock .quick-links { flex: 0 0 175px; height: auto; overflow: visible; }
+  html[data-terminal-view="DASHBOARD"] .right-dock .analysis-dock { flex: 1 1 auto !important; height: auto !important; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+}
