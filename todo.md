@@ -190,3 +190,9 @@
 - [x] Tipografi, ikon, aralık ve kontrol ölçülerini `clamp()` ile ekran genişliğine göre ölçekle; taşmayı engelle. Başlıklar, metrik değerler ve izleme satırları kırılım uyumlu clamp ölçeklerine geçti.
 - [x] No-internal-scroll, eşit hizalar, responsive grid ve okunurluğu mobil/tablet/masaüstünde görsel olarak doğrula; tür denetimi, testler ve üretim derlemesini çalıştır. 1360px masaüstü, 820px tablet, 390px mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu simetrik responsive Pano dönüşümünü checkpoint olarak kaydet ve teslim et. v2.2 sürümü `5f47274c` checkpoint olarak kaydedildi.
+- [x] Profil, Piyasa Özeti, sağ Finansal Analiz ve Yıllık Finansallar panellerinde `justify-between`/esnek iç yayılmayı kaldır; içerikleri üstten sabit küçük aralıklarla başlat. Metin içerikleri zorla yüzeye yaymak yerine `justify-content: start` ile üstten düzenli yoğunlukta akıyor.
+- [x] İzleme Listesi ve finansal veri satırlarının padding, line-height ve min-height değerlerini veri yoğun terminal standardına göre sıkılaştır. İzleme satırları 34px, finansal satırlar 5–6px iç boşluk ve kısa satır yüksekliği kullanıyor.
+- [x] Panel içi padding/gap değerlerini keskin ve tutarlı küçük ölçülere indir; metin panellerindeki gereksiz dikey boşlukları azalt. Profil, Özet, analiz ve yıllık finansal içerik aralıkları 4–12px profesyonel terminal ritmine geçirildi.
+- [x] OHLC grafik ve Korelasyon yüzeyinin geniş araştırma alanını korurken metin tabanlı yan panelleri doğal, üst hizalı içerik akışında tut. Grafik/Korelasyon genişliğini koruyor; metin panellerinin altındaki alan içerik zorlanmadan boş kalıyor.
+- [x] Yoğun veri görünümünü masaüstü/tablet/mobilde görsel olarak doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu yüksek veri yoğunluklu Pano iyileştirmesini checkpoint olarak kaydet ve teslim et.
