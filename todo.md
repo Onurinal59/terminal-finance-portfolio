@@ -134,3 +134,9 @@
 - [x] Bağlantı sayfasını mesaj masası, kanal kartları, çalışma alanı/iş birliği konuları, yanıt süreci ve profesyonel bağlantı panelleriyle genişlet. Mevcut mesaj masasına Çalışma Bağlantı Noktaları, yanıt akışı ve LinkedIn profesyonel kanal panelleri eklendi.
 - [x] Çok panelli modüllerin masaüstü/mobil görünümünü, sayfa geçişlerini ve mevcut işlevlerini doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Bu yaratıcı terminal yeniden tasarımını yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.3 sürümü checkpoint için hazırlandı.
+- [x] Pano gridindeki gereksiz sabit satır yüksekliklerini ve boş alanları kaldır. Üst satır kompakt 480px yüksekliğe alındı; alt sıra uzun grafik için ayrıldı.
+- [x] Pano üst satırında Onur İnal Profili ile Piyasa Özeti panellerini yan yana, dengeli genişlikte konumlandır. İki panel aynı üst satırda, grafik alanının üzerinde gösteriliyor.
+- [x] Fiyat & Finansallar panelini üst satırın altına tam genişlikte ve daha uzun grafik alanıyla taşı. Grafik paneli iki sütunu kaplıyor ve minimum 560px araştırma yüzeyi sunuyor.
+- [x] Eğitim & Araştırma panelini Pano hiyerarşisinden çıkararak görünümü sadeleştir. Eğitim içeriği Profil modülünde kalmaya devam ediyor.
+- [x] Dikey Pano akışını masaüstü/mobilde görsel olarak doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü tam sayfa doğrulaması, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
+- [x] Bu Pano hiyerarşisi düzeltmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.4 sürümü checkpoint için hazırlandı.

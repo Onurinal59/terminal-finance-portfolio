@@ -55,3 +55,7 @@ Mobil doğrulamada Pano’nun yeni masaüstü iki sütun kuralı tek sütuna ger
 ## Terminal v1.3 — 26 Ağustos 2026
 
 Pano masaüstünde profil paneli, finansal grafik, piyasa özeti ve Eğitim & Araştırma kartını tekrar çok panelli terminal kompozisyonunda gösterdi. Sol izleme ve sağ finansal analiz dock’ları ana panellerin toplam akışıyla aynı alt bitişe ulaştı. Profil görünümü iki ayrı terminal çerçevesinde özgeçmiş ve kişisel dosya alanlarına ayrıldı. Raporlar ve Bağlantı ekranlarına ikinci terminal paneli eklendi; her ikisi de mobilde açıklama, kart ve eylemlerini tek sütunda okunur biçimde korudu.
+
+## Terminal v1.4 — 26 Ağustos 2026
+
+Pano masaüstünde dikey hiyerarşiye alındı: Onur İnal Profili ve Piyasa Özeti daraltılmış üst satırda; Fiyat & Finansallar ise hemen altında tam genişlikte uzun grafik yüzeyinde konumlanıyor. Önceki Eğitim & Araştırma kapanış kartı Pano’dan çıkarıldı. Tam sayfa kontrolünde grafik alanı üst panellerin altına kesintisiz devam ediyor ve masaüstü/mobil yerleşim kuralları derleme sonrası korundu.
