@@ -159,4 +159,4 @@
 - [x] Profil, Piyasa Özeti, Korelasyon, Yıllık Finansallar ve Grafik panellerinin içerik taşmasını kendi paneli içinde kaydır; sayfa yüksekliğini sabit tut. Pano panellerinde yalnızca panel gövdesi iç kaydırma kullanılıyor.
 - [x] Masaüstünde yeniden boyut tercihlerini güvenli şekilde kalıcılaştır; mobilde tek sütun, normal sayfa akışı ve yanlışlıkla resize kapalı kalsın. Ölçüler localStorage’da saklanıyor; 821px altında terminal normal tek sütun akışına dönüyor.
 - [x] Tam ekran terminal düzenini masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu tam ekran yeniden boyutlandırılabilir terminal güncellemesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu tam ekran yeniden boyutlandırılabilir terminal güncellemesini checkpoint olarak kaydet ve teslim et. v1.7 sürümü `498d177c` checkpoint olarak kaydedildi.
