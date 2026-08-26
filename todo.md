@@ -119,3 +119,5 @@
 - [x] Yerelleştirme tercihini tarayıcıda sakla; finansal veri ve para birimi etiketlerini kaynak bazlı koru. Dil tercihi localStorage’da saklanıyor; Yahoo sağlayıcı adı, semboller ve raporlanan para birimleri kaynak değeriyle bırakılıyor.
 - [x] Türkçe ve İngilizce masaüstü/mobil akışları, CV sıfırlama, mali grafik hover’ları ve panel hizasını doğrula; testleri ve üretim derlemesini çalıştır. Türkçe/İngilizce masaüstü/mobil görsel denetimleri, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Bu yerelleştirme ve finansal etkileşim güncellemesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.1 sürümü checkpoint için hazırlandı.
+- [x] Kullanıcının açık onayıyla Profil ve Pano’nun ayrılmadığı v1.1 `ecbc3cd0` durumuna geri dön. Geri dönüş sürümü `379a34f0` olarak oluşturuldu.
+- [x] Geri dönen terminalin açıldığını ve Profil/Pano birleşik durumunu doğrula. Masaüstü görünümü; `pnpm check`, 11 Vitest testi ve `pnpm build` başarılı.
