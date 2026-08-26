@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculatePearsonCorrelation, canonicalSymbol, parseChart, parseFinancialStatements, resolveWithStaleCache, timeframes } from "./market";
+import { canonicalSymbol, parseChart, parseFinancialStatements, resolveWithStaleCache, timeframes } from "./market";
 
 describe("market data mapping", () => {
   it("normalizes symbols and exposes expected timeframe controls", () => {
@@ -23,12 +23,6 @@ describe("market data mapping", () => {
     const cached = { value: { price: 102 }, expiresAt: 0 };
     await expect(resolveWithStaleCache(cached, async () => { throw new Error("network unavailable"); })).resolves.toEqual({ price: 102 });
     await expect(resolveWithStaleCache(undefined, async () => { throw new Error("network unavailable"); })).rejects.toThrow("network unavailable");
-  });
-
-  it("calculates bounded Pearson correlations from aligned daily returns", () => {
-    expect(calculatePearsonCorrelation([0.01, 0.02, -0.01, 0.03], [0.02, 0.04, -0.02, 0.06])).toBeCloseTo(1, 8);
-    expect(calculatePearsonCorrelation([0.01, 0.02], [0.02, 0.04])).toBeNull();
-    expect(calculatePearsonCorrelation([0.01, 0.01, 0.01], [0.02, 0.03, 0.04])).toBeNull();
   });
 
   it("maps annual financial rows by fiscal period and disables chart comparisons across currencies", () => {

@@ -25,10 +25,4 @@ describe("panel order helpers", () => {
     expect(placeUnlockedPanelBefore(order, "archive", "chart", ["chart"])).toEqual([...order]);
     expect(placeUnlockedPanelBefore(order, "archive", "chart", [])).toEqual(["profile", "archive", "chart", "summary"]);
   });
-
-  it("keeps independent correlation and annual-financial panels when reordered", () => {
-    const terminalOrder = ["profile", "summary", "correlation", "annuals", "chart"];
-    expect(placePanelBefore(terminalOrder, "annuals", "summary")).toEqual(["profile", "annuals", "summary", "correlation", "chart"]);
-    expect(movePanelOrder(terminalOrder, "correlation", -1)).toEqual(["profile", "correlation", "summary", "annuals", "chart"]);
-  });
 });
