@@ -39,9 +39,3 @@ Mobil v0.9 denetiminde ASML araması gerçek Yahoo sonuçlarıyla (ASML, ASML.AS
 ## Terminal v1.0 — 26 Ağustos 2026
 
 Masaüstü doğrulamada profil paneli kart yoğunluğu yerine tek Kısa Özet metni ve üç kısa doğrulama etiketiyle dengelendi; CV alanı başlangıçta tek bir eylem butonu olarak görünüyor. Fiyat araç çubuğunda Fiyat/Income/Balance/Cash Flow sekmeleri iki ayrı hizalı satırda, üst üste binmeden yer aldı. Income görünümünde ana alan artık tablo başlığı yerine grafik odaklı alan kullanıyor; ilk saniyelerde uygun yükleme durumu gösteriliyor. Piyasa Özeti hücreleri eşit hizada, Piyasa Keşfi bölümleri ise tutarlı başlık/satır çizgileriyle aktı.
-
-## Terminal v1.1 — 26 Ağustos 2026
-
-Türkçe ve URL ile açılan İngilizce masaüstü görünümünde dil anahtarı görünür ve aktif durumla işaretlendi. Piyasa Özeti’nin alt üç hücresi referanstaki gibi ayrı, eşit genişlikte ve hizalı kaldı. Cash Flow görünümünde ana panel tablo yerine iki serili yıllık çubuk trendi gösterdi; sağ dock gelir, bilanço ve nakit akışı gruplarını aynı uzun dikey araştırma alanında birleştirdi. İngilizce modda dinamik React metinlerinin de çevrilmesi için metin-düğümü ve karakter güncelleme gözlemi eklendi.
-
-İngilizce Raporlar ve Bağlantı masaüstü doğrulamasında navigasyon, modül başlıkları, açıklamalar, butonlar, form etiketleri, placeholder’lar ve alt bilgi blokları İngilizce gösterildi. Rapor kaynak metadatası kullanıcı tarafından yüklenen orijinal PDF başlığını koruyor; finansal veri sağlayıcı adı ve para birimi etiketleri kaynak verisi olarak çevrilmeden bırakıldı.
