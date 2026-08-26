@@ -41,6 +41,15 @@ describe("market data mapping", () => {
     expect(result.symbol).toBe("TEST");
     expect(result.periods).toEqual([{ asOfDate: "2023-12-31", currency: "USD" }, { asOfDate: "2024-12-31", currency: "TRY" }]);
     expect(result.rows.find((row) => row.key === "revenue")?.values[1]?.raw).toBe(120);
+    expect(result.rows.map((row) => row.key)).toEqual(expect.arrayContaining(["costOfRevenue", "operatingExpense", "pretaxIncome", "taxProvision", "dilutedEPS"]));
     expect(result.chartAvailable).toBe(false);
+  });
+
+  it("exposes a comprehensive annual metric vocabulary for balance sheet and cash flow views", () => {
+    const annualValue = { asOfDate: "2024-12-31", currencyCode: "USD", reportedValue: { raw: 1, fmt: "1" } };
+    const balance = parseFinancialStatements("test", "balance", { timeseries: { result: [{ annualTotalAssets: [annualValue] }] } });
+    const cashflow = parseFinancialStatements("test", "cashflow", { timeseries: { result: [{ annualOperatingCashFlow: [annualValue] }] } });
+    expect(balance.rows.map((row) => row.key)).toEqual(expect.arrayContaining(["cash", "receivables", "inventory", "currentAssets", "currentLiabilities", "longTermDebt", "equity"]));
+    expect(cashflow.rows.map((row) => row.key)).toEqual(expect.arrayContaining(["operatingCashFlow", "investingCashFlow", "financingCashFlow", "debtIssued", "debtRepaid", "freeCashFlow", "endCash"]));
   });
 });
