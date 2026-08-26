@@ -183,4 +183,4 @@
 - [x] Merkezi panel gridindeki yapay minimum yükseklik ve boş alanları kaldır; panel gövdelerini içerik/grafik ihtiyacına göre sıkılaştır. Grafik 520px, Korelasyon 350px araştırma yüksekliğine ayarlandı; özet gövdesi taşmasız iç dağılıma geçti.
 - [x] Sol İzleme Listesi dock’unu sağdaki Finansal Analiz + Yıllık Finansallar toplamının alt hizasına kadar uzat. Sol ve sağ dock 1080px ortak alt hizaya ayarlandı.
 - [x] Sıkılaştırılmış Pano düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu kompakt Pano ve hizalı dock güncellemesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu kompakt Pano ve hizalı dock güncellemesini checkpoint olarak kaydet ve teslim et. v2.1 sürümü `17c55686` checkpoint olarak kaydedildi.
