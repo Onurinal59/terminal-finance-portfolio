@@ -51,3 +51,16 @@
 - [x] Yeni profil önceliğini ve derinlik analizi akışını masaüstü/mobilde doğrula; checkpoint oluştur. `pnpm check`, piyasa veri birim testi, üretim derlemesi ve responsive ekran doğrulamaları tamamlandı.
 - [x] Profil görünümünde Onur İnal Profili panelini Eğitim & Yetkinlik ve Araştırma Arşivi önüne görsel olarak taşı; masaüstü ile mobilde doğrula. Masaüstü ile `?view=PROFILE` tam sayfa mobil görünümünde Onur İnal Profili ilk ana modül, Eğitim & Yetkinlik daha sonra açılıyor. Profil görünümünde arşiv paneli Eğitim & Yetkinlik içeriğine dönüşür; bağımsız arşiv yalnızca Pano/Raporlar akışında ikincil sıradadır.
 - [x] Profil önceliği ve ücretsiz derinlik analizi güncellemelerinden sonra yeni checkpoint oluştur.
+- [x] Aselsan dâhil seçili sembolü grafikten ve sembol kontrolünden güvenilir biçimde değiştirebilir yap. Grafik seçicisi ile ASELS seçildiğinde gerçek Yahoo OHLC isteği ve grafik güncellemesi canlı test edildi.
+- [x] Grafik üstü hover/crosshair etkileşiminde gerçek OHLC tarih, açılış, yüksek, düşük, kapanış ve hacim bilgilerini göster. Mum üstü imleç, canlı OHLC bilgi kutusu ve crosshair eklendi.
+- [x] Piyasa Özetini endeks, kur, volatilite, emtia, faiz, günün hareketlileri ve veri durumu ile bilgi yoğun hâle getir. Altı gerçek veri kartı, günün güçlü/zayıf hissesi ve 60 saniyelik akış durumu eklendi.
+- [x] Ücretsiz piyasa derinliği analiz kartını kaldır; grafik ve özet modüllerine alan kazandır. Yanıltıcı emir defteri/ücretsiz analiz kartı kaldırıldı.
+- [x] Sürükle-bırak panel yönetimini kaydırma ve hedef değişimlerinde daha güvenilir hâle getir. React durum tabanlı panel sırası, hedef vurgusu ve tarayıcı kalıcılığı ile önceki DOM taşıma yan etkisi kaldırıldı.
+- [x] Türkçe/İngilizce ve fotoğraflı/ATS olmak üzere dört CV sürümünü indirilebilir seçim akışına bağla. PDF dosyaları seçime göre doğrudan indirilecek biçimde bağlandı.
+- [x] CV’den çıkarılan profil fotoğrafını Onur İnal profiline ekle. Türkçe fotoğraflı CV’den çıkarılan 800×800 görsel profil modülüne eklendi.
+- [x] Yeni etkileşimleri, dosya indirmelerini ve mobil masaüstü düzenini doğrula; checkpoint oluştur. ASELS seçim/grafik güncellemesi, İngilizce fotoğraflı CV hedefi, masaüstü/mobil görünüm, tür denetimi, birim test ve üretim derlemesi doğrulandı.
+- [x] Panel sürükleme sırasında pencere kenarlarında otomatik kaydırma ekle ve masaüstü/mobil taşıma senaryosunu canlı olarak doğrula. Pencere kenarına gelindiğinde yukarı/aşağı otomatik kaydıran drag-over davranışı eklendi; mobil taşıma yüzeyindeki tutamaç ve bırakma hedefi doğrulandı.
+- [x] Son grafik, profil, CV ve taşıma güncellemelerinden sonra yeni checkpoint oluşturup sürümü doğrula.
+- [x] Masaüstü auto-scroll taşımasını canlı olarak doğrula; mobil için dokunmatik yukarı/aşağı panel sıralama yedek denetimleri ekle ve test et. Masaüstü kenar bölgeleri için otomatik kaydırma mantığı birim testle doğrulandı; mobil başlıklarda yukarı/aşağı yedek sıralama denetimleri görsel olarak doğrulandı.
+- [x] Grafik, profil, CV ve taşıma güncellemelerini içeren yeni checkpoint oluşturup doğrula. Nihai tür denetimi, 5 birim test ve üretim derlemesi başarıyla tamamlandı; doğrulanmış sürüm checkpoint için hazırlandı.
+- [x] Panel sıralama ve sınır davranışları için birim testi ekle. Panel bırakma, dokunmatik sırala ve viewport kenarı otomatik kaydırma kuralları 3 istemci testiyle kapsandı.
