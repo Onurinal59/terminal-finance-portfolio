@@ -145,4 +145,4 @@
 - [x] Korelasyon hücresi seçildiğinde ana grafikte ilgili sembolü aç veya karşılaştırma bağlamını görünür kıl; veri kapsamı ve gecikme notunu göster. Hücre seçimi grafiği ilgili sembole taşır; çift, gözlem, tarih, kaynak ve rejim notu yüzeyde yer alır.
 - [x] Sağ Finansal Analiz dock’undaki geniş/seyrek fiyat kutularını diğer panel ritmiyle uyumlu kompakt metrik kartlarına dönüştür. Dikey dock için fiyat, aralık, sinyal ve mali satır aralıkları azaltıldı; uzun mali liste kaydırılabilir tutuldu.
 - [x] Korelasyon haritası ve kompakt dock’u masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil görünüm; pnpm check, 12 Vitest testi ve pnpm build başarıyla doğrulandı.
-- [ ] Bu piyasa interaktivitesi güncellemesini yeni checkpoint olarak kaydet ve teslim et.
+- [x] Bu piyasa interaktivitesi güncellemesini yeni checkpoint olarak kaydet ve teslim et. v1.5 sürümü `557c5137` checkpoint olarak kaydedildi.
