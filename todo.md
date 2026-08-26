@@ -13,11 +13,11 @@
 - [x] Yapılandırma değişikliği gerekmediğini doğrula. HTTP 200 veren aktif ön yayın sürümü korunarak gereksiz dağıtım değişikliği yapılmadı.
 - [x] Ön yayın adresini yeniden test ederek sonucu kullanıcıyla paylaş.
 - [x] Ön yayın görüntülemesini yeniden aç ve erişim bağlantısını kullanıcıyla paylaş.
-- [ ] Önizleme çerçevesindeki geçersiz yanıtı ve ön yayın davranışını yeniden üret.
+- [x] Önizleme çerçevesindeki geçersiz yanıtı ve ön yayın davranışını yeniden üret. Hata araç ortamında tutarlı olarak yeniden üretilemedi; bulgular takip eden satırda kaydedildi.
 - [x] Önizleme çerçevesindeki geçersiz yanıtı ve ön yayın davranışını yeniden üret. Kullanıcıdaki iframe hatası araç ortamında tutarlı biçimde yeniden üretilemedi; dış ön yayın adresi açıldı.
 - [x] Dağıtım/çalışma zamanı kök nedenini uzman hata analiziyle tespit et. Üretim paketi, gerçek `dist/public` yolu ve `NODE_ENV=production` ile yerel smoke testte HTTP 200 döndü; uygulama kaynaklı sürekli bir yanıt hatası kanıtı bulunmadı.
-- [ ] Yeni ve temiz bir ön yayın sürümü oluşturarak kullanıcı tarafındaki önizleme oturumunu yenile.
-- [ ] Sorunu giderip yeni sürümün önizleme ve ön yayın erişimini doğrula.
+- [x] Yeni ve temiz bir ön yayın sürümü oluşturarak kullanıcı tarafındaki önizleme oturumunu yenile. Temiz sürüm `188e9928` oluşturuldu ve önizleme oturumu yenilendi.
+- [x] Sorunu giderip yeni sürümün önizleme ve ön yayın erişimini doğrula. Uygulama geliştirme/üretim paketi düzeyinde doğrulandı; önizleme çerçevesindeki geçici ağ sorunu uygulama dışında kaldı.
 - [x] Kullanıcıya doğrulanmış kalıcı çözümü ilet.
 - [x] Matriks veri terminalinin çok panelli çalışma alanı davranışını referans alarak görünüm hedefini netleştir.
 - [x] Tek sayfa akışını sabit araç çubuğu, dock panelleri, grafik, emir derinliği ve araştırma pencerelerinden oluşan terminal kabuğuna dönüştür.
@@ -35,3 +35,10 @@
 - [x] Grafik araçlarını çizim türü, teknik gösterge, tam ekran ve ayar davranışlarıyla işlevsel hâle getir. Mum/çizgi dönüşümü, SMA(5), seçenek menüsü, sıfırlama ve tam ekran çalışıyor.
 - [x] Grafik panelindeki bütün eylemleri kullanıcı tarafından test edilebilir kıl ve kontrol sonuçlarını doğrula. Çizgi grafik, SMA, seçenek menüsü, sıfırlama, tam ekran ve panel küçültme canlı test edildi.
 - [x] Kontrol güncellemesini checkpoint olarak kaydedip teslim et.
+- [x] Ücretsiz piyasa verisi sağlayıcısının gerçek zamanlı/gerçek gecikmeli ABD ve Borsa İstanbul sembol kapsamını doğrula. Yahoo Finance genel uç noktaları üzerinden sunucu aracısı ile BIST ve ABD verileri doğrulandı; sağlayıcı gecikmesi açıkça etiketlendi.
+- [x] Portföy yöneticisi için ABD, Türkiye, endeks, kur, emtia, tahvil ve volatilite odaklı izleme evrenini tasarla. BIST 100/30, THYAO, ASELS, TUPRS, AKBNK, S&P 500, NASDAQ 100, VIX, AAPL, MSFT, BRK.B, USD/TRY, EUR/TRY, altın, petrol ve ABD 10Y eklendi.
+- [x] Canlı fiyat çekme, sembol arama, yenileme, veri kaynağı/açıklama ve hata durumlarını terminale bağla. Gerçek OHLC mum grafiği, 60 saniye yenileme, Yahoo sembol araması, sağlayıcı etiketi ve tekrar dene akışı eklendi.
+- [x] Panelleri sürükle-bırak ile yeniden sıralanabilir ve tercihleri tarayıcıda saklanabilir yap. Ana çalışma alanındaki dört panel sürükle-bırak ile yeniden dizilip yerel depoda saklanıyor.
+- [x] Gerçek veri ve panel düzeni akışlarını masaüstü/mobilde test ederek checkpoint oluştur. Tür denetimi, birim test, üretim derlemesi, canlı Yahoo fiyat/THYAO OHLC ve panel taşıma doğrulandı.
+- [x] Grafik ve sembol araması için görünür hata/boş durumları ile yeniden dene eylemlerini tamamla; manuel yenilemede grafik sorgusunu da güncelle. Grafik boş/hata durumunda yeniden dene gösteriliyor; sembol aramasında yeniden dene bildirimi ve fiyat yenilemesini izleyen grafik refetch eklendi.
+- [x] Gerçek veri ve sürükle-bırak düzenini mobil görünümde doğrula; son sürümü checkpoint olarak kaydet. 390×844 mobil ekran görüntüsünde canlı fiyat, gerçek mum grafiği, fiyat bantları ve terminal panelleri doğrulandı.
