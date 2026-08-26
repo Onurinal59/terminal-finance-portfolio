@@ -201,4 +201,4 @@
 - [x] Metin panellerindeki kalıntı `flex: 1` ve dikey yayılma kurallarını kaldır; panel gövdelerini `justify-content: start` ile doğal sıralamaya al. Metin panelleri ve panel gövdeleri doğal yükseklik/üst hizaya dönüştü.
 - [x] İzleme Listesi ve sağ mali satırları sıkı kompakt çizgide tutarken OHLC Grafik ve Korelasyon için geniş araştırma yüzeylerini koru. İzleme 32px satır ritminde; finansallar sıkı kalırken Grafik/Korelasyon geniş araştırma yüzeyi korundu.
 - [x] Bağımsız doğal yükseklikli sütun akışını masaüstü/tablet/mobilde görsel olarak doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
-- [ ] Bu doğal yükseklikli bağımsız Pano düzenini checkpoint olarak kaydet ve teslim et.
+- [x] Bu doğal yükseklikli bağımsız Pano düzenini checkpoint olarak kaydet ve teslim et. v2.4 sürümü `ba7e38c6` checkpoint olarak kaydedildi.
