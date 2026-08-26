@@ -129,4 +129,4 @@
 - [x] Piyasa Özeti iç gridindeki kart çizgilerini, hücre köşelerini ve alt durum satırını piksel hizalı/tutarlı yerleşime getir. Altı piyasa hücresi ve üçlü durum şeridi için ortak çizgi/kenar kuralı, sabit hücre yüksekliği ve tam kolon hizası uygulandı.
 - [x] Eğitim & Araştırma panelini içerik yoğunluğuna uygun biçimde hafif büyüt; sağ bağımsız finansal panellerle alt hizayı dengeli kıl. Eğitim & Araştırma kartları 90px içerik yüksekliğine taşındı; merkezi ve sağ araştırma sonu daha dengeli hizalanıyor.
 - [x] Yeni panel ayrımını, Piyasa Özeti hizasını ve Eğitim & Araştırma oranını masaüstü/tablet/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px/820px/390px görsel denetimleri; pnpm check, 12 Vitest testi ve pnpm build başarılı.
-- [ ] Bu bağımsız finansal panel ve Pano hizalama güncellemesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu bağımsız finansal panel ve Pano hizalama güncellemesini checkpoint olarak kaydet ve teslim et. Sürüm `8507c88a` checkpoint olarak kaydedildi.
