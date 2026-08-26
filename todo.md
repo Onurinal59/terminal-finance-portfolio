@@ -111,3 +111,5 @@
 - [x] Piyasa Özeti hücrelerini eşit yüksekliğe, tutarlı hiyerarşiye ve hizalı alt satıra getir; çalışma alanı panellerinin alt bitişlerini düzelt. Özet grid’i sabit satır hiyerarşisine kavuştu; profil/özet blokları hizalı doğrulandı.
 - [x] Güncellenen profil, CV, grafik, keşif ve panel hizasını masaüstü/mobilde doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran doğrulamaları, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Bu görsel ve etkileşim iyileştirmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.0 sürümü checkpoint için hazırlandı.
+- [x] Kullanıcının açık talebiyle v1.0 `bc10a9dd` checkpoint’ine geri dön. Geri dönüş sürümü `f02af7f2` olarak oluşturuldu.
+- [x] Geri dönen v1.0 terminalin açıldığını doğrula. Masaüstü görünümü; `pnpm check`, 11 Vitest testi ve `pnpm build` başarılı.
