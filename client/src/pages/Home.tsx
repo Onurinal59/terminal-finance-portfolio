@@ -19,6 +19,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const marketTape = [
   { code: "BIST 100", value: "10.842,17", change: "+0,84%", positive: true },
@@ -90,6 +91,12 @@ export default function Home() {
   const chooseNavigation = (id: string) => {
     setMenuOpen(false);
     scrollToSection(id);
+  };
+
+  const showMissingDocument = (documentName: string) => {
+    toast.message(`${documentName} henüz yayına alınmadı.`, {
+      description: "PDF dosyası eklendiğinde buradan doğrudan açılacak.",
+    });
   };
 
   return (
@@ -261,7 +268,7 @@ export default function Home() {
                   <div className={`report-signal ${report.accent}`} />
                   <div className="report-id"><span>{report.id}</span><small>{report.type}</small></div>
                   <div className="report-title"><h3>{report.title}</h3><p>{report.detail}</p></div>
-                  <div className="report-meta"><span>{report.date}</span><button disabled aria-label={`${report.title} PDF dosyası henüz eklenmedi`}><Download size={16} /><i>PDF</i></button></div>
+                  <div className="report-meta"><span>{report.date}</span><button type="button" onClick={() => showMissingDocument(report.title)} aria-label={`${report.title} için PDF durumu`}><Download size={16} /><i>PDF</i></button></div>
                 </article>
               ))}
               <div className="archive-note"><FileText size={16} /> ARCHIVE STATE: QUEUED — PDF bağlantısı eklendiğinde rapor, ayrı sekmede açılacak.</div>
@@ -276,7 +283,7 @@ export default function Home() {
             <h2>Özgeçmişin,<br /><em>tek dosyada.</em></h2>
             <p>MODULE 04 / Eğitim, staj, teknik yetkinlik ve proje deneyimlerini içeren güncel CV PDF’i bu noktadan sunulacak.</p>
             <div className="cv-actions">
-              <button className="cv-download" disabled><BriefcaseBusiness size={17} /> STATE: CV FILE / PENDING <Download size={17} /></button>
+              <button type="button" className="cv-download" onClick={() => showMissingDocument("CV dosyası")}><BriefcaseBusiness size={17} /> STATE: CV FILE / PENDING <Download size={17} /></button>
               <span>FILE ACCESS: PDF yüklendiğinde doğrudan indirilebilir.</span>
             </div>
           </div>

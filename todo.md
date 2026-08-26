@@ -1,0 +1,7 @@
+- [x] Canlı sayfada görünen sorunları masaüstü ve mobil görünümde tespit et. Görseller ve ana arayüz yükleniyor; görünür bir çökme yok.
+- [x] Konsol ve ağ kayıtlarındaki hataları incele. Çalışma zamanı hatası ya da başarısız ağ isteği bulunmadı.
+- [x] Etkileşimli alanları doğrudan doğrula. Rapor navigasyonu çalışıyor; ancak üst navigasyon kaydırmada kayboluyor ve PDF/CV durumları tıklanınca geri bildirim vermiyordu.
+- [x] Kalıcı navigasyonu ve belge durum geri bildirimlerini uygula. Piyasa bandı ve ana başlık artık sabit; PDF/CV eylemleri açıklayıcı bildirim veriyor.
+- [x] Kök nedenleri düzelterek etkileşimleri ve görselleri yeniden çalışır hâle getir. Sabit olmayan üst başlık ve sessiz belge durumları giderildi.
+- [x] Tür denetimi, üretim derlemesi ve responsive görünümü doğrula. `pnpm check` ve `pnpm build` geçti; mobil görünüm kontrol edildi.
+- [x] Düzeltilmiş sürümü kontrol noktası olarak kaydet ve teslim et.
