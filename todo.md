@@ -26,3 +26,8 @@
 - [x] Terminal modülleri arasındaki geçişleri doğrula. Raporlar modülü bağlam panelini ve terminal yolunu doğru güncelliyor.
 - [x] Önizleme paylaşım durumunu not et. Bu ekran önizleme modunda; kamuya açık erişim yalnızca yönetim arayüzündeki Publish akışından sonra mümkün.
 - [x] Yeniden tasarlanan terminal sürümünü yeni bir checkpoint olarak kaydet ve teslim et.
+- [x] Türkçe ve İngilizce CV’lerden ortak profil, eğitim, deneyim, yetkinlik ve iletişim verilerini çıkar. Onur İnal, çift ana dal, 3.20/4.00 GPA, proje, eğitim ve yetkinlik verileri profile hazır.
+- [x] Kullanıcının verdiği LinkedIn adresini doğrula ve erişim paneline bağla. CV’deki `linkedin.com/in/onurınal` adresi erişim için kullanılacak; LinkedIn dış oturum duvarı nedeniyle profil içeriği doğrudan görüntülenmedi.
+- [x] Ekrandaki terminal modüllerini çalışır filtre, seçim, panel geçişi, durum mesajı ve arama davranışlarıyla tamamla. İzleme listesi araması, sembol seçimi, grafik/derinlik güncellemesi, zaman aralığı, modül geçişi, odak modu, ayarlar, yardım ve rapor ayrıntı pencereleri çalışıyor.
+- [x] CV dosyalarının indirme/ekleme işlemlerini kullanıcının sonraki onayına kadar devre dışı ve beklemede tut. Profilde yalnızca açıklayıcı bekleme penceresi gösteriliyor; indirilebilir dosya eklenmedi.
+- [x] Güncellenen terminali masaüstü ve mobilde doğrula; yeni checkpoint oluşturup teslim et. Masaüstü değerlendirmesi, mobil ekran kontrolü, `pnpm check` ve `pnpm build` başarılı.
