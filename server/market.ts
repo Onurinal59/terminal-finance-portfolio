@@ -20,6 +20,15 @@ export type FinancialStatementKind = "income" | "balance" | "cashflow";
 export type FinancialStatementValue = { asOfDate: string; currency: string; raw: number; formatted: string };
 export type FinancialStatementRow = { key: string; label: string; values: Array<FinancialStatementValue | null> };
 export type FinancialStatements = { symbol: string; statement: FinancialStatementKind; periods: Array<{ asOfDate: string; currency: string }>; rows: FinancialStatementRow[]; chartAvailable: boolean; chartCurrency: string | null; source: "Yahoo Finance" };
+export type CorrelationWindow = 20 | 60;
+export type MarketCorrelation = {
+  window: CorrelationWindow;
+  assets: Array<{ symbol: string; label: string }>;
+  matrix: Array<Array<number | null>>;
+  observations: number;
+  asOfDate: string;
+  source: "Yahoo Finance";
+};
 
 type YahooChart = {
   chart?: {
@@ -37,8 +46,18 @@ type Cached<T> = { expiresAt: number; value: T };
 const quoteCache = new Map<string, Cached<MarketQuote>>();
 const chartCache = new Map<string, Cached<{ quote: MarketQuote; points: ChartPoint[] }>>();
 const statementCache = new Map<string, Cached<FinancialStatements>>();
+const correlationCache = new Map<CorrelationWindow, Cached<MarketCorrelation>>();
 const CACHE_MS = 45_000;
 const YAHOO_ORIGINS = ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"];
+
+const correlationAssets = [
+  { symbol: "BIST 100", label: "BIST", providerSymbol: "XU100.IS" },
+  { symbol: "S&P 500", label: "S&P", providerSymbol: "^GSPC" },
+  { symbol: "NASDAQ 100", label: "NDX", providerSymbol: "^NDX" },
+  { symbol: "USD/TRY", label: "USD/TRY", providerSymbol: "TRY=X" },
+  { symbol: "ALTIN", label: "ALTIN", providerSymbol: "GC=F" },
+  { symbol: "VIX", label: "VIX", providerSymbol: "^VIX" },
+] as const;
 
 const statementMetrics: Record<FinancialStatementKind, StatementMetric[]> = {
   income: [
@@ -74,6 +93,18 @@ export type Timeframe = keyof typeof timeframes;
 
 export function canonicalSymbol(symbol: string) {
   return symbol.trim().toUpperCase().replace(/\s+/g, "");
+}
+
+export function calculatePearsonCorrelation(left: number[], right: number[]) {
+  if (left.length !== right.length || left.length < 3) return null;
+  const leftMean = left.reduce((total, value) => total + value, 0) / left.length;
+  const rightMean = right.reduce((total, value) => total + value, 0) / right.length;
+  const numerator = left.reduce((total, value, index) => total + (value - leftMean) * (right[index] - rightMean), 0);
+  const leftVariance = left.reduce((total, value) => total + (value - leftMean) ** 2, 0);
+  const rightVariance = right.reduce((total, value) => total + (value - rightMean) ** 2, 0);
+  const denominator = Math.sqrt(leftVariance * rightVariance);
+  if (!Number.isFinite(denominator) || denominator === 0) return null;
+  return Math.max(-1, Math.min(1, numerator / denominator));
 }
 
 function numberOrNull(value: unknown) {
@@ -217,6 +248,39 @@ export async function getQuotes(symbols: string[]) {
     return (await getChart(symbol, "1G")).quote;
   }));
   return results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+}
+
+function dayKey(time: number) {
+  return new Date(time).toISOString().slice(0, 10);
+}
+
+export async function getMarketCorrelation(window: CorrelationWindow): Promise<MarketCorrelation> {
+  const cached = correlationCache.get(window);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  return resolveWithStaleCache(cached, async () => {
+    const results = await Promise.allSettled(correlationAssets.map(async (asset) => ({ asset, chart: await getChart(asset.providerSymbol, "1Y") })));
+    const available = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+    if (available.length < 2) throw new Error("Korelasyon haritası için yeterli piyasa serisi alınamadı.");
+    const closeMaps = available.map(({ chart }) => new Map(chart.points.flatMap((point) => point.close === null ? [] : [[dayKey(point.time), point.close] as const])));
+    const commonDates = Array.from(closeMaps[0].keys()).filter((date) => closeMaps.every((closes) => closes.has(date))).sort();
+    const dates = commonDates.slice(-(window + 1));
+    if (dates.length < 4) throw new Error("Korelasyon haritası için yeterli ortak günlük kapanış bulunamadı.");
+    const returns = closeMaps.map((closes) => dates.slice(1).map((date, index) => {
+      const previous = closes.get(dates[index])!;
+      return (closes.get(date)! - previous) / previous;
+    }));
+    const matrix = returns.map((series, rowIndex) => returns.map((comparison, columnIndex) => rowIndex === columnIndex ? 1 : calculatePearsonCorrelation(series, comparison)));
+    const value: MarketCorrelation = {
+      window,
+      assets: available.map(({ asset }) => ({ symbol: asset.symbol, label: asset.label })),
+      matrix,
+      observations: dates.length - 1,
+      asOfDate: dates.at(-1)!,
+      source: "Yahoo Finance",
+    };
+    correlationCache.set(window, { value, expiresAt: Date.now() + CACHE_MS });
+    return value;
+  });
 }
 
 export async function searchSymbols(query: string) {

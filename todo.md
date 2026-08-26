@@ -140,3 +140,9 @@
 - [x] Eğitim & Araştırma panelini Pano hiyerarşisinden çıkararak görünümü sadeleştir. Eğitim içeriği Profil modülünde kalmaya devam ediyor.
 - [x] Dikey Pano akışını masaüstü/mobilde görsel olarak doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü tam sayfa doğrulaması, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Bu Pano hiyerarşisi düzeltmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.4 sürümü checkpoint için hazırlandı.
+- [x] Mevcut Yahoo OHLC aracısından seçili piyasa evreni için korelasyon hesaplamaya uygun günlük kapanış serilerini sun. Ortak işlem günleri hizalanarak günlük basit getirilerden Pearson korelasyonu hesaplanıyor.
+- [x] Pano üst alanındaki kullanılabilir boşluğa 20/60 günlük dönem seçicili, tıklanabilir Piyasa Korelasyon Haritası ekle. Profil panelinin altındaki boşluk, BIST–ABD–kur–emtia–VIX matrisiyle dolduruldu.
+- [x] Korelasyon hücresi seçildiğinde ana grafikte ilgili sembolü aç veya karşılaştırma bağlamını görünür kıl; veri kapsamı ve gecikme notunu göster. Hücre seçimi grafiği ilgili sembole taşır; çift, gözlem, tarih, kaynak ve rejim notu yüzeyde yer alır.
+- [x] Sağ Finansal Analiz dock’undaki geniş/seyrek fiyat kutularını diğer panel ritmiyle uyumlu kompakt metrik kartlarına dönüştür. Dikey dock için fiyat, aralık, sinyal ve mali satır aralıkları azaltıldı; uzun mali liste kaydırılabilir tutuldu.
+- [x] Korelasyon haritası ve kompakt dock’u masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil görünüm; pnpm check, 12 Vitest testi ve pnpm build başarıyla doğrulandı.
+- [ ] Bu piyasa interaktivitesi güncellemesini yeni checkpoint olarak kaydet ve teslim et.
