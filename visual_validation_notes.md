@@ -19,3 +19,13 @@ Mobil ikinci doğrulamada rapor listesi ile ön izleme tek sütuna alındı; ba�
 ## Gerçek PDF Raporu — 26 Ağustos 2026
 
 Kullanıcının sağladığı `2064_sample.pdf`, kaynak etiketiyle **Microsoft Equity Research · Örnek** kartına bağlandı. Masaüstü ve mobil rapor kütüphanesinde seçili kartın ön izlemesi doğru göründü; **PDF’yi Aç** ve **İndir** eylemleri görünür durumdadır. Geliştirme sunucusu storage yoluna istek attığında dosya için imzalı yönlendirme üretiyor.
+
+## Terminal v0.8 — 26 Ağustos 2026
+
+Masaüstü kontrolünde panel başlıkları taşıma tutamacını yalnız başlık alanında gösterdi; gövdedeki grafik, seçim ve form eylemleri sürükleme başlatmıyor. Sağ dock, canlı fiyat aralığı ile Yahoo yıllık gelir kalemlerini birlikte gösterdi. Raporlar ve Bağlantı ekranlarının alt alanları yayın/iletişim akışı blokları ile doldu. Dar grafik panellerinde finansal sekmelerin ayrı satırda görünmesi için araç çubuğu düzeni iyileştirildi.
+
+Gelir tablosu ve bilanço sekmeleri, seçili THYAO için sunucu aracısı üzerinden yıllık Yahoo Finance kalemlerini açtı. Sağlayıcının dönem para birimlerini karıştırdığı durumda grafik karşılaştırması kapatılıp tablo açıklaması gösterildi. Mali tablo ekranı masaüstünde daha çok sütun göstermek üzere ana çalışma alanının tam genişliğine alındı.
+
+İkinci masaüstü denetiminde Income, Balance ve Cash Flow sekmeleri doğru aktif durumu aldı. Canlı veri istekleri sağlayıcı yenilemesi sırasında boş/yükleme durumuna geçebiliyor; sunucu kayıtları daha sonra THYAO OHLC yanıtının başarıyla döndüğünü gösterdi. Arayüz bu süre için veriyi bekleyen durumunu açıkça gösterir.
+
+Mobil doğrulamada panel başlıklarında taşıma tutamacı yerine kilit göstergesi göründü; seçenek menüsü gizlenerek yanlışlıkla panel taşıma/büyütme engellendi. Gelir tablosu mobilde yatay kaydırılabilir finansal tablo olarak, Raporlar ve Bağlantı modülleri ise içerik bloklarıyla dolu tek sütun halinde göründü. Kişisel izleme listesi sayacı ve sabit varsayılan evren de mobilde erişilebilir kaldı.

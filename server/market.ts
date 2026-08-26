@@ -16,6 +16,10 @@ export type MarketQuote = {
 };
 
 export type ChartPoint = { time: number; close: number | null; high: number | null; low: number | null; open: number | null; volume: number | null };
+export type FinancialStatementKind = "income" | "balance" | "cashflow";
+export type FinancialStatementValue = { asOfDate: string; currency: string; raw: number; formatted: string };
+export type FinancialStatementRow = { key: string; label: string; values: Array<FinancialStatementValue | null> };
+export type FinancialStatements = { symbol: string; statement: FinancialStatementKind; periods: Array<{ asOfDate: string; currency: string }>; rows: FinancialStatementRow[]; chartAvailable: boolean; chartCurrency: string | null; source: "Yahoo Finance" };
 
 type YahooChart = {
   chart?: {
@@ -26,12 +30,37 @@ type YahooChart = {
     }>;
   };
 };
+type YahooFundamentalsPayload = { timeseries?: { result?: Array<Record<string, unknown>> } };
+type StatementMetric = { key: string; label: string; providerKey: string };
 
 type Cached<T> = { expiresAt: number; value: T };
 const quoteCache = new Map<string, Cached<MarketQuote>>();
 const chartCache = new Map<string, Cached<{ quote: MarketQuote; points: ChartPoint[] }>>();
+const statementCache = new Map<string, Cached<FinancialStatements>>();
 const CACHE_MS = 45_000;
 const YAHOO_ORIGINS = ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"];
+
+const statementMetrics: Record<FinancialStatementKind, StatementMetric[]> = {
+  income: [
+    { key: "revenue", label: "Toplam Gelir", providerKey: "annualTotalRevenue" },
+    { key: "grossProfit", label: "Brüt Kâr", providerKey: "annualGrossProfit" },
+    { key: "operatingIncome", label: "Faaliyet Kârı", providerKey: "annualOperatingIncome" },
+    { key: "netIncome", label: "Net Dönem Kârı", providerKey: "annualNetIncome" },
+    { key: "dilutedEPS", label: "Seyreltilmiş EPS", providerKey: "annualDilutedEPS" },
+  ],
+  balance: [
+    { key: "assets", label: "Toplam Varlıklar", providerKey: "annualTotalAssets" },
+    { key: "liabilities", label: "Toplam Yükümlülükler", providerKey: "annualTotalLiabilitiesNetMinorityInterest" },
+    { key: "equity", label: "Özkaynaklar", providerKey: "annualStockholdersEquity" },
+    { key: "cash", label: "Nakit ve Nakit Benzerleri", providerKey: "annualCashCashEquivalentsAndShortTermInvestments" },
+    { key: "debt", label: "Toplam Borç", providerKey: "annualTotalDebt" },
+  ],
+  cashflow: [
+    { key: "operatingCashFlow", label: "Faaliyetlerden Nakit Akışı", providerKey: "annualOperatingCashFlow" },
+    { key: "capex", label: "Sermaye Harcaması", providerKey: "annualCapitalExpenditure" },
+    { key: "freeCashFlow", label: "Serbest Nakit Akışı", providerKey: "annualFreeCashFlow" },
+  ],
+};
 
 export const timeframes = {
   "1G": { range: "1d", interval: "5m" },
@@ -87,6 +116,44 @@ export function parseChart(symbol: string, payload: YahooChart): { quote: Market
   };
 }
 
+function parseStatementValue(value: unknown): FinancialStatementValue | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as { asOfDate?: unknown; currencyCode?: unknown; reportedValue?: { raw?: unknown; fmt?: unknown } };
+  const raw = numberOrNull(record.reportedValue?.raw);
+  if (typeof record.asOfDate !== "string" || raw === null) return null;
+  return {
+    asOfDate: record.asOfDate,
+    currency: typeof record.currencyCode === "string" ? record.currencyCode : "—",
+    raw,
+    formatted: typeof record.reportedValue?.fmt === "string" ? record.reportedValue.fmt : new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(raw),
+  };
+}
+
+export function parseFinancialStatements(symbolInput: string, statement: FinancialStatementKind, payload: YahooFundamentalsPayload): FinancialStatements {
+  const symbol = canonicalSymbol(symbolInput);
+  const metrics = statementMetrics[statement];
+  const results = payload.timeseries?.result ?? [];
+  const rowsByMetric = metrics.map((metric) => {
+    const source = results.find((result) => Array.isArray(result[metric.providerKey]));
+    const values = (source?.[metric.providerKey] as unknown[] | undefined)?.map(parseStatementValue).filter((value): value is FinancialStatementValue => value !== null) ?? [];
+    return { metric, values };
+  });
+  const periodMap = new Map<string, { asOfDate: string; currency: string }>();
+  rowsByMetric.flatMap((row) => row.values).forEach((value) => {
+    const current = periodMap.get(value.asOfDate);
+    if (!current || current.currency === "—") periodMap.set(value.asOfDate, { asOfDate: value.asOfDate, currency: value.currency });
+  });
+  const periods = Array.from(periodMap.values()).sort((a, b) => a.asOfDate.localeCompare(b.asOfDate)).slice(-5);
+  if (!periods.length) throw new Error(`${symbol} için yıllık mali tablo verisi bulunamadı.`);
+  const rows: FinancialStatementRow[] = rowsByMetric.map(({ metric, values }) => ({
+    key: metric.key,
+    label: metric.label,
+    values: periods.map((period) => values.find((value) => value.asOfDate === period.asOfDate) ?? null),
+  }));
+  const currencies = new Set(periods.map((period) => period.currency).filter((currency) => currency !== "—"));
+  return { symbol, statement, periods, rows, chartAvailable: periods.length >= 2 && currencies.size === 1, chartCurrency: currencies.size === 1 ? Array.from(currencies)[0] : null, source: "Yahoo Finance" };
+}
+
 async function yahooFetch(path: string) {
   let failure: unknown;
   for (const origin of YAHOO_ORIGINS) {
@@ -124,6 +191,20 @@ export async function getChart(symbolInput: string, timeframe: Timeframe) {
     const value = parseChart(symbol, payload as YahooChart);
     chartCache.set(cacheKey, { value, expiresAt: Date.now() + CACHE_MS });
     quoteCache.set(symbol, { value: value.quote, expiresAt: Date.now() + CACHE_MS });
+    return value;
+  });
+}
+
+export async function getFinancialStatements(symbolInput: string, statement: FinancialStatementKind) {
+  const symbol = canonicalSymbol(symbolInput);
+  const cacheKey = `${symbol}:${statement}`;
+  const cached = statementCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  return resolveWithStaleCache(cached, async () => {
+    const type = statementMetrics[statement].map((metric) => metric.providerKey).join(",");
+    const payload = await yahooFetch(`/ws/fundamentals-timeseries/v1/finance/timeseries/${encodeURIComponent(symbol)}?symbol=${encodeURIComponent(symbol)}&type=${type}&period1=1609459200&period2=1767225600`);
+    const value = parseFinancialStatements(symbol, statement, payload as YahooFundamentalsPayload);
+    statementCache.set(cacheKey, { value, expiresAt: Date.now() + CACHE_MS });
     return value;
   });
 }
