@@ -117,4 +117,4 @@
 - [x] Birincil/ikincil butonların hit alanı, ağırlığı, hover, odak ve basılma durumlarını daha belirgin hâle getir. CV ve grafik kontrollerinin hit alanları büyütüldü; iki piksellik odak halkası, gölge/renk hover ve basılma geri bildirimi eklendi.
 - [x] Navigasyon, paneller, sekmeler ve veri satırlarına kısa, kontrollü terminal mikro etkileşimleri ekle; `prefers-reduced-motion` tercihini koru. Panel girişleri, hover yükselişi ve renk geçişleri 140–260ms aralığında; azaltılmış hareket tercihi etkin biçimde destekleniyor.
 - [x] Yeni tipografi/animasyon sisteminin masaüstü ve mobil okunurluğunu doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. 1360px, 820px, 390px görsel denetimleri; pnpm check, 11 Vitest testi ve pnpm build başarılı.
-- [ ] Bu okunurluk ve etkileşim iyileştirmesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu okunurluk ve etkileşim iyileştirmesini checkpoint olarak kaydet ve teslim et. Sürüm `61bbb9ea` checkpoint olarak kaydedildi.
