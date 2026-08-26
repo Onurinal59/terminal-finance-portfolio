@@ -91,3 +91,14 @@
 - [x] Mobilde panel taşıma, büyütme ve yanlışlıkla kontrol çalıştırma riskini kaldır; yalnızca güvenli görüntüleme/temel modül geçişi bırak. Mobilde sürükleme devre dışı, kilit göstergesi görünür, seçenek menüsü gizli ve aç/kapa denetimi korunuyor.
 - [x] Yeni etkileşimleri ve finansal sekmeleri masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran doğrulamaları, 9 test, `pnpm check` ve üretim derlemesi başarılı.
 - [x] Bu kullanılabilirlik ve analiz güncellemesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v0.8 sürümü checkpoint için hazırlandı.
+- [x] İzleme listesi dışındaki Yahoo sembol aramasını sonuçtan sembol seçme ve kişisel listeye ekleme akışıyla gerçekten çalışır hâle getir. ASML gibi sorgular için Yahoo Quote Lookup sonuçları görünür; tıklama grafiği açar ve sembolü kişisel listeye ekler.
+- [x] İzleme listesi paneline Yahoo tarzı İzleme Listesi / Piyasa Keşfi sekmeleri; Trending, Top Gainers ve Top Losers görünümleri ekle. İki sekmeli panel ve gerçek seçili evrenden türetilen üç keşif listesi eklendi.
+- [x] Piyasa keşfi için ülke/varlık evreni filtresi ekle; ücretsiz Yahoo verisiyle kapsamı açıkça etiketle. Türkiye/ABD/Makro/Tümü filtresi ile Yahoo ücretsiz veri kapsamı ve yatırım tavsiyesi olmadığı notu görünüyor.
+- [x] Sağ Finansal Analiz panelini dikeyde bilgi yoğunluğu daha yüksek, okunaklı bir görünümle genişlet. Fiyat aralığı, mum sayısı, fiyat durumu, veri kapsamı, son yıllık kalemler ve yöntem notu eklendi.
+- [x] Onur İnal profilindeki boş alanı doğrulanmış eğitim, ödül, proje ve araştırma odağı kartlarıyla doldur. Araştırma odağı, Örnek Öğrenci Ödülü 2025, The Moat & Co. ve araç seti kartları eklendi.
+- [x] CV indirme deneyimini dil → fotoğraflı/fotoğrafsız adımlarına böl; her geçerli seçenek için uygun dosya hedefini sun. CV Seç & İndir akışı Türkçe/English, fotoğraflı/sade-ATS seçenekleri ve dört PDF hedefini içeriyor.
+- [x] Fiyat/Income/Balance/Cash Flow araç çubuğunun diğer içeriği kapatmasını önle ve tüm sekmeleri responsive biçimde erişilebilir yap. Sekmeler ayrı sabit satıra alındı; mobilde taşmadan dört görünüm korunuyor.
+- [x] Panel düzeni için kilitle/kilidi aç, sıfırla ve sıralamayı kaydet eylemlerini; kaydırma uyumunu ve mobil güvenliği ekle. Başlık menüsüne kilit eylemi, localStorage kalıcılığı ve Düzeni Sıfırla eklendi; kilitli panel kaynak/hedef olamıyor.
+- [x] Bildirim merkezini görünür, okunur ve gerçek arayüz durumlarını anlatır biçimde düzelt. Bağlantı, grafik yükleme ve kilit sayısını açıklayan açılır bildirim merkezi eklendi; mobilde de görünür.
+- [x] Yeni arama, keşif, panel düzeni, CV ve bildirim akışlarını masaüstü/mobilde doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü/mobil görsel denetimler, 10 birim test, tür denetimi ve üretim derlemesi başarılı.
+- [x] Bu terminal etkileşim güncellemesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v0.9 sürümü checkpoint için hazırlandı.

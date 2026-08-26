@@ -13,6 +13,11 @@ export function placePanelBefore<T extends string>(order: readonly T[], panel: T
   return next;
 }
 
+export function placeUnlockedPanelBefore<T extends string>(order: readonly T[], panel: T, target: T, locked: readonly T[]): T[] {
+  if (locked.includes(panel) || locked.includes(target)) return [...order];
+  return placePanelBefore(order, panel, target);
+}
+
 export function movePanelOrder<T extends string>(order: readonly T[], panel: T, direction: PanelDirection): T[] {
   const index = order.indexOf(panel);
   const destination = index + direction;

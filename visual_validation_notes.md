@@ -29,3 +29,9 @@ Gelir tablosu ve bilanço sekmeleri, seçili THYAO için sunucu aracısı üzeri
 İkinci masaüstü denetiminde Income, Balance ve Cash Flow sekmeleri doğru aktif durumu aldı. Canlı veri istekleri sağlayıcı yenilemesi sırasında boş/yükleme durumuna geçebiliyor; sunucu kayıtları daha sonra THYAO OHLC yanıtının başarıyla döndüğünü gösterdi. Arayüz bu süre için veriyi bekleyen durumunu açıkça gösterir.
 
 Mobil doğrulamada panel başlıklarında taşıma tutamacı yerine kilit göstergesi göründü; seçenek menüsü gizlenerek yanlışlıkla panel taşıma/büyütme engellendi. Gelir tablosu mobilde yatay kaydırılabilir finansal tablo olarak, Raporlar ve Bağlantı modülleri ise içerik bloklarıyla dolu tek sütun halinde göründü. Kişisel izleme listesi sayacı ve sabit varsayılan evren de mobilde erişilebilir kaldı.
+
+## Terminal v0.9 — 26 Ağustos 2026
+
+Masaüstü doğrulamada serbest ASML sorgusu için görünür Yahoo Quote Lookup yükleme durumu, iki sekmeli İzleme Listesi/Piyasa Keşfi yüzeyi ve ülke/varlık filtresi göründü. Piyasa Keşfi sekmesi gerçek seçili evrenden Trending Tickers, Top Gainers ve Top Losers sıralamasını fiyat/değişim ile oluşturdu. Gelir tablosu görünümünde dört mali yıl tablosu ve karışık para birimi uyarısı; sağ dock’ta fiyat, dönem aralığı, mum kapsamı ile yıllık finansal kalemler aynı anda göründü.
+
+Mobil v0.9 denetiminde ASML araması gerçek Yahoo sonuçlarıyla (ASML, ASML.AS, ilgili ETF/listing sonuçları) görünür oldu. Piyasa Keşfi görünümünde gerçek seçili evrenin Trending Tickers, Top Gainers ve Top Losers listeleri tek sütunda taşmadan aktı. Profilin akademik/proje/araç seti kartları önceki boş alanı doldurdu; mali tablo ve sağ analiz bilgileri mobil akışta okunur kaldı. Mobilde yalnız aç/kapa denetimi ile bildirim simgesi görünür; taşıma ve seçenek menüsü kapalıdır.

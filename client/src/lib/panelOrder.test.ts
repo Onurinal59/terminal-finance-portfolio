@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAutoScrollDelta, movePanelOrder, placePanelBefore } from "./panelOrder";
+import { getAutoScrollDelta, movePanelOrder, placePanelBefore, placeUnlockedPanelBefore } from "./panelOrder";
 
 describe("panel order helpers", () => {
   const order = ["profile", "chart", "summary", "archive"] as const;
@@ -18,5 +18,11 @@ describe("panel order helpers", () => {
     expect(getAutoScrollDelta(30, 800)).toBe(-18);
     expect(getAutoScrollDelta(400, 800)).toBe(0);
     expect(getAutoScrollDelta(780, 800)).toBe(18);
+  });
+
+  it("does not move a locked panel or drop onto a locked target", () => {
+    expect(placeUnlockedPanelBefore(order, "archive", "chart", ["archive"])).toEqual([...order]);
+    expect(placeUnlockedPanelBefore(order, "archive", "chart", ["chart"])).toEqual([...order]);
+    expect(placeUnlockedPanelBefore(order, "archive", "chart", [])).toEqual(["profile", "archive", "chart", "summary"]);
   });
 });
