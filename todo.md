@@ -153,3 +153,10 @@
 - [x] Taşıma, kilit, sıfırlama, büyüt/küçült ve mobil tek sütun davranışlarını yeni panel kimlikleriyle uyumlu hâle getir. Sıra kalıcılığı v7’ye güncellendi, büyütme tercihi saklanıyor, sıfırlama tam düzeni geri alıyor ve mobilde büyütme/taşıma kapalı.
 - [x] Yeni bağımsız panel düzenini masaüstü/mobilde doğrula; birim testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran görüntüleri; pnpm check, 13 Vitest testi ve pnpm build başarıyla tamamlandı.
 - [x] Bu yeniden akışlı terminal grid güncellemesini checkpoint olarak kaydet ve teslim et. v1.6 sürümü `2ff479c1` checkpoint olarak kaydedildi.
+- [x] Masaüstü Pano’da gövde sayfa kaydırmasını kaldır; terminal çerçevesini tarayıcı görünüm alanına tam yükseklik/genişlikte sabitle. 100svh terminal çerçevesi ve gizlenmiş body taşması uygulandı.
+- [x] Sol İzleme Listesi, orta çalışma alanı ve sağ Kısayollar/Finansal Analiz bölgelerini fareyle yatay olarak yeniden boyutlandırılabilir ana bölgelere dönüştür. Sol/orta/sağ kolon sınırlarına görünür yatay kavramalar eklendi.
+- [x] Orta çalışma alanında üst/alt panel gruplarını fareyle dikey ve yatay yeniden boyutlandırılabilir, iç kaydırmalı panellere ayır. Ana sütun ve üç satır sınırı; merkezi kavramalarla ayarlanabilir hâle getirildi.
+- [x] Profil, Piyasa Özeti, Korelasyon, Yıllık Finansallar ve Grafik panellerinin içerik taşmasını kendi paneli içinde kaydır; sayfa yüksekliğini sabit tut. Pano panellerinde yalnızca panel gövdesi iç kaydırma kullanılıyor.
+- [x] Masaüstünde yeniden boyut tercihlerini güvenli şekilde kalıcılaştır; mobilde tek sütun, normal sayfa akışı ve yanlışlıkla resize kapalı kalsın. Ölçüler localStorage’da saklanıyor; 821px altında terminal normal tek sütun akışına dönüyor.
+- [x] Tam ekran terminal düzenini masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu tam ekran yeniden boyutlandırılabilir terminal güncellemesini checkpoint olarak kaydet ve teslim et.
