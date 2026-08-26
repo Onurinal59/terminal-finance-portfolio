@@ -102,3 +102,12 @@
 - [x] Bildirim merkezini görünür, okunur ve gerçek arayüz durumlarını anlatır biçimde düzelt. Bağlantı, grafik yükleme ve kilit sayısını açıklayan açılır bildirim merkezi eklendi; mobilde de görünür.
 - [x] Yeni arama, keşif, panel düzeni, CV ve bildirim akışlarını masaüstü/mobilde doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü/mobil görsel denetimler, 10 birim test, tür denetimi ve üretim derlemesi başarılı.
 - [x] Bu terminal etkileşim güncellemesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v0.9 sürümü checkpoint için hazırlandı.
+- [x] Onur İnal profilindeki kartları CV özeti temelli tek, güçlü bir tanıtım metni ve kısa odak satırlarıyla yeniden düzenle. Kısa Özet alanı; eğitim, temel analiz yaklaşımı ve araç setini tek anlatıda sunuyor.
+- [x] CV indirme alanını başlangıçta tek bir buton; dil, görünüm ve indirme aşamalarında animasyonlu iki seçenekli akış olarak yeniden tasarla. Tek CTA → Türkçe/English → Fotoğraflı/Fotoğrafsız → kısa hazırlanma durumu → indirme akışı eklendi.
+- [x] Ana Fiyat & Finansallar alanından yıllık mali tablo görünümünü kaldır; Fiyat/Income/Balance/Cash Flow için Yahoo-benzeri grafik görünümüne dönüştür. Ana panelde tablo kaldırıldı; mali sekmeler seçili kalemlerle çubuk trend grafiği sunuyor.
+- [x] Yıllık finansal kalemleri yalnızca sağ Finansal Analiz dock’undaki bilgi kartlarında güncelle; veri yokken kompakt, anlaşılır durum göster. Sağ dock seçili mali görünümün yıllık kalemlerini gösteriyor; boş/veri bekleniyor durumları kompakt biçimde yer alıyor.
+- [x] Fiyat/Income/Balance/Cash Flow sekmelerinin üst üste binmesini engelle ve panel araç çubuğunu responsive biçimde yeniden hizala. Sembol/aralık ve görünüm sekmeleri ayrık, hizalı satırlara alındı.
+- [x] Piyasa Keşfi paneline seçilen sembollerden oluşan Son Ziyaret Edilenler bölümünü ekle. Son beş sembol tarayıcıda saklanarak Piyasa Keşfi sekmesinde gösteriliyor.
+- [x] Piyasa Özeti hücrelerini eşit yüksekliğe, tutarlı hiyerarşiye ve hizalı alt satıra getir; çalışma alanı panellerinin alt bitişlerini düzelt. Özet grid’i sabit satır hiyerarşisine kavuştu; profil/özet blokları hizalı doğrulandı.
+- [x] Güncellenen profil, CV, grafik, keşif ve panel hizasını masaüstü/mobilde doğrula; testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran doğrulamaları, 11 birim test, tür denetimi ve üretim derlemesi başarılı.
+- [x] Bu görsel ve etkileşim iyileştirmesini yeni checkpoint olarak kaydet ve teslim et. Doğrulanmış v1.0 sürümü checkpoint için hazırlandı.
