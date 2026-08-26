@@ -178,3 +178,9 @@
 - [x] Orta Pano gridini Profil + Piyasa Özeti üst satırı, Korelasyon yüzeyi ve geniş Grafik araştırma alanına göre yeniden dengele. Korelasyon iki merkezi sütunu kapladı, Yıllık Finansallar çıkarılınca ana grafik geniş araştırma alanını korudu.
 - [x] Yeni profil ölçüsünü ve dikey finansal dock düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu profil/finansal dock yerleşim güncellemesini checkpoint olarak kaydet ve teslim et. v2.0 sürümü `a15b0c8f` checkpoint olarak kaydedildi.
+- [x] Piyasa Özeti panelinin sabit yüksekliğini içeriği kadar kompaktlaştır; alt kartları boş alan bırakmadan yoğunlaştır. Özet, Profil ile aynı satır yüksekliğine ayarlanıp üç piyasa kartı, üç makro kart ve alt durum şeridiyle yüzeyi dolduruyor.
+- [x] Fiyat & Finansallar ile Piyasa Korelasyon Haritası panelinin Pano’daki dikey konumlarını değiştir. Grafik ikinci ana satıra, Korelasyon Haritası grafik altına taşındı.
+- [x] Merkezi panel gridindeki yapay minimum yükseklik ve boş alanları kaldır; panel gövdelerini içerik/grafik ihtiyacına göre sıkılaştır. Grafik 520px, Korelasyon 350px araştırma yüksekliğine ayarlandı; özet gövdesi taşmasız iç dağılıma geçti.
+- [x] Sol İzleme Listesi dock’unu sağdaki Finansal Analiz + Yıllık Finansallar toplamının alt hizasına kadar uzat. Sol ve sağ dock 1080px ortak alt hizaya ayarlandı.
+- [x] Sıkılaştırılmış Pano düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu kompakt Pano ve hizalı dock güncellemesini checkpoint olarak kaydet ve teslim et.
