@@ -168,3 +168,20 @@ html[data-terminal-view="DASHBOARD"] .terminal-layout { align-items: stretch; mi
   .terminal-resizing-x { cursor: col-resize !important; user-select: none; }.terminal-resizing-y { cursor: row-resize !important; user-select: none; }
 }
 @media (max-width: 820px) { html,body,#root { height: auto; min-height: 100%; overflow: auto; }.terminal-app { height: auto; min-height: 100svh; overflow: visible; } }
+
+/* v1.8: kullanıcı ölçeklendirmesi olmadan dengeli, sabit tam ekran terminal */
+@media (min-width: 821px) {
+  html[data-terminal-view="DASHBOARD"] .terminal-layout { grid-template-columns: 250px minmax(0,1fr) 235px !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid { grid-template-columns: minmax(0,1.04fr) minmax(300px,.96fr) !important; grid-template-rows: 270px 260px minmax(0,1fr) !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .workspace-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .profile-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .summary-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .correlation-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .annuals-panel,html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel { min-height: 0 !important; height: 100% !important; }
+  html[data-terminal-view="DASHBOARD"] .dashboard-grid .chart-panel { grid-column: 1 / -1 !important; }
+  html[data-terminal-view="DASHBOARD"] .right-dock .quick-links { flex-basis: 175px; height: 175px; }
+  html[data-terminal-view="DASHBOARD"] .right-dock .analysis-dock { min-height: 0; }
+  .terminal-resize-handle { display: none !important; }
+  .panel-expand-toggle { display: none !important; }
+  html[data-terminal-view="DASHBOARD"] .left-dock { min-width: 250px; max-width: 250px; }
+  html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel { display: flex; flex-direction: column; width: 100%; max-width: 100%; }
+  html[data-terminal-view="DASHBOARD"] .left-dock .watchlist-panel > .panel-body { width: 100%; max-width: 100%; overflow-x: hidden !important; overflow-y: auto; }
+  html[data-terminal-view="DASHBOARD"] .watch-panel-tabs,html[data-terminal-view="DASHBOARD"] .watchlist-tools,html[data-terminal-view="DASHBOARD"] .watchlist-filters,html[data-terminal-view="DASHBOARD"] .watchlist-label,html[data-terminal-view="DASHBOARD"] .watchlist-list,html[data-terminal-view="DASHBOARD"] .watchlist-footnote { width: 100%; min-width: 0; max-width: 100%; }
+  html[data-terminal-view="DASHBOARD"] .watch-row,html[data-terminal-view="DASHBOARD"] .watch-row-select { min-width: 0; max-width: 100%; }
+}

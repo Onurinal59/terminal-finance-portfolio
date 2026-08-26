@@ -160,3 +160,9 @@
 - [x] Masaüstünde yeniden boyut tercihlerini güvenli şekilde kalıcılaştır; mobilde tek sütun, normal sayfa akışı ve yanlışlıkla resize kapalı kalsın. Ölçüler localStorage’da saklanıyor; 821px altında terminal normal tek sütun akışına dönüyor.
 - [x] Tam ekran terminal düzenini masaüstü/mobilde doğrula; testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
 - [x] Bu tam ekran yeniden boyutlandırılabilir terminal güncellemesini checkpoint olarak kaydet ve teslim et. v1.7 sürümü `498d177c` checkpoint olarak kaydedildi.
+- [x] Serbest fareyle boyutlandırma tutamaçlarını ve kullanıcının kaydedilmiş bozuk ölçülerini kaldır. Resize effect’i, tutamaçlar ve ilgili localStorage ölçüleri kaldırıldı.
+- [x] Masaüstü terminalinde İzleme Listesi, ana çalışma alanı ve sağ Finansal Analiz dock’u için okunur sabit kolon ölçüleri uygula. 250px / esnek orta alan / 235px sabit terminal kolonları uygulandı.
+- [x] Profil, Piyasa Özeti, Korelasyon, Yıllık Finansallar ve Grafik için dolu fakat taşmayan sabit satır yükseklikleri kur; sayfanın tam ekran sınırını koru. 270px üst satır, 260px analiz satırı ve kalan alanda grafik ile sabit görünüm alanı korundu.
+- [x] Dock ve panel gövdelerinde yalnızca gerektiğinde ince iç kaydırma bırak; içerik genişliklerini bozmadan ekranda okunur kıl. İzleme Listesi dikey akışa zorlandı; yatay taşma engellendi ve yalnızca panel gövdeleri kayar kaldı.
+- [x] Sabit tam ekran terminal düzenini masaüstü/mobilde doğrula; tür denetimini, testleri ve üretim derlemesini çalıştır. Masaüstü/mobil ekran denetimleri; pnpm check, 13 Vitest testi ve pnpm build başarılı.
+- [ ] Bu dengeli sabit terminal düzenini checkpoint olarak kaydet ve teslim et.
