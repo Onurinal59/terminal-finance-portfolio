@@ -152,4 +152,4 @@
 - [x] Panel başlığındaki büyüt/küçült eylemini grid span değişimiyle bağla; büyütülen panelde komşu paneller yeniden akarak yer açsın. Başlıktaki büyütme denetimi seçilen paneli iki sütuna yayar ve diğer panelleri otomatik olarak sonraki grid alanına taşır.
 - [x] Taşıma, kilit, sıfırlama, büyüt/küçült ve mobil tek sütun davranışlarını yeni panel kimlikleriyle uyumlu hâle getir. Sıra kalıcılığı v7’ye güncellendi, büyütme tercihi saklanıyor, sıfırlama tam düzeni geri alıyor ve mobilde büyütme/taşıma kapalı.
 - [x] Yeni bağımsız panel düzenini masaüstü/mobilde doğrula; birim testleri, tür denetimini ve üretim derlemesini çalıştır. Masaüstü/mobil ekran görüntüleri; pnpm check, 13 Vitest testi ve pnpm build başarıyla tamamlandı.
-- [ ] Bu yeniden akışlı terminal grid güncellemesini checkpoint olarak kaydet ve teslim et.
+- [x] Bu yeniden akışlı terminal grid güncellemesini checkpoint olarak kaydet ve teslim et. v1.6 sürümü `2ff479c1` checkpoint olarak kaydedildi.
