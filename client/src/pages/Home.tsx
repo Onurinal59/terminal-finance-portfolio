@@ -28,14 +28,20 @@ type DiscoveredSymbol = { symbol: string; providerSymbol: string; name: string }
 type ResearchReport = { id: string; title: string; category: Exclude<ReportCategory, "TÜMÜ">; period: string; focus: string; methodology: string; href: string; source: string };
 type SearchAssetFilter = { id: string; label: string; types: string[] };
 
-const profilePhoto = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%230c171d'/%3E%3Ccircle cx='48' cy='38' r='18' fill='%23324a54'/%3E%3Cpath d='M14 88c4-20 20-32 34-32s30 12 34 32' fill='%23324a54'/%3E%3C/svg%3E";
+const profilePhoto = "/media/onur-inal.jpg";
 const linkedInUrl = "https://www.linkedin.com/in/onur%C4%B1nal/";
 const email = "onurinal815@gmail.com";
 const intervals = ["1G", "5G", "1A", "3A", "1Y"] as const;
 const defaultPanelOrder: PanelId[] = ["profile", "chart", "summary", "archive"];
 const cvLibrary = {
-  TR: { photo: { label: "FOTOĞRAFLI", href: "" }, plain: { label: "SADE / ATS UYUMLU", href: "" } },
-  EN: { photo: { label: "PHOTO", href: "" }, plain: { label: "CLEAN / ATS READY", href: "" } },
+  TR: {
+    photo: { label: "FOTOĞRAFLI", href: "/cv/Onur_Inal_CV_TR_Fotografli.pdf", file: "Onur_Inal_CV_TR_Fotografli.pdf" },
+    plain: { label: "SADE / ATS UYUMLU", href: "/cv/Onur_Inal_CV_TR_ATS.pdf", file: "Onur_Inal_CV_TR_ATS.pdf" },
+  },
+  EN: {
+    photo: { label: "PHOTO", href: "/cv/Onur_Inal_CV_EN_Fotografli.pdf", file: "Onur_Inal_CV_EN_Fotografli.pdf" },
+    plain: { label: "CLEAN / ATS READY", href: "/cv/Onur_Inal_CV_EN_ATS.pdf", file: "Onur_Inal_CV_EN_ATS.pdf" },
+  },
 } as const;
 const reports: ResearchReport[] = [];
 const marketSeeds: MarketRow[] = [
@@ -121,7 +127,7 @@ function ProfilePanel() {
   const cv = cvLibrary[language][format];
   const chooseLanguage = (next: "TR" | "EN") => { setLanguage(next); setDownloadStep("format"); };
   const chooseFormat = (next: "photo" | "plain") => { setFormat(next); setDownloadStep("ready"); };
-  const beginDownload = () => { if (!cv.href) { toast.message("CV dosyası yakında eklenecek.", { description: "Bu sürüm henüz yüklenmedi." }); return; } setDownloadStep("downloading"); window.setTimeout(() => { const anchor = document.createElement("a"); anchor.href = cv.href; anchor.download = ""; anchor.click(); setDownloadStep("ready"); }, 620); };
+  const beginDownload = () => { setDownloadStep("downloading"); window.setTimeout(() => { const anchor = document.createElement("a"); anchor.href = cv.href; anchor.download = cv.file; anchor.click(); setDownloadStep("ready"); }, 620); };
   return <div className="profile-terminal"><div className="profile-identity"><img src={profilePhoto} alt="Onur İnal"/><div><span>ANALİST PROFİLİ</span><h1>ONUR İNAL</h1><p>Finans · Değerleme · Piyasa Araştırması</p><a href={linkedInUrl} target="_blank" rel="noreferrer"><Linkedin size={13}/> LINKEDIN PROFİLİ <ExternalLink size={12}/></a></div><div className="profile-mark"><b>3,20</b><small>GPA / 4,00</small></div></div><div className="profile-highlights"><span>ÇİFT ANA DAL<br/><b>ULUSLARARASI TİCARET & FİNANSMAN · İKTİSAT</b></span><span>AKADEMİK DÖNEM<br/><b>2023 — 2027</b></span><span>YETKİNLİK<br/><b>FİNANSAL ANALİZ · PYTHON · EXCEL</b></span></div><div className="profile-summary"><span>KISA ÖZET</span><p>Afyon Kocatepe Üniversitesi’nde Uluslararası Ticaret ve Finansman ile İktisat çift ana dalı yapan bir finans öğrencisiyim. Şirketleri yalnızca fiyat hareketleriyle değil; finansal tablolar, rekabet avantajı ve uzun vadeli değer yaratma kapasitesi üzerinden inceliyorum. Excel ve Python destekli analizleri, sade ve kaynaklı yatırım araştırmalarına dönüştürmeyi hedefliyorum.</p><div><b>Örnek Öğrenci Ödülü · 2025</b><b>The Moat & Co. · Araştırma projesi</b><b>Pandas · Excel · Finansal modelleme</b></div></div><div className={`cv-selector cv-step-${downloadStep}`}><div><span>CV İNDİR</span><p>{downloadStep === "idle" ? "Sana uygun CV sürümünü birkaç adımda seç." : downloadStep === "language" ? "1 · Tercih ettiğin dili seç." : downloadStep === "format" ? "2 · Fotoğraflı ya da fotoğrafsız görünümü seç." : downloadStep === "downloading" ? "Dosyan hazırlanıyor…" : "Seçimin hazır; indirmeyi başlatabilirsin."}</p></div>{downloadStep === "idle" && <button className="cv-start" onClick={() => setDownloadStep("language")}><Download size={15}/> CV SEÇ & İNDİR</button>}{downloadStep === "language" && <div className="cv-split"><button onClick={() => chooseLanguage("TR")}>TÜRKÇE</button><button onClick={() => chooseLanguage("EN")}>ENGLISH</button></div>}{downloadStep === "format" && <div className="cv-split"><button onClick={() => chooseFormat("photo")}>{language === "TR" ? "FOTOĞRAFLI" : "PHOTO"}</button><button onClick={() => chooseFormat("plain")}>{language === "TR" ? "FOTOĞRAFSIZ" : "PLAIN"}</button></div>}{downloadStep === "ready" && <button className="cv-start" onClick={beginDownload}><Download size={15}/> {language === "TR" ? "TÜRKÇE" : "ENGLISH"} · {cv.label} İNDİR</button>}{downloadStep === "downloading" && <button className="cv-start downloading" disabled><Activity size={15}/> DOSYA HAZIRLANIYOR…</button>}</div></div>;
 }
 
