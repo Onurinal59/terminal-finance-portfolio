@@ -10,11 +10,11 @@ import {
   Mail,
   PieChart,
   Search,
-  Sparkles,
   TrendingUp,
   UserRound,
   X,
 } from "lucide-react";
+import { useI18n, type TranslationKey } from "@/i18n";
 
 export type MobileModuleId =
   | "CHART"
@@ -35,18 +35,120 @@ interface MobileModulesSheetProps {
   activeFilter: string;
 }
 
-type ModuleCategory = "PİYASA & GRAFİK" | "TEMEL ANALİZ & EKONOMİ" | "ARAŞTIRMA & ANALİST";
+/** Kategori kimlikleri dilden bağımsızdır; etiketleri sözlükten gelir. */
+type ModuleCategory = "MARKET" | "FUNDAMENTALS" | "RESEARCH";
 
-interface ModuleItem {
+const CATEGORY_ORDER: ModuleCategory[] = ["MARKET", "FUNDAMENTALS", "RESEARCH"];
+
+const CATEGORY_LABEL_KEYS: Record<ModuleCategory, TranslationKey> = {
+  MARKET: "modules.catMarket",
+  FUNDAMENTALS: "modules.catFundamentals",
+  RESEARCH: "modules.catResearch",
+};
+
+interface ModuleDefinition {
   id: MobileModuleId;
-  title: string;
   category: ModuleCategory;
-  description: string;
-  badge: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  badgeKey: TranslationKey;
+  hintKey: TranslationKey;
   badgeTone: "green" | "cyan" | "amber" | "purple";
   icon: React.ReactNode;
-  tabletHint: string;
 }
+
+const MODULE_DEFINITIONS: ModuleDefinition[] = [
+  {
+    id: "CHART",
+    category: "MARKET",
+    titleKey: "modules.chartTitle",
+    descriptionKey: "modules.chartDesc",
+    badgeKey: "modules.chartBadge",
+    hintKey: "modules.chartHint",
+    badgeTone: "green",
+    icon: <LineChart size={20} />,
+  },
+  {
+    id: "WATCH",
+    category: "MARKET",
+    titleKey: "modules.watchTitle",
+    descriptionKey: "modules.watchDesc",
+    badgeKey: "modules.watchBadge",
+    hintKey: "modules.watchHint",
+    badgeTone: "green",
+    icon: <TrendingUp size={20} />,
+  },
+  {
+    id: "SUMMARY",
+    category: "MARKET",
+    titleKey: "modules.summaryTitle",
+    descriptionKey: "modules.summaryDesc",
+    badgeKey: "modules.summaryBadge",
+    hintKey: "modules.summaryHint",
+    badgeTone: "cyan",
+    icon: <Grid2X2 size={20} />,
+  },
+  {
+    id: "FINANCIALS",
+    category: "FUNDAMENTALS",
+    titleKey: "modules.financialsTitle",
+    descriptionKey: "modules.financialsDesc",
+    badgeKey: "modules.financialsBadge",
+    hintKey: "modules.financialsHint",
+    badgeTone: "cyan",
+    icon: <PieChart size={20} />,
+  },
+  {
+    id: "MACRO",
+    category: "FUNDAMENTALS",
+    titleKey: "modules.macroTitle",
+    descriptionKey: "modules.macroDesc",
+    badgeKey: "modules.macroBadge",
+    hintKey: "modules.macroHint",
+    badgeTone: "amber",
+    icon: <Globe size={20} />,
+  },
+  {
+    id: "HOURS",
+    category: "FUNDAMENTALS",
+    titleKey: "modules.hoursTitle",
+    descriptionKey: "modules.hoursDesc",
+    badgeKey: "modules.hoursBadge",
+    hintKey: "modules.hoursHint",
+    badgeTone: "amber",
+    icon: <Clock size={20} />,
+  },
+  {
+    id: "RESEARCH",
+    category: "RESEARCH",
+    titleKey: "modules.researchTitle",
+    descriptionKey: "modules.researchDesc",
+    badgeKey: "modules.researchBadge",
+    hintKey: "modules.researchHint",
+    badgeTone: "purple",
+    icon: <BookOpen size={20} />,
+  },
+  {
+    id: "PROFILE",
+    category: "RESEARCH",
+    titleKey: "modules.profileTitle",
+    descriptionKey: "modules.profileDesc",
+    badgeKey: "modules.profileBadge",
+    hintKey: "modules.profileHint",
+    badgeTone: "purple",
+    icon: <UserRound size={20} />,
+  },
+  {
+    id: "CONTACT",
+    category: "RESEARCH",
+    titleKey: "modules.contactTitle",
+    descriptionKey: "modules.contactDesc",
+    badgeKey: "modules.contactBadge",
+    hintKey: "modules.contactHint",
+    badgeTone: "purple",
+    icon: <Mail size={20} />,
+  },
+];
 
 export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
   isOpen,
@@ -55,6 +157,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
   activeView,
   activeFilter,
 }) => {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<"ALL" | ModuleCategory>("ALL");
 
@@ -74,114 +177,32 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
 
   if (!isOpen) return null;
 
-  const modules: ModuleItem[] = [
-    {
-      id: "CHART",
-      title: "Grafik & Finansal Tablolar",
-      category: "PİYASA & GRAFİK",
-      description: "1G–1Y interaktif mum grafiği, Gelir Tablosu, Bilanço ve Nakit Akışı görselleştiricisi",
-      badge: "İNTERAKTİF",
-      badgeTone: "green",
-      icon: <LineChart size={20} />,
-      tabletHint: "Tam Ekran Görünüm",
-    },
-    {
-      id: "WATCH",
-      title: "BIST İzleme Listesi & Keşif",
-      category: "PİYASA & GRAFİK",
-      description: "BIST 30, BIST 100, Banka, Sanayi canlı kotasyonları, günlük fark ve hacim liderleri",
-      badge: "CANLI FİYAT",
-      badgeTone: "green",
-      icon: <TrendingUp size={20} />,
-      tabletHint: "Piyasa Evreni",
-    },
-    {
-      id: "SUMMARY",
-      title: "Piyasa Nabzı & Sıcak Gelişmeler",
-      category: "PİYASA & GRAFİK",
-      description: "BIST endeks değişimleri, en çok artan/düşen hisseler ve işlem akışı",
-      badge: "GÜNCEL",
-      badgeTone: "cyan",
-      icon: <Grid2X2 size={20} />,
-      tabletHint: "Günün Özeti",
-    },
-    {
-      id: "FINANCIALS",
-      title: "Yıllık Finansmanlar & Rasyolar",
-      category: "TEMEL ANALİZ & EKONOMİ",
-      description: "Son 4 yılın bilanço kalemleri, net kâr marjı, borçluluk ve büyüme metrikleri",
-      badge: "4 YILLIK",
-      badgeTone: "cyan",
-      icon: <PieChart size={20} />,
-      tabletHint: "Temel Veriler",
-    },
-    {
-      id: "MACRO",
-      title: "Makro Göstergeler & Faizler",
-      category: "TEMEL ANALİZ & EKONOMİ",
-      description: "TCMB politika faizi, TÜFE enflasyon, 10Y tahvil getirisi ve döviz kurları",
-      badge: "EKONOMİ",
-      badgeTone: "amber",
-      icon: <Globe size={20} />,
-      tabletHint: "Merkez Bankası & Veriler",
-    },
-    {
-      id: "HOURS",
-      title: "Küresel Seans Döngüsü",
-      category: "TEMEL ANALİZ & EKONOMİ",
-      description: "Borsa İstanbul, Wall Street, Londra ve Tokyo piyasalarının anlık açık/kapalı durumu",
-      badge: "SEANS",
-      badgeTone: "amber",
-      icon: <Clock size={20} />,
-      tabletHint: "Dünya Saatleri",
-    },
-    {
-      id: "RESEARCH",
-      title: "Rapor Kütüphanesi",
-      category: "ARAŞTIRMA & ANALİST",
-      description: "Özsermaye değerleme modelleri, çeyreklik şirket analizleri ve indirilebilir PDF'ler",
-      badge: "RAPORLAR",
-      badgeTone: "purple",
-      icon: <BookOpen size={20} />,
-      tabletHint: "PDF & Makaleler",
-    },
-    {
-      id: "PROFILE",
-      title: "Analist Profili & Özgeçmiş",
-      category: "ARAŞTIRMA & ANALİST",
-      description: "Onur İnal kariyer biyografisi, sertifikalar, yetkinlikler ve doğrudan CV indirme",
-      badge: "ÖZGEÇMİŞ",
-      badgeTone: "purple",
-      icon: <UserRound size={20} />,
-      tabletHint: "Kariyer & CV",
-    },
-    {
-      id: "CONTACT",
-      title: "İletişim & Randevu Masası",
-      category: "ARAŞTIRMA & ANALİST",
-      description: "Analistle doğrudan iletişim, resmi LinkedIn profili ve profesyonel e-posta bağlantısı",
-      badge: "BAĞLANTI",
-      badgeTone: "purple",
-      icon: <Mail size={20} />,
-      tabletHint: "Doğrudan İletişim",
-    },
-  ];
+  const modules = MODULE_DEFINITIONS.map((definition) => ({
+    ...definition,
+    title: t(definition.titleKey),
+    description: t(definition.descriptionKey),
+    badge: t(definition.badgeKey),
+    tabletHint: t(definition.hintKey),
+    categoryLabel: t(CATEGORY_LABEL_KEYS[definition.category]),
+  }));
 
   const filtered = modules.filter((m) => {
     const matchCategory = selectedCategory === "ALL" || m.category === selectedCategory;
+    const query = searchQuery.trim().toLocaleLowerCase();
     const matchQuery =
-      searchQuery.trim() === "" ||
-      m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.badge.toLowerCase().includes(searchQuery.toLowerCase());
+      query === "" ||
+      m.title.toLocaleLowerCase().includes(query) ||
+      m.description.toLocaleLowerCase().includes(query) ||
+      m.categoryLabel.toLocaleLowerCase().includes(query) ||
+      m.badge.toLocaleLowerCase().includes(query);
     return matchCategory && matchQuery;
   });
 
   const categories: ModuleCategory[] =
-    selectedCategory === "ALL"
-      ? ["PİYASA & GRAFİK", "TEMEL ANALİZ & EKONOMİ", "ARAŞTIRMA & ANALİST"]
-      : [selectedCategory];
+    selectedCategory === "ALL" ? CATEGORY_ORDER : [selectedCategory];
+
+  const categoryCount = (category: ModuleCategory) =>
+    MODULE_DEFINITIONS.filter((item) => item.category === category).length;
 
   return (
     <div className="modules-modal-overlay" onClick={onClose}>
@@ -189,7 +210,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
         className="modules-modal-container"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Terminal Modülleri ve Masaları"
+        aria-label={t("modules.dialogAria")}
       >
         {/* Mobile Swipe / Pull Handle */}
         <div className="sheet-handle-bar">
@@ -204,19 +225,17 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
             </div>
             <div className="sheet-title-texts">
               <div className="sheet-title-row">
-                <span className="sheet-main-title">TERMİNAL MODÜL MERKEZİ</span>
-                <span className="sheet-platform-badge">APP MODU</span>
+                <span className="sheet-main-title">{t("modules.title")}</span>
+                <span className="sheet-platform-badge">{t("modules.badge")}</span>
               </div>
-              <p className="sheet-subtitle">
-                Analiz masaları, interaktif araçlar ve piyasa görünümleri
-              </p>
+              <p className="sheet-subtitle">{t("modules.subtitle")}</p>
             </div>
           </div>
           <button
             className="sheet-close-btn"
             onClick={onClose}
-            aria-label="Kapat"
-            title="Kapat (ESC)"
+            aria-label={t("modules.close")}
+            title={t("modules.closeTitle")}
           >
             <X size={17} />
           </button>
@@ -228,7 +247,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
           <input
             type="text"
             className="sheet-search-input"
-            placeholder="Modül veya masa ara... (Örn: Bilanço, Makro, Rapor)"
+            placeholder={t("modules.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus={false}
@@ -237,7 +256,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
             <button
               className="sheet-search-clear"
               onClick={() => setSearchQuery("")}
-              aria-label="Aramayı Temizle"
+              aria-label={t("modules.clearSearch")}
             >
               <X size={13} />
             </button>
@@ -245,34 +264,34 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
         </div>
 
         {/* Category Pills (Tabs) */}
-        <div className="sheet-cat-pills-bar" aria-label="Kategori Sekmeleri">
+        <div className="sheet-cat-pills-bar" aria-label={t("modules.categoryTabsAria")}>
           <button
             className={`sheet-cat-pill ${selectedCategory === "ALL" ? "active" : ""}`}
             onClick={() => setSelectedCategory("ALL")}
           >
-            <span>TÜMÜ</span>
-            <small>({modules.length})</small>
+            <span>{t("modules.tabAll")}</span>
+            <small>({MODULE_DEFINITIONS.length})</small>
           </button>
           <button
-            className={`sheet-cat-pill ${selectedCategory === "PİYASA & GRAFİK" ? "active" : ""}`}
-            onClick={() => setSelectedCategory("PİYASA & GRAFİK")}
+            className={`sheet-cat-pill ${selectedCategory === "MARKET" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("MARKET")}
           >
-            <span>PİYASA & GRAFİK</span>
-            <small>(3)</small>
+            <span>{t("modules.tabMarket")}</span>
+            <small>({categoryCount("MARKET")})</small>
           </button>
           <button
-            className={`sheet-cat-pill ${selectedCategory === "TEMEL ANALİZ & EKONOMİ" ? "active" : ""}`}
-            onClick={() => setSelectedCategory("TEMEL ANALİZ & EKONOMİ")}
+            className={`sheet-cat-pill ${selectedCategory === "FUNDAMENTALS" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("FUNDAMENTALS")}
           >
-            <span>TEMEL ANALİZ</span>
-            <small>(3)</small>
+            <span>{t("modules.tabFundamentals")}</span>
+            <small>({categoryCount("FUNDAMENTALS")})</small>
           </button>
           <button
-            className={`sheet-cat-pill ${selectedCategory === "ARAŞTIRMA & ANALİST" ? "active" : ""}`}
-            onClick={() => setSelectedCategory("ARAŞTIRMA & ANALİST")}
+            className={`sheet-cat-pill ${selectedCategory === "RESEARCH" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("RESEARCH")}
           >
-            <span>ANALİST MASASI</span>
-            <small>(3)</small>
+            <span>{t("modules.tabResearch")}</span>
+            <small>({categoryCount("RESEARCH")})</small>
           </button>
         </div>
 
@@ -285,9 +304,9 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
             return (
               <section key={cat} className="sheet-category-section">
                 <div className="sheet-category-header">
-                  <span className={`cat-dot dot-${cat.split(" ")[0].toLowerCase()}`} />
-                  <span className="cat-heading">{cat}</span>
-                  <span className="cat-count-badge">{catModules.length} MASA</span>
+                  <span className={`cat-dot dot-${cat.toLowerCase()}`} />
+                  <span className="cat-heading">{t(CATEGORY_LABEL_KEYS[cat])}</span>
+                  <span className="cat-count-badge">{t("modules.deskCount", { count: catModules.length })}</span>
                 </div>
 
                 <div className="sheet-module-grid">
@@ -322,7 +341,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
                                 isSelected ? "badge-selected" : ""
                               }`}
                             >
-                              {isSelected ? "AKTİF" : mod.badge}
+                              {isSelected ? t("modules.active") : mod.badge}
                             </span>
                           </div>
 
@@ -331,7 +350,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
                           <div className="module-card-foot">
                             <span className="module-tablet-hint">{mod.tabletHint}</span>
                             <span className="module-action-cta">
-                              Giriş Yap <ChevronRight size={13} />
+                              {t("modules.enter")} <ChevronRight size={13} />
                             </span>
                           </div>
                         </div>
@@ -346,7 +365,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
           {filtered.length === 0 && (
             <div className="sheet-empty-search-state">
               <Search size={28} />
-              <p>"{searchQuery}" aramasıyla eşleşen modül veya masa bulunamadı.</p>
+              <p>{t("modules.emptySearch", { query: searchQuery })}</p>
               <button
                 className="sheet-empty-reset-btn"
                 onClick={() => {
@@ -354,7 +373,7 @@ export const MobileModulesSheet: React.FC<MobileModulesSheetProps> = ({
                   setSelectedCategory("ALL");
                 }}
               >
-                Filtreleri Temizle
+                {t("modules.resetFilters")}
               </button>
             </div>
           )}
