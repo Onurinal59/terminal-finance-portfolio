@@ -7144,6 +7144,40 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 }
 
+
+/* ==========================================================================
+   DAR YAN SÜTUN & TABLET ŞERİDİ DÜZELTMELERİ
+   ========================================================================== */
+
+/* İzleme listesi satırı yalnızca 240-255 piksellik yan sütunda sıkışıyor:
+   dekoratif değişim çubuğu (36px) ve buton etiketi (~40px) birlikte sembol
+   sütununu 32 piksele düşürüyor, şirket adı okunamaz hale geliyordu.
+   Yön ve büyüklük bilgisini zaten hemen yanındaki yüzde rozeti veriyor. */
+@media (min-width: 1025px) {
+  .left-dock .watch-row-select {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  .left-dock .watch-item-bar-col {
+    display: none;
+  }
+  .left-dock .watch-chart-quick-btn span {
+    display: none;
+  }
+  .left-dock .watch-chart-quick-btn {
+    padding: 4px 6px;
+  }
+}
+
+/* 681-1024 piksel arasında şeritte hem MODÜLLER butonu hem de dört sekmelik
+   menü duruyor ve arama kutusuna ~120 piksel kalıyordu. Bu aralıkta alt dock
+   da görünür durumda ve kendi "Modüller" sekmesini taşıyor, dolayısıyla
+   şeritteki buton işlev yitirmeden kaldırılabilir. */
+@media (min-width: 681px) and (max-width: 1024px) {
+  .terminal-menu-toggle {
+    display: none !important;
+  }
+}
+
 /* ==========================================================================
    WATCHLIST MOBILE & TABLET RESPONSIVE REFACTORING
    ========================================================================== */
