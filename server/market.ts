@@ -224,7 +224,7 @@ export async function getFinancialStatements(symbolInput: string, statement: Fin
 }
 
 export async function getQuotes(symbols: string[]) {
-  const unique = Array.from(new Set(symbols.map(canonicalSymbol))).slice(0, 36);
+  const unique = Array.from(new Set(symbols.map(canonicalSymbol))).slice(0, 60);
   const results = await Promise.allSettled(unique.map(async (symbol) => {
     const cached = quoteCache.get(symbol);
     if (cached && cached.expiresAt > Date.now()) return cached.value;
@@ -251,13 +251,73 @@ export function mapYahooSearchResults(quotes: Array<Record<string, unknown>>, re
     .filter((quote) => typeFilter.size === 0 || typeFilter.has(quote.type));
 }
 
+const popularTurkishDirectory: Array<{ symbol: string; name: string; exchange: string; type: string; keywords: string[] }> = [
+  { symbol: "THYAO.IS", name: "Türk Hava Yolları", exchange: "BIST", type: "EQUITY", keywords: ["THY", "TURK HAVA", "THYAO"] },
+  { symbol: "ASELS.IS", name: "Aselsan Elektronik Sanayi", exchange: "BIST", type: "EQUITY", keywords: ["ASELSAN", "ASELS"] },
+  { symbol: "TUPRS.IS", name: "Tüpraş Türkiye Petrol Rafinerileri", exchange: "BIST", type: "EQUITY", keywords: ["TUPRAS", "TÜPRAŞ", "TUPRS"] },
+  { symbol: "AKBNK.IS", name: "Akbank T.A.Ş.", exchange: "BIST", type: "EQUITY", keywords: ["AKBANK", "AKBNK"] },
+  { symbol: "GARAN.IS", name: "Garanti BBVA", exchange: "BIST", type: "EQUITY", keywords: ["GARANTI", "GARANTİ", "GARAN"] },
+  { symbol: "ISCTR.IS", name: "Türkiye İş Bankası C", exchange: "BIST", type: "EQUITY", keywords: ["IS BANKASI", "İŞ BANKASI", "ISCTR"] },
+  { symbol: "YKBNK.IS", name: "Yapı ve Kredi Bankası", exchange: "BIST", type: "EQUITY", keywords: ["YAPI KREDI", "YAPI KREDİ", "YKBNK"] },
+  { symbol: "BIMAS.IS", name: "BİM Birleşik Mağazalar", exchange: "BIST", type: "EQUITY", keywords: ["BIM", "BİMAS", "BİM", "BIMAS"] },
+  { symbol: "EREGL.IS", name: "Ereğli Demir ve Çelik Fabrikaları", exchange: "BIST", type: "EQUITY", keywords: ["EREGLI", "EREĞLİ", "EREGL"] },
+  { symbol: "KCHOL.IS", name: "Koç Holding", exchange: "BIST", type: "EQUITY", keywords: ["KOC", "KOÇ", "KCHOL"] },
+  { symbol: "SAHOL.IS", name: "Sabancı Holding", exchange: "BIST", type: "EQUITY", keywords: ["SABANCI", "SAHOL"] },
+  { symbol: "SISE.IS", name: "Türkiye Şişe ve Cam Fabrikaları", exchange: "BIST", type: "EQUITY", keywords: ["SISE", "ŞİŞE", "ŞİŞECAM", "SISECAM"] },
+  { symbol: "PGSUS.IS", name: "Pegasus Hava Taşımacılığı", exchange: "BIST", type: "EQUITY", keywords: ["PEGASUS", "PGSUS"] },
+  { symbol: "FROTO.IS", name: "Ford Otomotiv Sanayi", exchange: "BIST", type: "EQUITY", keywords: ["FORD", "FROTO", "OTOSAN"] },
+  { symbol: "TOASO.IS", name: "Tofaş Türk Otomobil Fabrikası", exchange: "BIST", type: "EQUITY", keywords: ["TOFAS", "TOFAŞ", "TOASO"] },
+  { symbol: "KOZAL.IS", name: "Koza Altın İşletmeleri", exchange: "BIST", type: "EQUITY", keywords: ["KOZA", "KOZAL"] },
+  { symbol: "ENKAI.IS", name: "Enka İnşaat ve Sanayi", exchange: "BIST", type: "EQUITY", keywords: ["ENKA", "ENKAI"] },
+  { symbol: "PETKM.IS", name: "Petkim Petrokimya Holding", exchange: "BIST", type: "EQUITY", keywords: ["PETKIM", "PETKİM", "PETKM"] },
+  { symbol: "XU100.IS", name: "BIST 100 Endeksi", exchange: "BIST", type: "INDEX", keywords: ["BIST 100", "XU100", "BORSA"] },
+  { symbol: "XU030.IS", name: "BIST 30 Endeksi", exchange: "BIST", type: "INDEX", keywords: ["BIST 30", "XU030"] },
+  { symbol: "BTC-USD", name: "Bitcoin USD", exchange: "CCC", type: "CRYPTOCURRENCY", keywords: ["BITCOIN", "BTC"] },
+  { symbol: "ETH-USD", name: "Ethereum USD", exchange: "CCC", type: "CRYPTOCURRENCY", keywords: ["ETHEREUM", "ETH"] },
+  { symbol: "GC=F", name: "Altın Ons (Vadeli)", exchange: "COMEX", type: "FUTURE", keywords: ["ALTIN", "GOLD"] },
+  { symbol: "CL=F", name: "Ham Petrol WTI", exchange: "NYMEX", type: "FUTURE", keywords: ["PETROL", "OIL", "BRENT"] },
+  { symbol: "TRY=X", name: "USD / TRY", exchange: "CCY", type: "CURRENCY", keywords: ["DOLAR", "USDTRY", "USD/TRY"] },
+  { symbol: "EURTRY=X", name: "EUR / TRY", exchange: "CCY", type: "CURRENCY", keywords: ["EURO", "EURTRY", "EUR/TRY"] },
+];
+
 export async function searchSymbols(query: string, requestedTypes: string[] = []) {
   const input = query.trim();
   if (input.length < 1) return [];
-  const payload = await yahooFetch(`/v1/finance/search?q=${encodeURIComponent(input)}&quotesCount=10&newsCount=0&enableFuzzyQuery=false`);
-  const quotes = (payload as { quotes?: Array<Record<string, unknown>> }).quotes ?? [];
-  const mapped = mapYahooSearchResults(quotes, requestedTypes);
-  if (mapped.length > 0) return mapped;
+
+  const typeFilter = new Set(requestedTypes.map((type) => type.trim().toUpperCase()).filter(Boolean));
+
+  // Local directory fuzzy match
+  const cleanTerm = input.toUpperCase().replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G").replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+  const localMatches = popularTurkishDirectory.filter((item) => {
+    if (typeFilter.size > 0 && !typeFilter.has(item.type)) return false;
+    const symMatch = item.symbol.toUpperCase().includes(cleanTerm);
+    const nameMatch = item.name.toUpperCase().replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G").replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C").includes(cleanTerm);
+    const kwMatch = item.keywords.some((kw) => kw.toUpperCase().includes(cleanTerm) || cleanTerm.includes(kw.toUpperCase()));
+    return symMatch || nameMatch || kwMatch;
+  }).map(({ symbol, name, exchange, type }) => ({ symbol, name, exchange, type }));
+
+  try {
+    const payload = await yahooFetch(`/v1/finance/search?q=${encodeURIComponent(input)}&quotesCount=25&newsCount=0&enableFuzzyQuery=true`);
+    const quotes = (payload as { quotes?: Array<Record<string, unknown>> }).quotes ?? [];
+    const mapped = mapYahooSearchResults(quotes, requestedTypes);
+
+    const combined = [...localMatches, ...mapped];
+    const seen = new Set<string>();
+    const deduped: YahooSearchResult[] = [];
+    for (const item of combined) {
+      if (!seen.has(item.symbol)) {
+        seen.add(item.symbol);
+        deduped.push(item);
+      }
+    }
+    if (deduped.length > 0) return deduped.slice(0, 25);
+  } catch {
+    // If Yahoo search fails, return local matches
+    if (localMatches.length > 0) return localMatches;
+  }
+
+  if (localMatches.length > 0) return localMatches;
+
   const normalizedTypes = requestedTypes.map((type) => type.trim().toUpperCase()).filter(Boolean);
   if (normalizedTypes.length > 0 && !normalizedTypes.includes("EQUITY")) return [];
   const normalized = canonicalSymbol(input);

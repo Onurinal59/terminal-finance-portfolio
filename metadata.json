@@ -1,0 +1,8 @@
+{
+  "name": "Onur İnal",
+  "description": "Onur İnal - Finansal Analist, Sermaye Piyasaları ve BIST Hisse Araştırma Portfolyosu. Bilanço analizleri, şirket değerleme raporları ve finansal terminal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
