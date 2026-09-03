@@ -848,6 +848,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   gap: 12px;
   min-height: calc(100svh - 118px);
   padding: 10px 14px;
+  width: 100%;
+  max-width: 1520px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .terminal-layout-fullscreen,
@@ -2315,6 +2319,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   position: relative;
   flex: 1;
   min-height: 240px;
+  max-height: 290px;
   padding: 10px 16px 26px;
   cursor: crosshair;
 }
@@ -5419,6 +5424,35 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ==========================================================================
    Responsive Adaptations (Desktop, Tablet & Mobile)
    ========================================================================== */
+
+/* Standard Laptop & High-DPI Desktop Optimization (1281px - 1440px) */
+@media (max-width: 1440px) {
+  .terminal-layout {
+    grid-template-columns: 255px minmax(0, 1fr) 265px;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+  .global-market-search {
+    width: 280px;
+  }
+}
+
+/* 15-inch Laptop & Compact Displays (1201px - 1366px) */
+@media (max-width: 1366px) {
+  .terminal-layout {
+    grid-template-columns: 248px minmax(0, 1fr) 258px;
+    gap: 10px;
+    padding: 6px 10px;
+  }
+  .workspace-path {
+    padding: 3px 10px;
+    font-size: 10.5px;
+  }
+  .chart-canvas {
+    min-height: 220px;
+    padding: 8px 12px 20px;
+  }
+}
 
 /* Large Tablet & Compact Desktop (1001px - 1280px) */
 @media (max-width: 1280px) {
