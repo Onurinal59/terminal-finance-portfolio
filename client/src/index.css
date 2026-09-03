@@ -23,6 +23,10 @@
 }
 
 :root {
+  /* Sabit üst bar yığını: app-chrome (38) + tool-ribbon (48) + ticker (30).
+     Yapışkan öğeler bu değeri referans alır, altına kayıp başlığı örtmezler. */
+  --fixed-header-height: 116px;
+
   /* Surface & Base */
   --background: #06090d;
   --surface-0: #080d12;
@@ -5760,6 +5764,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     padding-top: 154px !important;
   }
 
+  :root {
+    --fixed-header-height: 110px;
+  }
+
   .ticker-tape-container {
     top: 82px;
     height: 28px;
@@ -8315,8 +8323,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: 6px;
   position: sticky;
-  top: 10px;
-  z-index: 50;
+  top: calc(var(--fixed-header-height) + 8px);
+  /* Sabit üst barların (38/40/45) altında kalmalı ki onları örtmesin. */
+  z-index: 30;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
