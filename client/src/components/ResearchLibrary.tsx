@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { researchReportsData, ResearchReport, ReportCategory } from "../data/researchReports";
+import { gsap, useGSAP } from "../lib/gsap";
 
 interface ResearchLibraryProps {
   onBack: () => void;
@@ -127,8 +128,38 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
     window.print();
   };
 
+  const libraryContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      if (!libraryContainerRef.current) return;
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const cards = gsap.utils.toArray<HTMLElement>(".report-magazine-card");
+        if (cards.length > 0) {
+          gsap.fromTo(
+            cards,
+            { opacity: 0, y: 16 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.35,
+              stagger: 0.06,
+              ease: "power2.out",
+              clearProps: "transform,opacity",
+            }
+          );
+        }
+      });
+
+      return () => mm.revert();
+    },
+    { dependencies: [selectedCategory, searchQuery, readingMode], scope: libraryContainerRef }
+  );
+
   return (
-    <div className="terminal-research-desk" role="region" aria-label="Araştırma Raporları Kütüphanesi">
+    <div ref={libraryContainerRef} className="terminal-research-desk" role="region" aria-label="Araştırma Raporları Kütüphanesi">
       {/* 1. TOP EDITORIAL BANNER */}
       <div className="research-desk-banner">
         <div className="banner-meta">

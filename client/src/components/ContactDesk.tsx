@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Mail,
   Linkedin,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { buildContactMailto } from "../lib/contactMailto";
+import { gsap, useGSAP } from "../lib/gsap";
 
 interface ContactDeskProps {
   onBack: () => void;
@@ -118,8 +119,40 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
     window.location.href = mailtoUrl;
   };
 
+  const contactContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      if (!contactContainerRef.current) return;
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const sections = gsap.utils.toArray<HTMLElement>(
+          ".contact-desk-banner, .contact-sidebar-pane, .contact-composer-pane"
+        );
+        if (sections.length > 0) {
+          gsap.fromTo(
+            sections,
+            { opacity: 0, y: 12 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.35,
+              stagger: 0.08,
+              ease: "power2.out",
+              clearProps: "transform,opacity",
+            }
+          );
+        }
+      });
+
+      return () => mm.revert();
+    },
+    { scope: contactContainerRef }
+  );
+
   return (
-    <div className="terminal-contact-desk" role="region" aria-label="İletişim Masası">
+    <div ref={contactContainerRef} className="terminal-contact-desk" role="region" aria-label="İletişim Masası">
       {/* Top Banner */}
       <div className="contact-desk-banner">
         <div className="contact-banner-meta">

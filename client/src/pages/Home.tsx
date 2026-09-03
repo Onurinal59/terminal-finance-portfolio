@@ -16,6 +16,7 @@ import { TerminalFooter } from "@/components/TerminalFooter";
 import { excludeTransientDiscovery, normalizeDiscoverySymbol } from "@/lib/marketDiscovery";
 import { getAutoScrollDelta, placeUnlockedPanelBefore } from "@/lib/panelOrder";
 import { rememberRecentSymbol } from "@/lib/recentSymbols";
+import { gsap, refreshScrollTriggers, useGSAP } from "@/lib/gsap";
 import { trpc } from "@/lib/trpc";
 
 type TerminalView = "DASHBOARD" | "PROFILE" | "RESEARCH" | "CONTACT";
@@ -558,7 +559,7 @@ function StatementExplorer({
             {active && (
               <div className="statement-inspector-hud" aria-live="polite">
                 <div className="hud-period-chip">
-                  <CalendarDays size={12} className="text-sky-400" />
+                  <CalendarDays size={13} className="hud-cal-icon text-sky-400" />
                   <span className="hud-period-year">{year(active.period.asOfDate)}</span>
                   <span className="hud-period-date">({active.period.asOfDate})</span>
                 </div>
@@ -589,6 +590,7 @@ function StatementExplorer({
 
             <svg
               ref={svgRef}
+              className="statement-main-chart-svg"
               viewBox={`0 0 ${svgW} ${svgH}`}
               preserveAspectRatio="none"
               onMouseMove={move}
@@ -808,43 +810,6 @@ function StatementExplorer({
                 );
               })}
             </svg>
-
-            {/* Floating Analyst Inspection Tooltip */}
-            {hoverIndex !== null && active && (
-              <div
-                className="statement-tooltip-modern"
-                style={{
-                  left: `${Math.min(76, Math.max(24, (getX(activeIndex) / svgW) * 100))}%`,
-                }}
-              >
-                <div className="tooltip-head">
-                  <CalendarDays size={11} />
-                  <span>DÖNEM: {year(active.period.asOfDate)}</span>
-                  <small>({active.period.asOfDate})</small>
-                </div>
-                <div className="tooltip-body">
-                  <span className="tooltip-metric-label">{selected?.label}</span>
-                  <b className="tooltip-value">{active.value?.formatted ?? "—"}</b>
-                </div>
-                <div className="tooltip-footer">
-                  <span className="tooltip-currency">{active.value?.currency ?? currencyLabel}</span>
-                  {yoyGrowth[activeIndex] !== null && (
-                    <span
-                      className={`tooltip-badge ${
-                        (yoyGrowth[activeIndex] ?? 0) >= 0 ? "positive" : "negative"
-                      }`}
-                    >
-                      {(yoyGrowth[activeIndex] ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(yoyGrowth[activeIndex] ?? 0).toFixed(1)}% YoY
-                    </span>
-                  )}
-                  {marginForActive !== null && (
-                    <span className="tooltip-margin-badge">
-                      Marj: %{marginForActive.toFixed(1)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Years Bottom Axis */}
             <div className="statement-years-axis">
@@ -2107,6 +2072,139 @@ export default function Home() {
     toast.message("Son açılanlar temizlendi.");
   };
 
+  const terminalRef = useRef<HTMLDivElement | null>(null);
+  const workspaceRef = useRef<HTMLElement | null>(null);
+
+  // Initial Hero Load Animation (Stagger intro sequence)
+  useGSAP(
+    () => {
+      if (!terminalRef.current) return;
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+        tl.fromTo(
+          ".app-chrome",
+          { opacity: 0, y: -8 },
+          { opacity: 1, y: 0, duration: 0.35, clearProps: "transform,opacity" }
+        )
+          .fromTo(
+            ".tool-ribbon",
+            { opacity: 0, y: -6 },
+            { opacity: 1, y: 0, duration: 0.3, clearProps: "transform,opacity" },
+            "-=0.15"
+          )
+          .fromTo(
+            ".ticker-tape-container",
+            { opacity: 0 },
+            { opacity: 1, duration: 0.3, clearProps: "opacity" },
+            "-=0.15"
+          )
+          .fromTo(
+            [".left-dock", ".terminal-workspace", ".right-dock"],
+            { opacity: 0, y: 10 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.4,
+              stagger: 0.08,
+              clearProps: "transform,opacity",
+            },
+            "-=0.1"
+          );
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(
+          [
+            ".app-chrome",
+            ".tool-ribbon",
+            ".ticker-tape-container",
+            ".left-dock",
+            ".terminal-workspace",
+            ".right-dock",
+          ],
+          { opacity: 1, y: 0 }
+        );
+      });
+
+      return () => mm.revert();
+    },
+    { scope: terminalRef }
+  );
+
+  // View Transition Animation
+  useGSAP(
+    () => {
+      if (!workspaceRef.current) return;
+      const mm = gsap.matchMedia();
+
+      // Respect prefers-reduced-motion
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          workspaceRef.current,
+          {
+            opacity: 0,
+            y: 8,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.28,
+            ease: "power2.out",
+            clearProps: "transform,opacity",
+          }
+        );
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(workspaceRef.current, { opacity: 1, y: 0 });
+      });
+
+      return () => mm.revert();
+    },
+    { dependencies: [activeView], scope: workspaceRef }
+  );
+
+  // ScrollTrigger reveals for cards & long content
+  useGSAP(
+    () => {
+      if (!workspaceRef.current) return;
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Subtle scroll reveal for profile cards & report items
+        const cards = gsap.utils.toArray<HTMLElement>(
+          ".profile-section-card, .matrix-card, .research-card-modern, .valuation-card, .macro-item"
+        );
+
+        cards.forEach((card) => {
+          gsap.fromTo(
+            card,
+            { opacity: 0, y: 14 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.35,
+              ease: "power2.out",
+              clearProps: "transform,opacity",
+              scrollTrigger: {
+                trigger: card,
+                start: "top 92%",
+                toggleActions: "play none none none",
+                once: true,
+              },
+            }
+          );
+        });
+      });
+
+      return () => mm.revert();
+    },
+    { dependencies: [activeView], scope: workspaceRef }
+  );
+
   const changeView = (view: TerminalView) => {
     setActiveView(view);
     setMobileMenu(false);
@@ -2115,6 +2213,7 @@ export default function Home() {
       setMobileFilter("ALL");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+    refreshScrollTriggers();
   };
   const chooseSymbol = (symbol: string) => { setSelectedSymbol(symbol); setRecentSymbols((items) => rememberRecentSymbol(items, symbol)); toast.message(`${symbol} grafiği açıldı.`, { description: "Gerçek veri yükleniyor." }); }; const togglePanelLock = (id: PanelId) => setLockedPanels((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]); const reorder = (target: PanelId) => { if (!draggedPanel || draggedPanel === target) return; setPanelOrder((order) => placeUnlockedPanelBefore(order, draggedPanel, target, lockedPanels)); setDraggedPanel(null); toast.message("Panel yerleşimi güncellendi."); }; const openSearchResult = (item: { symbol: string; name: string }) => { const symbol = normalizeDiscoverySymbol(item.symbol); setDiscoveredSymbol({ symbol, providerSymbol: item.symbol, name: item.name }); chooseSymbol(symbol); setWatchTab("DISCOVER"); setQuery(""); toast.message(`${item.symbol} tek seferlik inceleme için açıldı.`, { description: "Sembol sabit izleme evrenine eklenmedi." }); }; const resetLayout = () => { setPanelOrder(defaultPanelOrder); setLockedPanels([]); setDraggedPanel(null); toast.message("Terminal düzeni varsayılana döndü."); };
 
@@ -2272,7 +2371,7 @@ export default function Home() {
   );
   const activeLabel = activeView === "PROFILE" ? "PROFİL / 03" : activeView === "RESEARCH" ? "RAPORLAR / 02" : activeView === "CONTACT" ? "BAĞLANTI / 04" : "PANO / 01";
   const notifications = [{ label: quotes.isFetching ? "PİYASA VERİSİ GÜNCELLENİYOR" : "PİYASA VERİSİ BAĞLI", detail: quotes.isFetching ? "Yahoo fiyat evreni yenileniyor." : "Fiyat evreni son başarılı sağlayıcı yanıtıyla hazır." }, { label: chart.isFetching ? "SEÇİLİ GRAFİK YÜKLENİYOR" : `${row.symbol} GRAFİĞİ HAZIR`, detail: chart.isFetching ? "OHLC mumları isteniyor." : `${interval} aralığında OHLC görünümü açık.` }, { label: `${lockedPanels.length} PANEL KİLİTLİ`, detail: lockedPanels.length ? "Kilitli paneller sürükle-bırak hedefi değildir." : "Panel menüsünden konum kilidi ekleyebilirsin." }];
-  return <div className="terminal-app">
+  return <div ref={terminalRef} className={`terminal-app view-${activeView.toLowerCase()}`}>
     <header className="app-chrome">
       <div className="app-identity">
         <span className="signal-grid"><i/><i/><i/><b/></span>
@@ -2410,7 +2509,7 @@ export default function Home() {
           </TerminalPanel>
         </aside>
       )}
-      <main className="terminal-workspace">
+      <main ref={workspaceRef} className="terminal-workspace">
         {activeView === "DASHBOARD" && (
           <div className="workspace-path">
             <span className="workspace-path-root">ONUR İNAL // PORTFOLIO</span>
