@@ -1040,7 +1040,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   letter-spacing: 0.08em;
   white-space: nowrap;
 }
+/* Dar yan sütunlarda kod rozeti başlığa yer bırakmıyor; orada başlık önceliklidir.
+   Geniş çalışma alanı panellerinde rozet olduğu gibi kalır. */
+.left-dock .panel-title em,
+.right-dock .panel-title em {
+  display: none;
+}
+
+/* Başlık daralınca üç noktayla kısalsın; kod rozeti kırpılıp kaybolmasın. */
+.panel-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .panel-title em {
+  flex-shrink: 0;
   margin-left: 4px;
   color: var(--ice);
   font-family: var(--font-mono);
@@ -6045,6 +6060,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   /* Chart Toolbar Mobile */
   .chart-toolbar {
     flex-direction: column;
+    /* Dikey yönde sarma açık kalırsa öğeler ikinci bir sütuna taşıp
+       panelin dışında görünmez oluyor (analiz sekmeleri kayboluyordu). */
+    flex-wrap: nowrap;
     align-items: stretch;
     padding: 8px;
     gap: 8px;
@@ -8035,13 +8053,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* 3. Reports Editorial Grid */
 .reports-editorial-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  /* min() olmadan dar ekranda iz kapsayıcıdan geniş kalıp taşıyor. */
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
   gap: 16px;
 }
 
 .report-magazine-card {
   display: flex;
   flex-direction: column;
+  /* Izgara öğeleri varsayılan olarak min-content altına inemez; taşmayı önler. */
+  min-width: 0;
   gap: 12px;
   padding: 18px 20px;
   background: #07131e;
@@ -8137,7 +8158,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   margin: 0;
 }
 
+/* Boşluk verilmediği için "Upside" ve dönem değeri bitişik görünüyordu. */
 .card-target-banner {
+  flex-wrap: wrap;
+  gap: 6px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -8199,6 +8223,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .card-footer-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -8227,6 +8252,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .card-action-btns {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
@@ -8377,6 +8403,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .reader-action-group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
@@ -9241,7 +9268,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 
   .reports-editorial-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   }
 
   .dossier-valuation-highlight-strip {
@@ -9302,6 +9329,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     flex-wrap: wrap;
     gap: 8px;
     padding: 8px 12px;
+  }
+
+  /* flex-shrink: 0 kaldığında grup kendi max-content genişliğinde kalıp
+     çubuktan taşıyordu; tam satır kaplayıp içindekiler sarsın. */
+  .reader-action-group {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .reader-center-ticker {

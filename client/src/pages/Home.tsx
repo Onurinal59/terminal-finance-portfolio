@@ -45,6 +45,13 @@ const linkedInUrl = "https://www.linkedin.com/in/onur%C4%B1nal/";
 const email = "onurinal815@gmail.com";
 const intervals = ["1G", "5G", "1A", "3A", "1Y"] as const;
 const defaultPanelOrder: PanelId[] = ["profile", "summary", "chart", "archive"];
+/** Depolama anahtarları tek yerde; okuma ve yazmanın ayrışmasını önler. */
+const STORAGE_KEYS = {
+  panelOrder: "analiz-terminal-order-v10",
+  lockedPanels: "analiz-terminal-locked-panels-v1",
+  recentSymbols: "analiz-terminal-recent-symbols-v1",
+  legacyWatchlist: "analiz-terminal-user-watchlist-v1",
+} as const;
 const cvLibrary = {
   TR: {
     photo: { labelKey: "cv.labelTrPhoto", href: "/cv/Onur_Inal_CV_TR_Fotografli.pdf", file: "Onur_Inal_CV_TR_Fotografli.pdf" },
@@ -153,7 +160,7 @@ function TerminalPanel({ id, title, code, children, className = "", dragged, onD
   return <section id={id} className={`terminal-panel workspace-panel ${className} ${canDrag ? "panel-movable" : "panel-locked"} ${dragged === (id as PanelId) ? "panel-dragging" : ""} ${target ? "panel-drop-target" : ""}`} onDragOver={canDrag ? dragOver : undefined} onDrop={canDrag ? (event) => { event.preventDefault(); onDrop(id as PanelId); } : undefined} onDragEnd={canDrag ? () => onDragStart(null) : undefined}>
     {target && <div className="panel-drop-indicator">{t("panel.dropHere")}</div>}
     <div className="panel-titlebar" draggable={canDrag} onDragStart={canDrag ? (event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-analiz-panel", id); onDragStart(id as PanelId); } : undefined}>
-      <div className="panel-title">{canDrag ? <span className="drag-grip" title={t("panel.dragHint")}>⠿</span> : <span title={locked ? t("panel.lockedHint") : movable ? t("panel.mobileDragOff") : t("panel.static")}><Lock size={11} className="panel-lock"/></span>}<span className="panel-led"/>{title}<em>{code}</em></div>
+      <div className="panel-title">{canDrag ? <span className="drag-grip" title={t("panel.dragHint")}>⠿</span> : <span title={locked ? t("panel.lockedHint") : movable ? t("panel.mobileDragOff") : t("panel.static")}><Lock size={11} className="panel-lock"/></span>}<span className="panel-led"/><span className="panel-title-text" title={title}>{title}</span><em>{code}</em></div>
       <div className="panel-actions"><button onClick={() => { setCollapsed((state) => !state); setMenuOpen(false); }} title={collapsed ? t("panel.expand") : t("panel.collapse")} aria-label={collapsed ? t("panel.ariaExpand", { title }) : t("panel.ariaCollapse", { title })}>{collapsed ? <Plus size={12}/> : <Minus size={12}/>}</button><button onClick={() => setMenuOpen((state) => !state)} title={t("panel.options")} aria-label={t("panel.ariaOptions", { title })}><MoreHorizontal size={14}/></button>{menuOpen && <div className="panel-options"><button onClick={() => { setCollapsed(false); setMenuOpen(false); }}>{t("panel.menuExpand")}</button><button onClick={() => { setCollapsed(true); setMenuOpen(false); }}>{t("panel.menuCollapse")}</button>{movable && onToggleLock && <button onClick={() => { onToggleLock(); setMenuOpen(false); }}>{locked ? t("panel.menuUnlock") : t("panel.menuLock")}</button>}</div>}</div>
     </div>
     {!collapsed && <div className="panel-body">{children}</div>}
@@ -436,10 +443,12 @@ function StatementExplorer({
   const revRow = useMemo(() => (data?.rows ?? []).find((r) => r.key === "revenue"), [data?.rows]);
   const marginForActive = useMemo(() => {
     if (statement !== "income" || !revRow || !active?.value?.raw) return null;
+    // Gelirin kendi kendine oranı her zaman %100; anlamsız olduğu için gösterilmez.
+    if (selected?.key === "revenue") return null;
     const revVal = revRow.values[activeIndex]?.raw;
     if (!revVal || revVal <= 0) return null;
     return (active.value.raw / revVal) * 100;
-  }, [statement, revRow, active, activeIndex]);
+  }, [statement, revRow, active, activeIndex, selected?.key]);
 
   const line = values
     .map((item, index) => `${index ? "L" : "M"}${getX(index)} ${getY(item.value?.raw ?? 0)}`)
@@ -2017,12 +2026,12 @@ export default function Home() {
   const [mobileFilter, setMobileFilter] = useState<MobileModuleFilter>("ALL");
   const [mobileModulesOpen, setMobileModulesOpen] = useState(false);
   const [selectedSymbol, setSelectedSymbol] = useState("THYAO"); const [interval, setInterval] = useState<(typeof intervals)[number]>("5G"); const [chartMode, setChartMode] = useState<"price" | FinancialStatementKind>(() => { const mode = new URLSearchParams(window.location.search).get("chart"); return mode === "income" || mode === "balance" || mode === "cashflow" ? mode : "price"; }); const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? ""); const [watchCategory, setWatchCategory] = useState<WatchCategory>("TÜMÜ"); const [watchTab, setWatchTab] = useState<"WATCH" | "DISCOVER">(() => new URLSearchParams(window.location.search).get("watch") === "discover" ? "DISCOVER" : "WATCH"); const [mobileMenu, setMobileMenu] = useState(false); const [notificationOpen, setNotificationOpen] = useState(false); const [draggedPanel, setDraggedPanel] = useState<PanelId | null>(null); const [clock, setClock] = useState(() => formatClock());
-  const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem("analiz-terminal-order-v10") || "[]"); return Array.isArray(saved) && saved.length === 4 ? saved : defaultPanelOrder; } catch { return defaultPanelOrder; } });
-  const [lockedPanels, setLockedPanels] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem("analiz-terminal-locked-panels-v1") || "[]"); return Array.isArray(saved) ? saved.filter((id): id is PanelId => defaultPanelOrder.includes(id)) : []; } catch { return []; } });
+  const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.panelOrder) || "[]"); return Array.isArray(saved) && saved.length === 4 ? saved : defaultPanelOrder; } catch { return defaultPanelOrder; } });
+  const [lockedPanels, setLockedPanels] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.lockedPanels) || "[]"); return Array.isArray(saved) ? saved.filter((id): id is PanelId => defaultPanelOrder.includes(id)) : []; } catch { return []; } });
   const [discoveredSymbol, setDiscoveredSymbol] = useState<DiscoveredSymbol | null>(null);
   const [recentSymbols, setRecentSymbols] = useState<string[]>(() => {
     try {
-      const saved = JSON.parse(window.localStorage.getItem("analiz-terminal-recent-symbols-v1") || "[]");
+      const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.recentSymbols) || "[]");
       return Array.isArray(saved) && saved.length > 0
         ? saved.slice(0, 8).filter((item): item is string => typeof item === "string")
         : ["THYAO", "ASELS", "BIST 100", "S&P 500"];
@@ -2055,7 +2064,7 @@ export default function Home() {
   }, [discoveredSeed, recentSymbols]);
   const quotes = trpc.market.quotes.useQuery({ symbols: watchUniverse.map((item) => item.providerSymbol) }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const quoteMap = useMemo(() => new Map((quotes.data ?? []).map((item) => [item.symbol, item])), [quotes.data]); const markets = useMemo(() => watchUniverse.map((item) => mergeQuote(item, quoteMap.get(item.providerSymbol))), [watchUniverse, quoteMap]); const row = markets.find((item) => item.symbol === selectedSymbol) ?? markets.find((item) => item.symbol === "THYAO")!;
   const chart = trpc.market.chart.useQuery({ symbol: row.providerSymbol, timeframe: interval }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const statementKind: FinancialStatementKind = chartMode === "price" ? "income" : chartMode; const statements = trpc.market.statements.useQuery({ symbol: row.providerSymbol, statement: statementKind }, { staleTime: 45_000, retry: 1 }); const search = trpc.market.search.useQuery({ query: query.trim().length >= 1 ? query.trim() : "a" }, { enabled: query.trim().length >= 1, staleTime: 30_000, retry: 1 });
-  useEffect(() => { setClock(formatClock()); const timer = window.setInterval(() => setClock(formatClock()), 1000); return () => window.clearInterval(timer); }, [language]); useEffect(() => { window.localStorage.setItem("analiz-terminal-order-v9", JSON.stringify(panelOrder)); }, [panelOrder]); useEffect(() => { window.localStorage.setItem("analiz-terminal-locked-panels-v1", JSON.stringify(lockedPanels)); }, [lockedPanels]); useEffect(() => { window.localStorage.removeItem("analiz-terminal-user-watchlist-v1"); }, []); useEffect(() => { window.localStorage.setItem("analiz-terminal-recent-symbols-v1", JSON.stringify(recentSymbols)); }, [recentSymbols]);
+  useEffect(() => { setClock(formatClock()); const timer = window.setInterval(() => setClock(formatClock()), 1000); return () => window.clearInterval(timer); }, [language]); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.panelOrder, JSON.stringify(panelOrder)); }, [panelOrder]); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.lockedPanels, JSON.stringify(lockedPanels)); }, [lockedPanels]); useEffect(() => { window.localStorage.removeItem(STORAGE_KEYS.legacyWatchlist); }, []); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.recentSymbols, JSON.stringify(recentSymbols)); }, [recentSymbols]);
 
   const tickerSymbols = ["BIST 100", "BIST 30", "THYAO", "ASELS", "TUPRS", "AKBNK", "S&P 500", "NASDAQ 100", "USD/TRY", "ALTIN", "PETROL", "VIX", "AAPL", "MSFT"];
   const tickerItems = useMemo(() => {
@@ -2087,7 +2096,7 @@ export default function Home() {
 
   const clearRecentSymbols = () => {
     setRecentSymbols([]);
-    window.localStorage.removeItem("analiz-terminal-recent-symbols-v1");
+    window.localStorage.removeItem(STORAGE_KEYS.recentSymbols);
     toast.message(t("toast.recentCleared"));
   };
 
@@ -2415,14 +2424,14 @@ export default function Home() {
         </div>
       </div>
       <div className="chrome-center">
-        <Activity size={13}/> {t("chrome.marketData")} <em>{quotes.isFetching ? t("chrome.updating") : "YAHOO FINANCE"}</em>
+        <Activity size={13}/> <span>{t("chrome.marketData")}</span> <em>{quotes.isFetching ? t("chrome.updating") : "YAHOO FINANCE"}</em>
         <span>{t("chrome.clock", { clock })}</span>
       </div>
       <div className="chrome-actions">
         <LanguageSwitcher />
         <button onClick={() => quotes.refetch()} title={t("chrome.refresh")}><Activity size={15}/></button>
         <button className="notification-trigger" onClick={() => setNotificationOpen((state) => !state)} title={t("chrome.notifications")} aria-expanded={notificationOpen}><Bell size={15}/><i/></button>
-        <span className="connection-state"><i/> {t("chrome.connected")}</span>
+        <span className="connection-state"><i/> <span>{t("chrome.connected")}</span></span>
         {notificationOpen && <div className="notification-center">
           <div><b>{t("chrome.notificationCenter")}</b><button onClick={() => setNotificationOpen(false)}>{t("common.close")}</button></div>
           {notifications.map((item) => <article key={item.label}><i/><span><b>{item.label}</b><small>{item.detail}</small></span></article>)}
