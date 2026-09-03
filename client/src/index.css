@@ -342,6 +342,45 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: var(--coral);
 }
 
+/* Language Switcher (TR / EN) */
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  border-radius: 4px;
+}
+.language-switcher-icon {
+  margin-right: 2px;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+.chrome-actions .language-switcher button.language-option {
+  width: auto;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+}
+.chrome-actions .language-switcher button.language-option:hover {
+  background: var(--surface-2);
+  border-color: transparent;
+  color: var(--primary);
+}
+.chrome-actions .language-switcher button.language-option.active {
+  border-color: rgba(0, 245, 155, 0.35);
+  background: rgba(0, 245, 155, 0.1);
+  color: var(--primary);
+}
+
 .connection-state {
   display: inline-flex;
   align-items: center;
@@ -5793,6 +5832,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
   .connection-state span {
     display: none;
+  }
+  .language-switcher {
+    padding: 2px 3px;
+    gap: 1px;
+  }
+  .language-switcher-icon {
+    display: none;
+  }
+  .chrome-actions .language-switcher button.language-option {
+    height: 19px;
+    padding: 0 5px;
+    font-size: 9.5px;
   }
 
   .tool-ribbon {

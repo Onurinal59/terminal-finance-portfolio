@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Mail,
   Linkedin,
@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { buildContactMailto } from "../lib/contactMailto";
 import { gsap, useGSAP } from "../lib/gsap";
+import { useI18n, type TranslationKey } from "@/i18n";
 
 interface ContactDeskProps {
   onBack: () => void;
@@ -30,59 +31,88 @@ const LINKEDIN_URL = "https://www.linkedin.com/in/onur%C4%B1nal/";
 const MEASURE_MOAT_URL = "https://measure-moat.vercel.app/";
 const PROFILE_PHOTO = "/media/onur-inal.jpg";
 
-const QUICK_TOPICS = [
+interface QuickTopicDefinition {
+  id: string;
+  icon: string;
+  labelKey: TranslationKey;
+  subjectKey: TranslationKey;
+  templateKey: TranslationKey;
+}
+
+const QUICK_TOPICS: QuickTopicDefinition[] = [
   {
     id: "VALUATION",
-    label: "Şirket Değerleme & DCF",
     icon: "📊",
-    subject: "Şirket Değerleme & Finansal Modelleme Talebi",
-    template: "Merhaba Onur,\n\nŞirket değerleme analizi (DCF / Çarpan Analizi / ROIC) ve finansal modelleme çalışması hakkında bilgi almak istiyorum:\n\n- Şirket / Sektör: \n- İlgili Metrikler: \n- Zaman Planı: \n\nİyi çalışmalar.",
+    labelKey: "contact.topicValuation",
+    subjectKey: "contact.topicValuationSubject",
+    templateKey: "contact.topicValuationTemplate",
   },
   {
     id: "EQUITY_REPORT",
-    label: "Özsermaye Raporu",
     icon: "📑",
-    subject: "Özsermaye Araştırma Raporu Talebi",
-    template: "Merhaba Onur,\n\nAraştırma kütüphanendeki raporlar ve sektör incelemeleri hakkında detaylı bilgi almak istiyorum:\n\n- Odak Şirket / Ticker: \n- İnceleme Konusu: \n\nTeşekkürler.",
+    labelKey: "contact.topicEquity",
+    subjectKey: "contact.topicEquitySubject",
+    templateKey: "contact.topicEquityTemplate",
   },
   {
     id: "CAREER",
-    label: "Kariyer & İş Birliği",
     icon: "💼",
-    subject: "Kurumsal Finans & Kariyer İş Birliği",
-    template: "Merhaba Onur,\n\nFinans / Değerleme analistliği ve kurumsal finans projeleri kapsamında seninle iletişime geçmek istedim:\n\n- Kurum / Şirket: \n- Pozisyon / İş Birliği Kapsamı: \n\nGörüşmek üzere.",
+    labelKey: "contact.topicCareer",
+    subjectKey: "contact.topicCareerSubject",
+    templateKey: "contact.topicCareerTemplate",
   },
   {
     id: "GENERAL",
-    label: "Piyasa Fikir Alışverişi",
     icon: "🌐",
-    subject: "BIST & Makroekonomi Fikir Alışverişi",
-    template: "Merhaba Onur,\n\nSermaye piyasaları ve terminaldeki makro göstergeler hakkında görüşlerini merak ettiğim bir konu var:\n\n- Konu: \n\nİyi çalışmalar dilerim.",
+    labelKey: "contact.topicGeneral",
+    subjectKey: "contact.topicGeneralSubject",
+    templateKey: "contact.topicGeneralTemplate",
   },
 ];
 
 export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject }) => {
+  const { t, language } = useI18n();
   const [selectedTopicId, setSelectedTopicId] = useState<string>("VALUATION");
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
-  const [subject, setSubject] = useState(
-    initialSubject || QUICK_TOPICS[0].subject
-  );
-  const [message, setMessage] = useState(QUICK_TOPICS[0].template);
+  const [subject, setSubject] = useState(initialSubject || t(QUICK_TOPICS[0].subjectKey));
+  const [message, setMessage] = useState(t(QUICK_TOPICS[0].templateKey));
   const [copiedEmail, setCopiedEmail] = useState(false);
 
-  const handleSelectTopic = (topic: typeof QUICK_TOPICS[number]) => {
+  // Kullanıcı taslağa dokunmadıysa dil değişiminde şablonu yeni dile taşı.
+  const appliedTemplate = useRef({
+    subject: initialSubject || t(QUICK_TOPICS[0].subjectKey),
+    message: t(QUICK_TOPICS[0].templateKey),
+  });
+
+  const previousLanguage = useRef(language);
+
+  useEffect(() => {
+    if (previousLanguage.current === language) return;
+    previousLanguage.current = language;
+    const topic = QUICK_TOPICS.find((item) => item.id === selectedTopicId) ?? QUICK_TOPICS[0];
+    const nextSubject = t(topic.subjectKey);
+    const nextMessage = t(topic.templateKey);
+    setSubject((current) => (current === appliedTemplate.current.subject ? nextSubject : current));
+    setMessage((current) => (current === appliedTemplate.current.message ? nextMessage : current));
+    appliedTemplate.current = { subject: nextSubject, message: nextMessage };
+  }, [language, selectedTopicId, t]);
+
+  const handleSelectTopic = (topic: QuickTopicDefinition) => {
+    const nextSubject = t(topic.subjectKey);
+    const nextMessage = t(topic.templateKey);
     setSelectedTopicId(topic.id);
-    setSubject(topic.subject);
-    setMessage(topic.template);
-    toast.info(`"${topic.label}" şablonu yüklendi.`);
+    setSubject(nextSubject);
+    setMessage(nextMessage);
+    appliedTemplate.current = { subject: nextSubject, message: nextMessage };
+    toast.info(t("contact.toastTemplate", { topic: t(topic.labelKey) }));
   };
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(EMAIL);
     setCopiedEmail(true);
-    toast.success("E-posta adresi panoya kopyalandı!", {
+    toast.success(t("contact.toastCopied"), {
       description: EMAIL,
     });
     setTimeout(() => setCopiedEmail(false), 2500);
@@ -93,28 +123,36 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
     a.href = href;
     a.download = filename;
     a.click();
-    toast.success("CV indirmesi başlatıldı.", {
+    toast.success(t("toast.cvStarted"), {
       description: filename,
     });
   };
 
   const mailtoUrl = useMemo(() => {
+    const visitor = t("contact.visitor");
     const fullSender = organization.trim()
-      ? `${name.trim() || "Ziyaretçi"} (${organization.trim()})`
-      : name.trim() || "Ziyaretçi";
-    const senderNote = senderEmail.trim() ? `\nİletişim E-postası: ${senderEmail.trim()}` : "";
+      ? `${name.trim() || visitor} (${organization.trim()})`
+      : name.trim() || visitor;
+    const senderNote = senderEmail.trim()
+      ? `\n${t("contact.mailContactEmail")}: ${senderEmail.trim()}`
+      : "";
     const composedMessage = `${message.trim()}${senderNote}`;
-    return buildContactMailto(EMAIL, subject, fullSender, composedMessage);
-  }, [name, organization, senderEmail, subject, message]);
+    return buildContactMailto(EMAIL, subject, fullSender, composedMessage, {
+      greeting: t("contact.mailGreeting"),
+      sender: t("contact.mailSender"),
+      fallbackSubject: t("contact.mailFallbackSubject"),
+      fallbackSender: t("contact.mailFallbackSender"),
+    });
+  }, [name, organization, senderEmail, subject, message, t]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) {
-      toast.error("Lütfen mesaj alanını doldurunuz.");
+      toast.error(t("contact.toastEmptyMessage"));
       return;
     }
-    toast.success("E-posta istemciniz açılıyor...", {
-      description: "Taslak doğrudan e-posta uygulamanıza aktarıldı.",
+    toast.success(t("contact.toastOpening"), {
+      description: t("contact.toastOpeningDesc"),
     });
     window.location.href = mailtoUrl;
   };
@@ -152,41 +190,36 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
   );
 
   return (
-    <div ref={contactContainerRef} className="terminal-contact-desk" role="region" aria-label="İletişim Masası">
+    <div ref={contactContainerRef} className="terminal-contact-desk" role="region" aria-label={t("contact.aria")}>
       {/* Top Banner */}
       <div className="contact-desk-banner">
         <div className="contact-banner-meta">
           <div className="contact-banner-kicker">
             <span className="live-dot" />
-            <span>ONUR İNAL // SERMAYE PİYASALARI & ARAŞTIRMA MASASI</span>
-            <span className="contact-status-chip">DOĞRUDAN BAĞLANTI</span>
+            <span>{t("contact.kicker")}</span>
+            <span className="contact-status-chip">{t("contact.statusChip")}</span>
           </div>
-          <h1 className="contact-banner-title">
-            Finansal Analiz, Değerleme & İş Birliği Bağlantı Masası
-          </h1>
-          <p className="contact-banner-desc">
-            Hisse senedi değerleme modelleri (DCF), ekonomik hendek analizleri (Moat),
-            kurumsal finans projeleri veya araştırma ortaklıkları için doğrudan iletişime geçin.
-          </p>
+          <h1 className="contact-banner-title">{t("contact.title")}</h1>
+          <p className="contact-banner-desc">{t("contact.desc")}</p>
           <div className="contact-meta-strip">
             <div className="meta-strip-item">
               <Clock size={12} className="text-emerald-400" />
-              <span>Çalışma Saatleri: 09:00 — 18:30 TSİ (UTC+3 İstanbul)</span>
+              <span>{t("contact.hours")}</span>
             </div>
             <div className="meta-strip-item">
               <Sparkles size={12} className="text-sky-400" />
-              <span>Ortalama Yanıt Süresi: &lt; 24 Saat</span>
+              <span>{t("contact.responseTime")}</span>
             </div>
           </div>
         </div>
 
         <div className="contact-banner-actions">
           <button onClick={onBack} className="btn-terminal-secondary">
-            <Grid2X2 size={14} /> PANOYA DÖN
+            <Grid2X2 size={14} /> {t("common.backToDashboard")}
           </button>
           <button onClick={handleCopyEmail} className="btn-terminal-primary">
             {copiedEmail ? <Check size={14} /> : <Copy size={14} />}
-            {copiedEmail ? "KOPYALANDI!" : "E-POSTAYI KOPYALA"}
+            {copiedEmail ? t("contact.copied") : t("contact.copyEmail")}
           </button>
         </div>
       </div>
@@ -195,7 +228,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
       <div className="contact-topic-selector-card">
         <div className="topic-selector-heading">
           <MessageSquareText size={14} className="text-emerald-400" />
-          <span>HIZLI İLETİŞİM KONULARI (ŞABLON SEÇİN)</span>
+          <span>{t("contact.topicsHeading")}</span>
         </div>
         <div className="topic-chips-row">
           {QUICK_TOPICS.map((topic) => (
@@ -206,7 +239,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
               onClick={() => handleSelectTopic(topic)}
             >
               <span className="topic-chip-icon">{topic.icon}</span>
-              <span className="topic-chip-text">{topic.label}</span>
+              <span className="topic-chip-text">{t(topic.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -220,13 +253,13 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
             <div className="header-title-group">
               <Mail size={16} className="text-emerald-400" />
               <div>
-                <h3>MESAJ TASLAK KONSOLU</h3>
-                <p>Formu doldurup butona bastığınızda e-posta uygulamanızda hazır taslak açılır.</p>
+                <h3>{t("contact.formTitle")}</h3>
+                <p>{t("contact.formDesc")}</p>
               </div>
             </div>
             <span className="security-tag">
               <ShieldCheck size={12} />
-              GİZLİLİK GÜVENLİ
+              {t("contact.privacyTag")}
             </span>
           </div>
 
@@ -234,28 +267,28 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
             <div className="form-fields-row">
               <div className="form-group">
                 <label htmlFor="contact-name">
-                  <UserRound size={12} /> AD SOYAD
+                  <UserRound size={12} /> {t("contact.labelName")}
                 </label>
                 <input
                   id="contact-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Örn: Mehmet Yılmaz"
+                  placeholder={t("contact.placeholderName")}
                   className="contact-text-input"
                 />
               </div>
 
               <div className="form-group">
                 <label htmlFor="contact-org">
-                  <Building2 size={12} /> KURUM / FİRMA (İSTEĞE BAĞLI)
+                  <Building2 size={12} /> {t("contact.labelOrg")}
                 </label>
                 <input
                   id="contact-org"
                   type="text"
                   value={organization}
                   onChange={(e) => setOrganization(e.target.value)}
-                  placeholder="Örn: Yatırım Ortaklığı / Üniversite"
+                  placeholder={t("contact.placeholderOrg")}
                   className="contact-text-input"
                 />
               </div>
@@ -264,21 +297,21 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
             <div className="form-fields-row">
               <div className="form-group">
                 <label htmlFor="contact-email">
-                  <Mail size={12} /> E-POSTA ADRESİNİZ (GERİ DÖNÜŞ İÇİN)
+                  <Mail size={12} /> {t("contact.labelEmail")}
                 </label>
                 <input
                   id="contact-email"
                   type="email"
                   value={senderEmail}
                   onChange={(e) => setSenderEmail(e.target.value)}
-                  placeholder="Örn: mehmet@sirket.com"
+                  placeholder={t("contact.placeholderEmail")}
                   className="contact-text-input"
                 />
               </div>
 
               <div className="form-group">
                 <label htmlFor="contact-subject">
-                  <Sparkles size={12} /> KONU
+                  <Sparkles size={12} /> {t("contact.labelSubject")}
                 </label>
                 <input
                   id="contact-subject"
@@ -286,7 +319,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   required
-                  placeholder="Mesaj konusu"
+                  placeholder={t("contact.placeholderSubject")}
                   className="contact-text-input"
                 />
               </div>
@@ -294,8 +327,8 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
 
             <div className="form-group">
               <div className="textarea-label-row">
-                <label htmlFor="contact-message">MESAJ METNİ</label>
-                <span className="char-count">{message.length} karakter</span>
+                <label htmlFor="contact-message">{t("contact.labelMessage")}</label>
+                <span className="char-count">{t("contact.charCount", { count: message.length })}</span>
               </div>
               <textarea
                 id="contact-message"
@@ -303,7 +336,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
                 required
-                placeholder="Mesajınızı detaylı şekilde yazabilirsiniz..."
+                placeholder={t("contact.placeholderMessage")}
                 className="contact-textarea"
               />
             </div>
@@ -311,7 +344,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
             <div className="form-action-row">
               <button type="submit" className="btn-submit-mail">
                 <Send size={15} />
-                E-POSTA İSTEMCİSİNİ AÇ (TASLAK OLUŞTUR)
+                {t("contact.submit")}
               </button>
               <button
                 type="button"
@@ -319,7 +352,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 className="btn-copy-address"
               >
                 {copiedEmail ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                {copiedEmail ? "Kopyalandı" : "E-postayı Kopyala"}
+                {copiedEmail ? t("contact.copiedShort") : t("contact.copyAddress")}
               </button>
             </div>
           </form>
@@ -331,17 +364,15 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
           <div className="analyst-badge-card">
             <div className="analyst-avatar-wrapper">
               <img src={PROFILE_PHOTO} alt="Onur İnal" className="analyst-img" />
-              <span className="online-indicator" title="İletişime Açık" />
+              <span className="online-indicator" title={t("contact.openTitle")} />
             </div>
             <div className="analyst-info">
               <div className="analyst-title-row">
                 <h3>ONUR İNAL</h3>
-                <span className="verified-pill">DOĞRULANMIŞ PROFİL</span>
+                <span className="verified-pill">{t("contact.verified")}</span>
               </div>
-              <p className="analyst-role">Finans · Değerleme · Piyasa Araştırmacısı</p>
-              <p className="analyst-univ">
-                Afyon Kocatepe Üniversitesi · Uluslararası Ticaret ve Finansman & İktisat (Çift Ana Dal)
-              </p>
+              <p className="analyst-role">{t("contact.analystRole")}</p>
+              <p className="analyst-univ">{t("contact.analystUniversity")}</p>
             </div>
           </div>
 
@@ -352,7 +383,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 <Mail size={18} />
               </div>
               <div className="channel-details">
-                <span className="channel-label">RESMİ E-POSTA</span>
+                <span className="channel-label">{t("contact.channelEmail")}</span>
                 <b className="channel-value">{EMAIL}</b>
               </div>
               <div className="channel-actions">
@@ -360,14 +391,14 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                   type="button"
                   onClick={handleCopyEmail}
                   className="channel-action-btn"
-                  title="E-postayı Kopyala"
+                  title={t("contact.channelEmailCopy")}
                 >
                   {copiedEmail ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                 </button>
                 <a
                   href={`mailto:${EMAIL}`}
                   className="channel-action-btn"
-                  title="Doğrudan E-posta Gönder"
+                  title={t("contact.channelEmailSend")}
                 >
                   <ArrowUpRight size={13} />
                 </a>
@@ -384,7 +415,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 <Linkedin size={18} />
               </div>
               <div className="channel-details">
-                <span className="channel-label">LINKEDIN PROFİLİ</span>
+                <span className="channel-label">{t("contact.channelLinkedin")}</span>
                 <b className="channel-value">linkedin.com/in/onur-inal</b>
               </div>
               <ExternalLink size={14} className="channel-external-icon" />
@@ -400,7 +431,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 <Sparkles size={18} />
               </div>
               <div className="channel-details">
-                <span className="channel-label">MEASURE MOAT MODELLEMESİ</span>
+                <span className="channel-label">{t("contact.channelMoat")}</span>
                 <b className="channel-value">measure-moat.vercel.app</b>
               </div>
               <ExternalLink size={14} className="channel-external-icon" />
@@ -411,7 +442,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
           <div className="cv-download-hub">
             <div className="cv-hub-title">
               <FileDown size={14} className="text-emerald-400" />
-              <span>GÜNCEL ÖZGEÇMİŞ & CV (DOĞRUDAN İNDİR)</span>
+              <span>{t("contact.cvHubTitle")}</span>
             </div>
             <div className="cv-buttons-grid">
               <button
@@ -425,7 +456,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 }
               >
                 <FileDown size={13} />
-                <span>Türkçe CV (Fotoğraflı)</span>
+                <span>{t("contact.cvTrPhoto")}</span>
               </button>
               <button
                 type="button"
@@ -438,7 +469,30 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 }
               >
                 <FileDown size={13} />
-                <span>Türkçe CV (ATS / Sade)</span>
+                <span>{t("contact.cvTrAts")}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-cv-download"
+                onClick={() =>
+                  handleDownloadCv(
+                    "/cv/Onur_Inal_CV_EN_Fotografli.pdf",
+                    "Onur_Inal_CV_EN_Fotografli.pdf"
+                  )
+                }
+              >
+                <FileDown size={13} />
+                <span>{t("contact.cvEnPhoto")}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-cv-download"
+                onClick={() =>
+                  handleDownloadCv("/cv/Onur_Inal_CV_EN_ATS.pdf", "Onur_Inal_CV_EN_ATS.pdf")
+                }
+              >
+                <FileDown size={13} />
+                <span>{t("contact.cvEnAts")}</span>
               </button>
             </div>
           </div>
@@ -447,9 +501,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
           <div className="terminal-guarantee-strip">
             <ShieldCheck size={16} className="text-sky-400 shrink-0" />
             <p>
-              <strong>Veri Güvenliği:</strong> Form verileriniz sunucumuzda kaydedilmez.
-              "E-Posta İstemcisini Aç" butonu yerel e-posta yazılımınızda şifreli ve doğrudan bir
-              taslak oluşturur.
+              <strong>{t("contact.guaranteeTitle")}</strong> {t("contact.guaranteeText")}
             </p>
           </div>
         </aside>

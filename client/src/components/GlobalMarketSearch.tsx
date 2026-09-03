@@ -1,16 +1,33 @@
 import { useMemo, useState, useEffect } from "react";
 import { Activity, Search, SlidersHorizontal, X, ArrowUpRight } from "lucide-react";
+import { useI18n, type TranslationKey } from "@/i18n";
 
 export type YahooSearchItem = { symbol: string; name: string; exchange?: string; type?: string };
+
 const assetFilters = [
-  { id: "ALL", label: "TÜMÜ", types: [] },
-  { id: "EQUITY", label: "HİSSE", types: ["EQUITY"] },
-  { id: "FUND", label: "ETF / FON", types: ["ETF", "MUTUALFUND"] },
-  { id: "INDEX", label: "ENDEKS", types: ["INDEX"] },
-  { id: "BOND", label: "TAHVİL / EUROBOND", types: ["BOND"] },
-  { id: "CURRENCY", label: "DÖVİZ", types: ["CURRENCY"] },
-  { id: "CRYPTO", label: "KRİPTO", types: ["CRYPTOCURRENCY"] },
-  { id: "OTHER", label: "DİĞER", types: ["FUTURE", "OPTION", "WARRANT", "MONEYMARKET", "ECNQUOTE", "OTHER"] },
+  { id: "ALL", types: [] },
+  { id: "EQUITY", types: ["EQUITY"] },
+  { id: "FUND", types: ["ETF", "MUTUALFUND"] },
+  { id: "INDEX", types: ["INDEX"] },
+  { id: "BOND", types: ["BOND"] },
+  { id: "CURRENCY", types: ["CURRENCY"] },
+  { id: "CRYPTO", types: ["CRYPTOCURRENCY"] },
+  { id: "OTHER", types: ["FUTURE", "OPTION", "WARRANT", "MONEYMARKET", "ECNQUOTE", "OTHER"] },
+] as const;
+
+const assetTypeKeys = [
+  "EQUITY",
+  "ETF",
+  "MUTUALFUND",
+  "INDEX",
+  "BOND",
+  "CURRENCY",
+  "CRYPTOCURRENCY",
+  "FUTURE",
+  "OPTION",
+  "WARRANT",
+  "MONEYMARKET",
+  "ECNQUOTE",
 ] as const;
 
 export function GlobalMarketSearch({
@@ -28,7 +45,8 @@ export function GlobalMarketSearch({
   isError: boolean;
   onSelect: (item: YahooSearchItem) => void;
 }) {
-  const [activeFilter, setActiveFilter] = useState("ALL");
+  const { t } = useI18n();
+  const [activeFilter, setActiveFilter] = useState<string>("ALL");
   const isOpen = query.trim().length >= 1;
 
   // Keyboard shortcut: ESC to clear/close
@@ -45,25 +63,15 @@ export function GlobalMarketSearch({
   const visibleResults = useMemo(() => {
     const filter = assetFilters.find((item) => item.id === activeFilter) ?? assetFilters[0];
     return filter.types.length
-      ? results.filter((item) => filter.types.includes((item.type ?? "OTHER") as never))
+      ? results.filter((item) => (filter.types as readonly string[]).includes(item.type ?? "OTHER"))
       : results;
   }, [activeFilter, results]);
 
-  const typeLabel = (type?: string) =>
-    ({
-      EQUITY: "HİSSE",
-      ETF: "ETF",
-      MUTUALFUND: "FON",
-      INDEX: "ENDEKS",
-      BOND: "TAHVİL",
-      CURRENCY: "DÖVİZ",
-      CRYPTOCURRENCY: "KRİPTO",
-      FUTURE: "VADELİ",
-      OPTION: "OPSİYON",
-      WARRANT: "VARANT",
-      MONEYMARKET: "PARA PİYASASI",
-      ECNQUOTE: "ECN",
-    }[type ?? ""] ?? type ?? "VARLIK");
+  const typeLabel = (type?: string) => {
+    const known = assetTypeKeys.find((item) => item === type);
+    if (known) return t(`assetType.${known}` as TranslationKey);
+    return type ?? t("assetType.fallback");
+  };
 
   const typeColorClass = (type?: string) => {
     switch (type) {
@@ -92,24 +100,26 @@ export function GlobalMarketSearch({
         <input
           value={query}
           onChange={(event) => onQuery(event.target.value)}
-          placeholder="Yahoo sembol, şirket veya piyasa varlığı ara... (Örn: THYAO, AAPL, BTC)"
-          aria-label="Yahoo Finance varlık ara"
+          placeholder={t("search.placeholder")}
+          aria-label={t("search.aria")}
         />
         <kbd className="search-kbd">ESC</kbd>
         {query && (
-          <button type="button" onClick={() => onQuery("")} aria-label="Aramayı temizle" className="search-clear-btn">
+          <button type="button" onClick={() => onQuery("")} aria-label={t("search.clear")} className="search-clear-btn">
             <X size={13} />
           </button>
         )}
       </label>
 
       {isOpen && (
-        <section className="global-search-popover" aria-label="Yahoo Finance arama sonuçları">
+        <section className="global-search-popover" aria-label={t("search.resultsAria")}>
           <div className="global-search-head">
             <span>
-              <SlidersHorizontal size={13} /> VARLIK SINIFI FİLTRESİ
+              <SlidersHorizontal size={13} /> {t("search.filterLabel")}
             </span>
-            <small>{isLoading ? "ARANIYOR…" : `${visibleResults.length} SONUÇ BULUNDU`}</small>
+            <small>
+              {isLoading ? t("search.searching") : t("search.resultCount", { count: visibleResults.length })}
+            </small>
           </div>
 
           <div className="global-search-filters">
@@ -119,7 +129,7 @@ export function GlobalMarketSearch({
                 className={activeFilter === filter.id ? "active" : ""}
                 onClick={() => setActiveFilter(filter.id)}
               >
-                {filter.label}
+                {t(`assetFilter.${filter.id}` as TranslationKey)}
               </button>
             ))}
           </div>
@@ -127,14 +137,12 @@ export function GlobalMarketSearch({
           <div className="global-search-results">
             {isLoading && (
               <p className="search-status-text">
-                <Activity size={14} className="spin-slow" /> Yahoo Finance taranıyor…
+                <Activity size={14} className="spin-slow" /> {t("search.scanning")}
               </p>
             )}
-            {isError && (
-              <p className="search-status-text error">Arama sağlayıcısı şu an yanıt vermiyor. Lütfen tekrar dene.</p>
-            )}
+            {isError && <p className="search-status-text error">{t("search.error")}</p>}
             {!isLoading && !isError && !visibleResults.length && (
-              <p className="search-status-text empty">Bu filtreye uygun bir varlık bulunamadı.</p>
+              <p className="search-status-text empty">{t("search.empty")}</p>
             )}
             {!isLoading &&
               !isError &&
@@ -156,7 +164,7 @@ export function GlobalMarketSearch({
           </div>
 
           <footer className="global-search-footer">
-            <span>Yahoo Finance canlı entegrasyonu · Seçilen sembol anlık grafik ve mali tablolarda açılır.</span>
+            <span>{t("search.footer")}</span>
           </footer>
         </section>
       )}

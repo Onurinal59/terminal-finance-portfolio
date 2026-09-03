@@ -2,13 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowUpRight, Award, BarChart3, Bell, BookOpen, Briefcase, CalendarDays,
-  CheckCircle2, ChevronDown, Code2, Coins, DollarSign, Download, ExternalLink, FileText, Filter,
-  GraduationCap, Grid2X2, History, Info, Layers, LineChart, Linkedin, Lock, Mail, Menu, MessageSquare,
-  Minus, MoreHorizontal, PieChart, Plus, Scale, Search, Send, SlidersHorizontal, Sparkles, Trash2, TrendingDown, TrendingUp, UserRound, Globe,
+  CheckCircle2, ChevronDown, Code2, Coins, Download, ExternalLink, FileText,
+  GraduationCap, Grid2X2, History, Info, Layers, LineChart, Linkedin, Lock, Mail,
+  Minus, MoreHorizontal, PieChart, Plus, Scale, Search, SlidersHorizontal, Trash2, TrendingDown, TrendingUp, UserRound, Globe,
 } from "lucide-react";
 import { toast } from "sonner";
-import { buildContactMailto } from "@/lib/contactMailto";
 import { GlobalMarketSearch } from "@/components/GlobalMarketSearch";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { MobileModulesSheet, type MobileModuleId } from "@/components/MobileModulesSheet";
 import { ResearchLibrary } from "@/components/ResearchLibrary";
 import { ContactDesk } from "@/components/ContactDesk";
@@ -18,10 +18,19 @@ import { getAutoScrollDelta, placeUnlockedPanelBefore } from "@/lib/panelOrder";
 import { rememberRecentSymbol } from "@/lib/recentSymbols";
 import { gsap, refreshScrollTriggers, useGSAP } from "@/lib/gsap";
 import { trpc } from "@/lib/trpc";
+import {
+  formatClock,
+  formatCompactNumber,
+  formatDateTime,
+  formatDecimal,
+  formatPercent,
+  useI18n,
+  type Translate,
+  type TranslationKey,
+} from "@/i18n";
 
 type TerminalView = "DASHBOARD" | "PROFILE" | "RESEARCH" | "CONTACT";
 type WatchCategory = "TÜMÜ" | "TÜRKİYE" | "ABD" | "MAKRO";
-type ReportCategory = "TÜMÜ" | "EQUITY" | "MACRO" | "SECTOR";
 type PanelId = "profile" | "chart" | "summary" | "archive";
 type FinancialStatementKind = "income" | "balance" | "cashflow";
 type ChartPoint = { time: number; close: number | null; high: number | null; low: number | null; open: number | null; volume: number | null };
@@ -30,8 +39,6 @@ type MarketRow = { symbol: string; providerSymbol: string; category: Exclude<Wat
 type StatementValue = { asOfDate: string; currency: string; raw: number; formatted: string };
 type FinancialStatementsData = { symbol: string; statement: FinancialStatementKind; periods: Array<{ asOfDate: string; currency: string }>; rows: Array<{ key: string; label: string; values: Array<StatementValue | null> }>; chartAvailable: boolean; chartCurrency: string | null; source: "Yahoo Finance" };
 type DiscoveredSymbol = { symbol: string; providerSymbol: string; name: string };
-type ResearchReport = { id: string; title: string; category: Exclude<ReportCategory, "TÜMÜ">; period: string; focus: string; methodology: string; href: string; source: string };
-type SearchAssetFilter = { id: string; label: string; types: string[] };
 
 const profilePhoto = "/media/onur-inal.jpg";
 const linkedInUrl = "https://www.linkedin.com/in/onur%C4%B1nal/";
@@ -40,15 +47,14 @@ const intervals = ["1G", "5G", "1A", "3A", "1Y"] as const;
 const defaultPanelOrder: PanelId[] = ["profile", "summary", "chart", "archive"];
 const cvLibrary = {
   TR: {
-    photo: { label: "FOTOĞRAFLI", href: "/cv/Onur_Inal_CV_TR_Fotografli.pdf", file: "Onur_Inal_CV_TR_Fotografli.pdf" },
-    plain: { label: "SADE / ATS UYUMLU", href: "/cv/Onur_Inal_CV_TR_ATS.pdf", file: "Onur_Inal_CV_TR_ATS.pdf" },
+    photo: { labelKey: "cv.labelTrPhoto", href: "/cv/Onur_Inal_CV_TR_Fotografli.pdf", file: "Onur_Inal_CV_TR_Fotografli.pdf" },
+    plain: { labelKey: "cv.labelTrPlain", href: "/cv/Onur_Inal_CV_TR_ATS.pdf", file: "Onur_Inal_CV_TR_ATS.pdf" },
   },
   EN: {
-    photo: { label: "PHOTO", href: "/cv/Onur_Inal_CV_EN_Fotografli.pdf", file: "Onur_Inal_CV_EN_Fotografli.pdf" },
-    plain: { label: "CLEAN / ATS READY", href: "/cv/Onur_Inal_CV_EN_ATS.pdf", file: "Onur_Inal_CV_EN_ATS.pdf" },
+    photo: { labelKey: "cv.labelEnPhoto", href: "/cv/Onur_Inal_CV_EN_Fotografli.pdf", file: "Onur_Inal_CV_EN_Fotografli.pdf" },
+    plain: { labelKey: "cv.labelEnPlain", href: "/cv/Onur_Inal_CV_EN_ATS.pdf", file: "Onur_Inal_CV_EN_ATS.pdf" },
   },
-} as const;
-const reports: ResearchReport[] = [];
+} as const satisfies Record<"TR" | "EN", Record<"photo" | "plain", { labelKey: TranslationKey; href: string; file: string }>>;
 const marketSeeds: MarketRow[] = [
   // BIST / Türkiye
   ["BIST 100", "XU100.IS", "TÜRKİYE", "ENDEKS", 2, "TRY"],
@@ -86,12 +92,30 @@ const marketSeeds: MarketRow[] = [
   ["BTC-USD", "BTC-USD", "MAKRO", "KRİPTO", 2, "USD"],
 ].map(([symbol, providerSymbol, category, kind, precision, currency]) => ({ symbol: String(symbol), providerSymbol: String(providerSymbol), category: category as MarketRow["category"], kind: String(kind), precision: Number(precision), currency: String(currency), value: "—", change: "—", pct: "—", tone: "flat" as const, last: 0 }));
 
-const statementLabels: Record<FinancialStatementKind, string> = { income: "INCOME STATEMENT", balance: "BALANCE SHEET", cashflow: "CASH FLOW" };
-const statementTitlesTR: Record<FinancialStatementKind, { title: string; subtitle: string; code: string }> = {
-  income: { title: "GELİR TABLOSU", subtitle: "INCOME STATEMENT // KÂR-ZARAR VE CİRO GELİŞİMİ", code: "INC" },
-  balance: { title: "BİLANÇO ANALİZİ", subtitle: "BALANCE SHEET // VARLIK VE YÜKÜMLÜLÜK YAPISI", code: "BAL" },
-  cashflow: { title: "NAKİT AKIM TABLOSU", subtitle: "CASH FLOW // OPERASYONEL & SERBEST NAKİT DÖNGÜSÜ", code: "CFS" },
+const statementLabelKeys: Record<FinancialStatementKind, TranslationKey> = {
+  income: "statement.income.label",
+  balance: "statement.balance.label",
+  cashflow: "statement.cashflow.label",
 };
+const statementTitleKeys: Record<FinancialStatementKind, { title: TranslationKey; subtitle: TranslationKey }> = {
+  income: { title: "statement.income.title", subtitle: "statement.income.subtitle" },
+  balance: { title: "statement.balance.title", subtitle: "statement.balance.subtitle" },
+  cashflow: { title: "statement.cashflow.title", subtitle: "statement.cashflow.subtitle" },
+};
+
+/** Sunucudan gelen mali tablo satır etiketlerini istemci sözlüğüne çevirir. */
+function financialRowLabel(t: Translate, key: string, fallback: string) {
+  const translationKey = `fin.${key}` as TranslationKey;
+  const label = t(translationKey);
+  return label === translationKey ? fallback : label;
+}
+
+/** Piyasa satırlarında kategori / tür / sembol adlarını çevirir, bilinmeyeni olduğu gibi bırakır. */
+function lookupLabel(t: Translate, prefix: "category" | "kind" | "symbol", value: string) {
+  const translationKey = `${prefix}.${value}` as TranslationKey;
+  const label = t(translationKey);
+  return label === translationKey ? value : label;
+}
 
 function formatCompactVal(num: number, currency = "") {
   const abs = Math.abs(num);
@@ -108,19 +132,7 @@ const statementDetailKeys: Record<FinancialStatementKind, string[]> = {
   balance: ["cash", "receivables", "inventory", "currentAssets", "assets", "currentLiabilities", "longTermDebt", "liabilities", "debt", "equity"],
   cashflow: ["operatingCashFlow", "capex", "investingCashFlow", "financingCashFlow", "debtIssued", "debtRepaid", "freeCashFlow", "endCash"],
 };
-const yahooAssetFilters: SearchAssetFilter[] = [
-  { id: "ALL", label: "TÜMÜ", types: [] },
-  { id: "EQUITY", label: "HİSSE", types: ["EQUITY"] },
-  { id: "FUND", label: "ETF / FON", types: ["ETF", "MUTUALFUND"] },
-  { id: "INDEX", label: "ENDEKS", types: ["INDEX"] },
-  { id: "BOND", label: "TAHVİL / EUROBOND", types: ["BOND"] },
-  { id: "CURRENCY", label: "DÖVİZ", types: ["CURRENCY"] },
-  { id: "CRYPTO", label: "KRİPTO", types: ["CRYPTOCURRENCY"] },
-  { id: "OTHER", label: "DİĞER", types: ["FUTURE", "OPTION", "WARRANT", "MONEYMARKET", "ECNQUOTE", "OTHER"] },
-];
-const yahooTypeLabels: Record<string, string> = { EQUITY: "HİSSE", ETF: "ETF", MUTUALFUND: "FON", INDEX: "ENDEKS", BOND: "TAHVİL / EUROBOND", CURRENCY: "DÖVİZ", CRYPTOCURRENCY: "KRİPTO", FUTURE: "VADELİ", OPTION: "OPSİYON", WARRANT: "VARANT", MONEYMARKET: "PARA PİYASASI", ECNQUOTE: "ECN" };
-
-function formatPrice(value: number, precision: number) { return value.toLocaleString("tr-TR", { minimumFractionDigits: precision, maximumFractionDigits: precision }); }
+function formatPrice(value: number, precision: number) { return formatDecimal(value, precision); }
 function pctNumber(row: MarketRow) { return Number.parseFloat(row.pct.replace("%", "").replace(",", ".")); }
 function mergeQuote(seed: MarketRow, quote?: LiveQuote): MarketRow {
   if (!quote) return seed;
@@ -130,6 +142,7 @@ function mergeQuote(seed: MarketRow, quote?: LiveQuote): MarketRow {
 }
 
 function TerminalPanel({ id, title, code, children, className = "", dragged, onDragStart, onDrop, movable = true, locked = false, onToggleLock }: { id: string; title: string; code: string; children: React.ReactNode; className?: string; dragged: PanelId | null; onDragStart: (id: PanelId | null) => void; onDrop: (id: PanelId) => void; movable?: boolean; locked?: boolean; onToggleLock?: () => void }) {
+  const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktop, setDesktop] = useState(() => window.matchMedia("(min-width: 821px)").matches);
@@ -138,16 +151,17 @@ function TerminalPanel({ id, title, code, children, className = "", dragged, onD
   const target = canDrag && !locked && dragged !== null && dragged !== (id as PanelId);
   const dragOver = (event: React.DragEvent<HTMLElement>) => { event.preventDefault(); const delta = getAutoScrollDelta(event.clientY, window.innerHeight); if (delta) window.scrollBy(0, delta); };
   return <section id={id} className={`terminal-panel workspace-panel ${className} ${canDrag ? "panel-movable" : "panel-locked"} ${dragged === (id as PanelId) ? "panel-dragging" : ""} ${target ? "panel-drop-target" : ""}`} onDragOver={canDrag ? dragOver : undefined} onDrop={canDrag ? (event) => { event.preventDefault(); onDrop(id as PanelId); } : undefined} onDragEnd={canDrag ? () => onDragStart(null) : undefined}>
-    {target && <div className="panel-drop-indicator">BURAYA BIRAK</div>}
+    {target && <div className="panel-drop-indicator">{t("panel.dropHere")}</div>}
     <div className="panel-titlebar" draggable={canDrag} onDragStart={canDrag ? (event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-analiz-panel", id); onDragStart(id as PanelId); } : undefined}>
-      <div className="panel-title">{canDrag ? <span className="drag-grip" title="Yalnızca bu başlıktan tutup taşı">⠿</span> : <span title={locked ? "Panel konumu kilitli" : movable ? "Mobilde panel taşıma kapalı" : "Sabit panel"}><Lock size={11} className="panel-lock"/></span>}<span className="panel-led"/>{title}<em>{code}</em></div>
-      <div className="panel-actions"><button onClick={() => { setCollapsed((state) => !state); setMenuOpen(false); }} title={collapsed ? "Paneli aç" : "Paneli kapat"} aria-label={`${title} panelini ${collapsed ? "aç" : "kapat"}`}>{collapsed ? <Plus size={12}/> : <Minus size={12}/>}</button><button onClick={() => setMenuOpen((state) => !state)} title="Panel seçenekleri" aria-label={`${title} panel seçenekleri`}><MoreHorizontal size={14}/></button>{menuOpen && <div className="panel-options"><button onClick={() => { setCollapsed(false); setMenuOpen(false); }}>PANELİ AÇ</button><button onClick={() => { setCollapsed(true); setMenuOpen(false); }}>PANELİ KAPAT</button>{movable && onToggleLock && <button onClick={() => { onToggleLock(); setMenuOpen(false); }}>{locked ? "KİLİDİ AÇ" : "PANELİ KİLİTLE"}</button>}</div>}</div>
+      <div className="panel-title">{canDrag ? <span className="drag-grip" title={t("panel.dragHint")}>⠿</span> : <span title={locked ? t("panel.lockedHint") : movable ? t("panel.mobileDragOff") : t("panel.static")}><Lock size={11} className="panel-lock"/></span>}<span className="panel-led"/>{title}<em>{code}</em></div>
+      <div className="panel-actions"><button onClick={() => { setCollapsed((state) => !state); setMenuOpen(false); }} title={collapsed ? t("panel.expand") : t("panel.collapse")} aria-label={collapsed ? t("panel.ariaExpand", { title }) : t("panel.ariaCollapse", { title })}>{collapsed ? <Plus size={12}/> : <Minus size={12}/>}</button><button onClick={() => setMenuOpen((state) => !state)} title={t("panel.options")} aria-label={t("panel.ariaOptions", { title })}><MoreHorizontal size={14}/></button>{menuOpen && <div className="panel-options"><button onClick={() => { setCollapsed(false); setMenuOpen(false); }}>{t("panel.menuExpand")}</button><button onClick={() => { setCollapsed(true); setMenuOpen(false); }}>{t("panel.menuCollapse")}</button>{movable && onToggleLock && <button onClick={() => { onToggleLock(); setMenuOpen(false); }}>{locked ? t("panel.menuUnlock") : t("panel.menuLock")}</button>}</div>}</div>
     </div>
     {!collapsed && <div className="panel-body">{children}</div>}
   </section>;
 }
 
 function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: MarketRow; points: ChartPoint[]; interval: string; isLoading: boolean; onRetry: () => void }) {
+  const { t } = useI18n();
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [style, setStyle] = useState<"candle" | "line">("candle");
   const [showVolume, setShowVolume] = useState(true);
@@ -164,7 +178,7 @@ function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: 
   const activeIndex = hoverIndex ?? Math.max(valid.length - 1, 0);
   const active = valid[activeIndex];
   const path = valid.map((point, index) => `${index ? "L" : "M"}${x(index)} ${y(point.close!)}`).join(" ");
-  const label = (time: number) => new Date(time).toLocaleString("tr-TR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  const label = (time: number) => formatDateTime(time);
 
   const chooseIndex = (ratio: number) => {
     if (valid.length) setHoverIndex(Math.round(Math.min(1, Math.max(0, ratio)) * (valid.length - 1)));
@@ -203,23 +217,23 @@ function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: 
           <strong className={row.tone}>{row.change} <small>({row.pct})</small></strong>
         </div>
         <div className="chart-stats">
-          <span>YÜKSEK <b>{formatPrice(ceiling, row.precision)}</b></span>
-          <span>DÜŞÜK <b>{formatPrice(floor, row.precision)}</b></span>
-          <span>HACİM <b>{active?.volume ? new Intl.NumberFormat("tr-TR", { notation: "compact" }).format(active.volume) : "—"}</b></span>
+          <span>{t("chart.high")} <b>{formatPrice(ceiling, row.precision)}</b></span>
+          <span>{t("chart.low")} <b>{formatPrice(floor, row.precision)}</b></span>
+          <span>{t("chart.volume")} <b>{active?.volume ? formatCompactNumber(active.volume) : "—"}</b></span>
         </div>
       </div>
-      <div className="chart-view-controls" aria-label="Grafik görünümü">
-        <button className={style === "candle" ? "active" : ""} onClick={() => setStyle("candle")}>MUM</button>
-        <button className={style === "line" ? "active" : ""} onClick={() => setStyle("line")}>ÇİZGİ</button>
-        <button className={showVolume ? "active" : ""} onClick={() => setShowVolume((val) => !val)}>HACİM</button>
+      <div className="chart-view-controls" aria-label={t("chart.viewAria")}>
+        <button className={style === "candle" ? "active" : ""} onClick={() => setStyle("candle")}>{t("chart.styleCandle")}</button>
+        <button className={style === "line" ? "active" : ""} onClick={() => setStyle("line")}>{t("chart.styleLine")}</button>
+        <button className={showVolume ? "active" : ""} onClick={() => setShowVolume((val) => !val)}>{t("chart.volume")}</button>
       </div>
       <div className="chart-canvas">
-        <span className="chart-mode-label">GERÇEK OHLC · İMLEÇ VEYA OK TUŞLARIYLA İNCELE</span>
-        {isLoading && <div className="chart-loading">CANLI OHLC VERİSİ YÜKLENİYOR…</div>}
+        <span className="chart-mode-label">{t("chart.modeLabel")}</span>
+        {isLoading && <div className="chart-loading">{t("chart.loading")}</div>}
         {!isLoading && !valid.length && (
           <div className="chart-loading chart-error">
-            <span>GRAFİK VERİSİ ALINAMADI</span>
-            <button onClick={onRetry}>TEKRAR DENE</button>
+            <span>{t("chart.error")}</span>
+            <button onClick={onRetry}>{t("common.retry")}</button>
           </div>
         )}
         <svg
@@ -230,7 +244,7 @@ function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: 
           onMouseLeave={() => setHoverIndex(null)}
           onKeyDown={keyMove}
           tabIndex={0}
-          aria-label={`${row.symbol} interaktif gerçek fiyat grafiği`}
+          aria-label={t("chart.svgAria", { symbol: row.symbol })}
         >
           <defs>
             <linearGradient id="chart-fill-refined" x1="0" x2="0" y1="0" y2="1">
@@ -296,14 +310,14 @@ function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: 
           <div className="ohlc-tooltip" style={tooltipStyle}>
             <span>{label(active.time)}</span>
             <div>
-              <b>A:</b>{formatPrice(active.open!, row.precision)}
-              <b>Y:</b>{formatPrice(active.high!, row.precision)}
+              <b>{t("chart.ohlcOpen")}</b>{formatPrice(active.open!, row.precision)}
+              <b>{t("chart.ohlcHigh")}</b>{formatPrice(active.high!, row.precision)}
             </div>
             <div>
-              <b>D:</b>{formatPrice(active.low!, row.precision)}
-              <b>K:</b>{formatPrice(active.close!, row.precision)}
+              <b>{t("chart.ohlcLow")}</b>{formatPrice(active.low!, row.precision)}
+              <b>{t("chart.ohlcClose")}</b>{formatPrice(active.close!, row.precision)}
             </div>
-            <small>HACİM: {active.volume ? new Intl.NumberFormat("tr-TR", { notation: "compact" }).format(active.volume) : "—"}</small>
+            <small>{t("chart.volume")}: {active.volume ? formatCompactNumber(active.volume) : "—"}</small>
           </div>
         )}
         <div className="chart-x-axis">
@@ -313,7 +327,7 @@ function InteractiveChart({ row, points, interval, isLoading, onRetry }: { row: 
         </div>
       </div>
       <div className="chart-footer">
-        <span>YAHOO FINANCE / {interval} / {row.marketState ?? "GECİKMELİ"}</span>
+        <span>YAHOO FINANCE / {interval} / {row.marketState ?? t("chart.delayed")}</span>
         <span><Activity size={12} /> {row.currency} · {row.sourceName ?? row.providerSymbol}</span>
       </div>
     </div>
@@ -337,15 +351,16 @@ function StatementExplorer({
   onRetry: () => void;
   onSelectStatement?: (kind: FinancialStatementKind) => void;
 }) {
+  const { t } = useI18n();
   const [selectedKey, setSelectedKey] = useState("");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   const availableRows = useMemo(() => {
-    return (data?.rows ?? []).filter(
-      (item) => statementDetailKeys[statement].includes(item.key) && item.values.some(Boolean)
-    );
-  }, [data?.rows, statement]);
+    return (data?.rows ?? [])
+      .filter((item) => statementDetailKeys[statement].includes(item.key) && item.values.some(Boolean))
+      .map((item) => ({ ...item, label: financialRowLabel(t, item.key, item.label) }));
+  }, [data?.rows, statement, t]);
 
   const defaultMetricKey = useMemo(() => {
     if (statement === "income") return "revenue";
@@ -477,12 +492,12 @@ function StatementExplorer({
       <div className="statement-header-bar">
         <div className="statement-header-left">
           <div className="statement-tag-group">
-            <span className="statement-kind-pill">{statementTitlesTR[statement].title}</span>
+            <span className="statement-kind-pill">{t(statementTitleKeys[statement].title)}</span>
             <span className="statement-badge-mono">{row.symbol}</span>
             <span className="statement-currency-pill">{currencyLabel}</span>
-            <span className="statement-periods-pill">{periods.length} DÖNEM RAPOR</span>
+            <span className="statement-periods-pill">{t("statement.periods", { count: periods.length })}</span>
           </div>
-          <h4 className="statement-headline">{statementTitlesTR[statement].subtitle}</h4>
+          <h4 className="statement-headline">{t(statementTitleKeys[statement].subtitle)}</h4>
         </div>
 
         {selected && active && (
@@ -504,8 +519,8 @@ function StatementExplorer({
                 </span>
               )}
               {marginForActive !== null && (
-                <span className="metric-card-margin" title="Toplam Gelire Oranı (Marj)">
-                  Marj: %{marginForActive.toFixed(1)}
+                <span className="metric-card-margin" title={t("statement.marginTitle")}>
+                  {t("statement.margin", { value: marginForActive.toFixed(1) })}
                 </span>
               )}
             </div>
@@ -516,27 +531,27 @@ function StatementExplorer({
       {isLoading && (
         <div className="statement-state loading">
           <Activity size={16} className="animate-spin" />
-          <span>YILLIK MALİ TABLO VERİLERİ HAZIRLANIYOR…</span>
+          <span>{t("statement.loading")}</span>
         </div>
       )}
 
       {!isLoading && isError && (
         <div className="statement-state error">
-          <span>MALİ GRAFİK VERİSİ ALINAMADI</span>
-          <button onClick={onRetry}>YENİDEN DENE</button>
+          <span>{t("statement.error")}</span>
+          <button onClick={onRetry}>{t("common.retryAgain")}</button>
         </div>
       )}
 
       {!isLoading && !isError && !hasRows && (
         <div className="statement-state empty">
-          <span>BU SEMBOL İÇİN RESMİ YILLIK RAPORLANAN BİLANÇO/GELİR VERİSİ BULUNAMADI.</span>
+          <span>{t("statement.empty")}</span>
         </div>
       )}
 
       {!isLoading && !isError && hasRows && (
         <div className="statement-visual statement-trend">
           {/* Interactive Metric Selection Bar */}
-          <div className="statement-metric-picker" role="tablist" aria-label="Mali kalem seçimi">
+          <div className="statement-metric-picker" role="tablist" aria-label={t("statement.metricPickerAria")}>
             {availableRows.map((item) => {
               const lastVal = item.values.at(-1)?.formatted ?? "";
               const isSelected = selected?.key === item.key;
@@ -581,7 +596,7 @@ function StatementExplorer({
                   )}
                   {marginForActive !== null && (
                     <span className="hud-badge margin">
-                      Marj: %{marginForActive.toFixed(1)}
+                      {t("statement.margin", { value: marginForActive.toFixed(1) })}
                     </span>
                   )}
                 </div>
@@ -598,7 +613,7 @@ function StatementExplorer({
               onTouchStart={handleTouch}
               onTouchMove={handleTouch}
               tabIndex={0}
-              aria-label={`${selected?.label ?? "Mali kalem"} yıllık trend grafiği`}
+              aria-label={t("statement.trendAria", { label: selected?.label ?? t("statement.metricFallback") })}
             >
               <defs>
                 <linearGradient id="finBarPos" x1="0" y1="0" x2="0" y2="1">
@@ -757,7 +772,7 @@ function StatementExplorer({
                           fontFamily="monospace"
                           fontWeight="700"
                         >
-                          BAZ
+                          {t("statement.base")}
                         </text>
                       </g>
                     )}
@@ -832,22 +847,22 @@ function StatementExplorer({
               <div className="matrix-table-title">
                 <div className="table-heading-wrap">
                   <FileText size={13} />
-                  <span>{statementTitlesTR[statement].title} ÖZET TABLOSU (ÇOK DÖNEMLİ)</span>
+                  <span>{t("statement.matrixTitle", { title: t(statementTitleKeys[statement].title) })}</span>
                 </div>
-                <small>Satırlara tıklayarak ilgili kalemin yıllık trendini doğrudan grafiğe aktarabilirsiniz.</small>
+                <small>{t("statement.matrixHint")}</small>
               </div>
 
               <div className="statement-matrix-scroll">
                 <table className="statement-matrix-table">
                   <thead>
                     <tr>
-                      <th className="th-metric">MALİ KALEM</th>
+                      <th className="th-metric">{t("statement.thMetric")}</th>
                       {periods.map((p) => (
                         <th key={p.asOfDate} className="th-year">
                           {year(p.asOfDate)}
                         </th>
                       ))}
-                      <th className="th-growth">DEĞİŞİM</th>
+                      <th className="th-growth">{t("statement.thChange")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -868,7 +883,7 @@ function StatementExplorer({
                         >
                           <td className="td-label">
                             <span className="row-indicator" />
-                            <span>{r.label}</span>
+                            <span>{financialRowLabel(t, r.key, r.label)}</span>
                           </td>
                           {periods.map((p, idx) => {
                             const val = r.values[idx];
@@ -902,13 +917,11 @@ function StatementExplorer({
             <div className="caption-info">
               <CheckCircle2 size={12} className="text-emerald-400" />
               <span>
-                {data?.chartAvailable
-                  ? "Yıllık denetlenmiş resmi mali tablo verileri. Rakamlar raporlama para birimi cinsindendir."
-                  : "Para birimi değişimleri nedeniyle grafik normalize seri ölçeğindedir."}
+                {data?.chartAvailable ? t("statement.captionAudited") : t("statement.captionNormalized")}
               </span>
             </div>
             <div className="caption-source">
-              <span>KAYNAK: YAHOO FINANCE & RESMİ DÖNEM BİLANÇOLARI</span>
+              <span>{t("statement.source")}</span>
             </div>
           </div>
         </div>
@@ -918,11 +931,12 @@ function StatementExplorer({
 }
 
 function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) {
+  const { t } = useI18n();
   const [downloadStep, setDownloadStep] = useState<"idle" | "language" | "format" | "ready" | "downloading">("idle");
-  const [language, setLanguage] = useState<"TR" | "EN">("TR");
+  const [cvLanguage, setCvLanguage] = useState<"TR" | "EN">("TR");
   const [format, setFormat] = useState<"photo" | "plain">("photo");
-  const cv = cvLibrary[language][format];
-  const chooseLanguage = (next: "TR" | "EN") => { setLanguage(next); setDownloadStep("format"); };
+  const cv = cvLibrary[cvLanguage][format];
+  const chooseLanguage = (next: "TR" | "EN") => { setCvLanguage(next); setDownloadStep("format"); };
   const chooseFormat = (next: "photo" | "plain") => { setFormat(next); setDownloadStep("ready"); };
   const beginDownload = () => {
     setDownloadStep("downloading");
@@ -940,24 +954,24 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
       <div className="profile-identity">
         <div className="profile-photo-wrapper">
           <img src={profilePhoto} alt="Onur İnal" />
-          <span className="profile-badge-dot" title="Aktif Analist Profili" />
+          <span className="profile-badge-dot" title={t("profile.badgeTitle")} />
         </div>
         <div className="profile-bio-text">
-          <div className="profile-kicker">ANALİST PROFİLİ</div>
-          <h1>ONUR İNAL</h1>
-          <p>Finans · Şirket Değerleme · Piyasa Araştırması</p>
+          <div className="profile-kicker">{t("profile.kicker")}</div>
+          <h1>{t("profile.name")}</h1>
+          <p>{t("profile.role")}</p>
           <div className="profile-links">
             <a href={linkedInUrl} target="_blank" rel="noreferrer" className="profile-social-link">
-              <Linkedin size={13} /> LINKEDIN <ExternalLink size={11} />
+              <Linkedin size={13} /> {t("profile.linkedin")} <ExternalLink size={11} />
             </a>
             <button onClick={onOpenFullProfile} className="profile-expand-link">
-              <UserRound size={13} /> TAM PROFİL <ArrowUpRight size={11} />
+              <UserRound size={13} /> {t("profile.fullProfile")} <ArrowUpRight size={11} />
             </button>
           </div>
         </div>
         <div className="profile-mark">
-          <b>3,20</b>
-          <small>GPA / 4,00</small>
+          <b>{t("profile.gpaValue")}</b>
+          <small>{t("profile.gpaLabel")}</small>
         </div>
       </div>
 
@@ -965,62 +979,64 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
         <div className="highlight-pill">
           <BookOpen size={15} />
           <div>
-            <span>ARAŞTIRMA GİRİŞİMİ</span>
-            <b>Measure Moat (Hendek & Şirket Analizi)</b>
+            <span>{t("profile.researchLabel")}</span>
+            <b>{t("profile.researchValue")}</b>
           </div>
         </div>
         <div className="highlight-pill">
           <Code2 size={15} />
           <div>
-            <span>TEKNİK YETKİNLİK</span>
-            <b>Finansal Modelleme · Python · İleri Excel</b>
+            <span>{t("profile.techLabel")}</span>
+            <b>{t("profile.techValue")}</b>
           </div>
         </div>
       </div>
 
       <div className="profile-summary">
-        <span>ÖZET & YAKLAŞIM</span>
-        <p>
-          Şirketleri salt anlık fiyat hareketleriyle değil; finansal tablo kalitesi, rekabet üstünlükleri (Economic Moat), serbest nakit akımı üretme gücü ve ROIC çerçevesinde temel analiz perspektifiyle inceliyorum.
-        </p>
+        <span>{t("profile.summaryLabel")}</span>
+        <p>{t("profile.summaryText")}</p>
       </div>
 
       <div className={`cv-selector cv-step-${downloadStep}`}>
         <div className="cv-info">
-          <span>RESMİ CV İNDİR</span>
+          <span>{t("cv.title")}</span>
           <p>
-            {downloadStep === "idle" ? "Türkçe / İngilizce veya Fotoğraflı / ATS uyumlu resmi CV'yi indir." :
-             downloadStep === "language" ? "1 · Tercih ettiğin dili seç." :
-             downloadStep === "format" ? "2 · Format tipini seç." :
-             downloadStep === "downloading" ? "Dosya indiriliyor…" :
-             "Seçim hazır, indirmeyi başlatabilirsin."}
+            {downloadStep === "idle" ? t("cv.stepIdle") :
+             downloadStep === "language" ? t("cv.stepLanguage") :
+             downloadStep === "format" ? t("cv.stepFormat") :
+             downloadStep === "downloading" ? t("cv.stepDownloading") :
+             t("cv.stepReady")}
           </p>
         </div>
         {downloadStep === "idle" && (
           <button className="cv-start" onClick={() => setDownloadStep("language")}>
-            <Download size={14} /> CV İNDİR <ChevronDown size={13} />
+            <Download size={14} /> {t("cv.start")} <ChevronDown size={13} />
           </button>
         )}
         {downloadStep === "language" && (
           <div className="cv-split">
-            <button onClick={() => chooseLanguage("TR")}>TÜRKÇE</button>
-            <button onClick={() => chooseLanguage("EN")}>ENGLISH</button>
+            <button onClick={() => chooseLanguage("TR")}>{t("cv.langTr")}</button>
+            <button onClick={() => chooseLanguage("EN")}>{t("cv.langEn")}</button>
           </div>
         )}
         {downloadStep === "format" && (
           <div className="cv-split">
-            <button onClick={() => chooseFormat("photo")}>{language === "TR" ? "FOTOĞRAFLI" : "PHOTO"}</button>
-            <button onClick={() => chooseFormat("plain")}>{language === "TR" ? "ATS UYUMLU" : "ATS READY"}</button>
+            <button onClick={() => chooseFormat("photo")}>{t("cv.formatPhoto")}</button>
+            <button onClick={() => chooseFormat("plain")}>{t("cv.formatAts")}</button>
           </div>
         )}
         {downloadStep === "ready" && (
           <button className="cv-start" onClick={beginDownload}>
-            <Download size={14} /> {language === "TR" ? "TÜRKÇE" : "ENGLISH"} · {cv.label} İNDİR
+            <Download size={14} />{" "}
+            {t("cv.downloadCta", {
+              language: cvLanguage === "TR" ? t("cv.langTr") : t("cv.langEn"),
+              label: t(cv.labelKey),
+            })}
           </button>
         )}
         {downloadStep === "downloading" && (
           <button className="cv-start downloading" disabled>
-            <Activity size={14} /> DOSYA HAZIRLANIYOR…
+            <Activity size={14} /> {t("cv.preparing")}
           </button>
         )}
       </div>
@@ -1029,28 +1045,29 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
 }
 
 function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () => void }) {
+  const { t } = useI18n();
   const downloadCv = (href: string, filename: string) => {
     const a = document.createElement("a");
     a.href = href;
     a.download = filename;
     a.click();
-    toast.success("CV indirmesi başlatıldı.");
+    toast.success(t("toast.cvStarted"));
   };
 
   return (
     <div className="profile-view-module">
       <div className="module-banner">
         <div>
-          <span>ANALİST PROFİLİ // DETAYLI GÖRÜNÜM</span>
-          <h1>ONUR İNAL</h1>
-          <p>Afyon Kocatepe Üniversitesi · Uluslararası Ticaret ve Finansman & İktisat (Çift Ana Dal)</p>
+          <span>{t("profileView.kicker")}</span>
+          <h1>{t("profile.name")}</h1>
+          <p>{t("profileView.education")}</p>
         </div>
         <div className="banner-actions">
           <button onClick={onBack} className="btn-secondary">
-            <Grid2X2 size={14} /> PANOYA DÖN
+            <Grid2X2 size={14} /> {t("common.backToDashboard")}
           </button>
           <button onClick={onContact} className="btn-primary">
-            <Mail size={14} /> İLETİŞİME GEÇ
+            <Mail size={14} /> {t("common.contactCta")}
           </button>
         </div>
       </div>
@@ -1061,89 +1078,89 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
             <div className="analyst-avatar-box">
               <img src={profilePhoto} alt="Onur İnal" />
             </div>
-            <h2>ONUR İNAL</h2>
-            <p>Finans & Değerleme Analisti</p>
+            <h2>{t("profile.name")}</h2>
+            <p>{t("profileView.role")}</p>
             <div className="analyst-gpa-badge">
-              <span>AKADEMİK ORTALAMA</span>
-              <b>3,20 <small>/ 4,00</small></b>
+              <span>{t("profileView.gpaLabel")}</span>
+              <b>{t("profileView.gpaValue")} <small>{t("profileView.gpaScale")}</small></b>
             </div>
           </div>
 
           <div className="analyst-facts">
             <div className="fact-row">
-              <span>ÜNİVERSİTE</span>
-              <b>Afyon Kocatepe Üniversitesi</b>
+              <span>{t("profileView.factUniversity")}</span>
+              <b>{t("profileView.factUniversityValue")}</b>
             </div>
             <div className="fact-row">
-              <span>ANA DAL</span>
-              <b>Uluslararası Ticaret ve Finansman</b>
+              <span>{t("profileView.factMajor")}</span>
+              <b>{t("profileView.factMajorValue")}</b>
             </div>
             <div className="fact-row">
-              <span>ÇİFT ANA DAL</span>
-              <b>İktisat</b>
+              <span>{t("profileView.factDoubleMajor")}</span>
+              <b>{t("profileView.factDoubleMajorValue")}</b>
             </div>
             <div className="fact-row">
-              <span>DÖNEM</span>
-              <b>2023 — 2027 (Lisans)</b>
+              <span>{t("profileView.factTerm")}</span>
+              <b>{t("profileView.factTermValue")}</b>
             </div>
             <div className="fact-row">
-              <span>ONUR / ÖDÜL</span>
-              <b className="text-amber">2025 Fakülte Örnek Öğrencisi</b>
+              <span>{t("profileView.factAward")}</span>
+              <b className="text-amber">{t("profileView.factAwardValue")}</b>
             </div>
             <div className="fact-row">
-              <span>DİLLER</span>
-              <b>Türkçe (Anadil) · İngilizce (B2)</b>
+              <span>{t("profileView.factLanguages")}</span>
+              <b>{t("profileView.factLanguagesValue")}</b>
             </div>
             <div className="fact-row">
-              <span>KONUM</span>
-              <b>Afyonkarahisar / Türkiye</b>
+              <span>{t("profileView.factLocation")}</span>
+              <b>{t("profileView.factLocationValue")}</b>
             </div>
           </div>
 
           <div className="analyst-social-stack">
             <a href={linkedInUrl} target="_blank" rel="noreferrer">
-              <Linkedin size={15} /> LinkedIn Profilini Aç <ExternalLink size={12} />
+              <Linkedin size={15} /> {t("profileView.linkedinLink")} <ExternalLink size={12} />
             </a>
             <a href={`mailto:${email}`}>
               <Mail size={15} /> {email} <ArrowUpRight size={12} />
             </a>
             <a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer">
-              <BookOpen size={15} /> Measure Moat Platformu <ExternalLink size={12} />
+              <BookOpen size={15} /> {t("profileView.moatLink")} <ExternalLink size={12} />
             </a>
           </div>
 
           <div className="cv-download-center">
             <div className="cv-center-title">
               <FileText size={14} />
-              <span>RESMİ CV İNDİRME MERKEZİ</span>
+              <span>{t("profileView.cvCenter")}</span>
             </div>
             <div className="cv-cards-grid">
               <button onClick={() => downloadCv("/cv/Onur_Inal_CV_TR_Fotografli.pdf", "Onur_Inal_CV_TR_Fotografli.pdf")}>
                 <Download size={13} />
                 <div>
-                  <b>TÜRKÇE · FOTOĞRAFLI</b>
-                  <small>PDF / Standart Kurumsal</small>
+                  <b>{t("profileView.cvTrPhoto")}</b>
+                  <small>{t("profileView.cvTrPhotoNote")}</small>
                 </div>
               </button>
               <button onClick={() => downloadCv("/cv/Onur_Inal_CV_TR_ATS.pdf", "Onur_Inal_CV_TR_ATS.pdf")}>
                 <Download size={13} />
                 <div>
-                  <b>TÜRKÇE · ATS UYUMLU</b>
-                  <small>PDF / Sade Metin Tabanlı</small>
+                  <b>{t("profileView.cvTrAts")}</b>
+                  <small>{t("profileView.cvTrAtsNote")}</small>
                 </div>
               </button>
               <button onClick={() => downloadCv("/cv/Onur_Inal_CV_EN_Fotografli.pdf", "Onur_Inal_CV_EN_Fotografli.pdf")}>
                 <Download size={13} />
                 <div>
-                  <b>ENGLISH · PHOTO CV</b>
-                  <small>PDF / International Format</small>
+                  <b>{t("profileView.cvEnPhoto")}</b>
+                  <small>{t("profileView.cvEnPhotoNote")}</small>
                 </div>
               </button>
               <button onClick={() => downloadCv("/cv/Onur_Inal_CV_EN_ATS.pdf", "Onur_Inal_CV_EN_ATS.pdf")}>
                 <Download size={13} />
                 <div>
-                  <b>ENGLISH · ATS READY</b>
-                  <small>PDF / Clean Format</small>
+                  <b>{t("profileView.cvEnAts")}</b>
+                  <small>{t("profileView.cvEnAtsNote")}</small>
                 </div>
               </button>
             </div>
@@ -1154,91 +1171,87 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
           <section className="profile-section-card">
             <div className="section-card-head">
               <Briefcase size={16} />
-              <h2>ANALİZ VİZYONU & YATIRIM FELSEFESİ</h2>
+              <h2>{t("profileView.visionTitle")}</h2>
             </div>
-            <p className="philosophy-text">
-              Piyasalara salt teknik göstergeler ve anlık volatilite üzerinden değil; şirketlerin rekabet hendekleri (Economic Moat), sermaye getirisi dinamikleri (ROIC vs. WACC), serbest nakit akımı üretme kabiliyetleri ve bilanço sağlamlıkları çerçevesinde temel analiz disipliniyle yaklaşıyorum.
-            </p>
-            <p className="philosophy-text">
-              Afyon Kocatepe Üniversitesi’nde Uluslararası Ticaret ve Finansman ile İktisat çift ana dal eğitimimi sürdürürken; Python (Pandas, NumPy) ve ileri seviye Excel ile geliştirdiğim finansal modellemeleri, kurumsal yatırım araştırma standartlarına uygun raporlara dönüştürüyorum.
-            </p>
+            <p className="philosophy-text">{t("profileView.visionP1")}</p>
+            <p className="philosophy-text">{t("profileView.visionP2")}</p>
           </section>
 
           <section className="profile-section-card">
             <div className="section-card-head">
               <GraduationCap size={16} />
-              <h2>AKADEMİK FORMASYON & BAŞARILAR</h2>
+              <h2>{t("profileView.academicTitle")}</h2>
             </div>
             <div className="academic-timeline">
               <div className="academic-item">
                 <div className="academic-dot" />
                 <div className="academic-body">
                   <div className="academic-header">
-                    <b>Afyon Kocatepe Üniversitesi — İktisadi ve İdari Bilimler Fakültesi</b>
-                    <span>2023 — 2027</span>
+                    <b>{t("profileView.academicSchool")}</b>
+                    <span>{t("profileView.academicPeriod")}</span>
                   </div>
                   <p>
-                    Uluslararası Ticaret ve Finansman (Ana Dal) & İktisat (Çift Ana Dal / Double Major) · Genel Not Ortalaması (GPA): <b>3,20 / 4,00</b>
+                    {t("profileView.academicDetail")} <b>{t("profileView.academicGpa")}</b>
                   </p>
                   <div className="award-callout">
                     <Award size={15} />
-                    <span><b>2025 İİBF Fakülte Örnek Öğrenci Ödülü</b> — Akademik başarı ve araştırma üretkenliği takdiri.</span>
+                    <span><b>{t("profileView.awardTitle")}</b> {t("profileView.awardDesc")}</span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="coursework-tags">
-              <span>TEMEL DERSLER:</span>
-              <em>Finansal Tablolar Analizi</em>
-              <em>Sermaye Piyasaları & Borsa</em>
-              <em>Ekonometri</em>
-              <em>Makroekonomi</em>
-              <em>Portföy Yönetimi</em>
-              <em>Uluslararası Finansman</em>
-              <em>Şirket Değerleme</em>
+              <span>{t("profileView.courseworkLabel")}</span>
+              <em>{t("profileView.course1")}</em>
+              <em>{t("profileView.course2")}</em>
+              <em>{t("profileView.course3")}</em>
+              <em>{t("profileView.course4")}</em>
+              <em>{t("profileView.course5")}</em>
+              <em>{t("profileView.course6")}</em>
+              <em>{t("profileView.course7")}</em>
             </div>
           </section>
 
           <section className="profile-section-card">
             <div className="section-card-head">
               <Layers size={16} />
-              <h2>UZMANLIK & TEKNOLOJİ MATRİSİ</h2>
+              <h2>{t("profileView.matrixTitle")}</h2>
             </div>
             <div className="matrix-grid">
               <div className="matrix-card">
-                <b>📊 FİNANSAL MODELLEME & DEĞERLEME</b>
+                <b>{t("profileView.matrix1Title")}</b>
                 <ul>
-                  <li>İndirgenmiş Nakit Akımları (DCF) & FCFF/FCFE Modellemesi</li>
-                  <li>Çarpan Analizi (F/K, FD/FAVÖK, PD/DD, Dupont Ayrıştırması)</li>
-                  <li>Ağırlıklı Ortalama Sermaye Maliyeti (WACC) & CAPM Hesaplaması</li>
-                  <li>Duyarlılık & Senaryo Analiz Tabloları</li>
+                  <li>{t("profileView.matrix1Item1")}</li>
+                  <li>{t("profileView.matrix1Item2")}</li>
+                  <li>{t("profileView.matrix1Item3")}</li>
+                  <li>{t("profileView.matrix1Item4")}</li>
                 </ul>
               </div>
               <div className="matrix-card">
-                <b>🐍 PROGRAMLAMA & VERİ ANALİTİĞİ</b>
+                <b>{t("profileView.matrix2Title")}</b>
                 <ul>
-                  <li>Python: Pandas, NumPy, Matplotlib, Seaborn</li>
-                  <li>Finansal Veri Çekme: Yahoo Finance API, Temel Web Scraping</li>
-                  <li>Zaman Serileri Analizi ve Hareketli Ortalamalar</li>
-                  <li>Temel SQL Sorgulama ve Veri Seti Temizleme</li>
+                  <li>{t("profileView.matrix2Item1")}</li>
+                  <li>{t("profileView.matrix2Item2")}</li>
+                  <li>{t("profileView.matrix2Item3")}</li>
+                  <li>{t("profileView.matrix2Item4")}</li>
                 </ul>
               </div>
               <div className="matrix-card">
-                <b>📑 RAPORLAMA & OFİS ARAÇLARI</b>
+                <b>{t("profileView.matrix3Title")}</b>
                 <ul>
-                  <li>İleri Düzey Excel: INDEX/MATCH, Dinamik Tablolar, Finansal Fonksiyonlar</li>
-                  <li>Kurumsal Yatırımcı Sunumu Tasarımı (PowerPoint)</li>
-                  <li>Rapor Mizanpajı ve Finansal Görselleştirme</li>
-                  <li>Veri Doğrulama ve Finansal Denetim Kontrolleri</li>
+                  <li>{t("profileView.matrix3Item1")}</li>
+                  <li>{t("profileView.matrix3Item2")}</li>
+                  <li>{t("profileView.matrix3Item3")}</li>
+                  <li>{t("profileView.matrix3Item4")}</li>
                 </ul>
               </div>
               <div className="matrix-card">
-                <b>🔍 ARAŞTIRMA & METODOLOJİ</b>
+                <b>{t("profileView.matrix4Title")}</b>
                 <ul>
-                  <li>Rekabet Üstünlüğü (Economic Moat) Değerlendirmesi</li>
-                  <li>İşletme Sermayesi ve Nakit Dönüşüm Süresi Analizi</li>
-                  <li>Sektörel Kıyaslama (Peer Group Benchmarking)</li>
-                  <li>Yönetim Kalitesi ve Sermaye Tahsisi Disiplini</li>
+                  <li>{t("profileView.matrix4Item1")}</li>
+                  <li>{t("profileView.matrix4Item2")}</li>
+                  <li>{t("profileView.matrix4Item3")}</li>
+                  <li>{t("profileView.matrix4Item4")}</li>
                 </ul>
               </div>
             </div>
@@ -1247,17 +1260,15 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
           <section className="profile-section-card highlight-card">
             <div className="section-card-head">
               <BookOpen size={16} />
-              <h2>ÖNE ÇIKAN ARAŞTIRMA GİRİŞİMİ: MEASURE MOAT</h2>
+              <h2>{t("profileView.moatTitle")}</h2>
             </div>
-            <p>
-              BIST ve küresel piyasalardaki şirketlerin rekabet hendeklerini (Moat), sermaye getirisi dinamiklerini (ROIC) ve indirgenmiş nakit akımı (DCF) potansiyellerini bağımsız araştırma disipliniyle inceleyen analiz platformu.
-            </p>
+            <p>{t("profileView.moatDesc")}</p>
             <div className="project-action-row">
               <a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer" className="btn-accent">
-                <ExternalLink size={14} /> MEASURE-MOAT.VERCEL.APP'İ ZİYARET ET
+                <ExternalLink size={14} /> {t("profileView.moatCta")}
               </a>
               <button onClick={onContact} className="btn-outline">
-                <Mail size={14} /> PROJE HAKKINDA İLETİŞİME GEÇ
+                <Mail size={14} /> {t("profileView.moatContact")}
               </button>
             </div>
           </section>
@@ -1278,6 +1289,7 @@ function SummaryPanel({
   selectedSymbol?: string;
   onSelect?: (symbol: string) => void;
 }) {
+  const { t } = useI18n();
   const bySymbol = (symbol: string) => markets.find((item) => item.symbol === symbol);
   const benchmarks = [
     "BIST 100",
@@ -1301,18 +1313,18 @@ function SummaryPanel({
     <div className="summary-terminal summary-revamp">
       <div className="summary-hero">
         <div className="summary-pulse">
-          <span className="summary-section-label">OTURUM PUSULASI</span>
+          <span className="summary-section-label">{t("summary.sessionCompass")}</span>
           <div className="pulse-pill-wrap">
             <span className={`pulse-badge ${advance >= decline ? "up" : "down"}`}>
               {advance >= decline ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-              {advance >= decline ? "ALICI AĞIRLIKLI" : "SATICI AĞIRLIKLI"}
+              {advance >= decline ? t("summary.buyerLed") : t("summary.sellerLed")}
             </span>
-            <small>{advance} pozitif · {decline} negatif taranan hisse</small>
+            <small>{t("summary.breadth", { advance, decline })}</small>
           </div>
         </div>
         <div className="summary-gauge">
           <div className="gauge-header">
-            <span>RİSK İŞTAHI</span>
+            <span>{t("summary.riskAppetite")}</span>
             <b className={pulse < 35 ? "tone-down" : pulse > 65 ? "tone-up" : "tone-neutral"}>
               {pulse} / 100
             </b>
@@ -1335,10 +1347,10 @@ function SummaryPanel({
               key={item.symbol}
               className={`summary-card-modern ${isSelected ? "selected" : ""}`}
               onClick={() => onSelect?.(item.symbol)}
-              title={`${item.symbol} grafiğini aç`}
+              title={t("common.openChart", { symbol: item.symbol })}
             >
               <div className="summary-card-row-top">
-                <span className="summary-card-sym">{item.symbol}</span>
+                <span className="summary-card-sym">{lookupLabel(t, "symbol", item.symbol)}</span>
                 <span className="summary-card-price">{item.value}</span>
               </div>
               <div className="summary-card-row-bot">
@@ -1362,11 +1374,11 @@ function SummaryPanel({
           onClick={() => topGainer && onSelect?.(topGainer.symbol)}
           role="button"
           tabIndex={0}
-          title={topGainer ? `${topGainer.symbol} grafiğini aç` : undefined}
+          title={topGainer ? t("common.openChart", { symbol: topGainer.symbol }) : undefined}
         >
           <div className="mover-tag up">
             <TrendingUp size={12} />
-            <span>GÜNÜN LİDERİ</span>
+            <span>{t("summary.topGainer")}</span>
           </div>
           <div className="mover-data">
             <b>{topGainer?.symbol ?? "—"}</b>
@@ -1382,11 +1394,11 @@ function SummaryPanel({
           onClick={() => topLoser && onSelect?.(topLoser.symbol)}
           role="button"
           tabIndex={0}
-          title={topLoser ? `${topLoser.symbol} grafiğini aç` : undefined}
+          title={topLoser ? t("common.openChart", { symbol: topLoser.symbol }) : undefined}
         >
           <div className="mover-tag down">
             <TrendingDown size={12} />
-            <span>EN ZAYIF</span>
+            <span>{t("summary.topLoser")}</span>
           </div>
           <div className="mover-data">
             <b>{topLoser?.symbol ?? "—"}</b>
@@ -1401,12 +1413,12 @@ function SummaryPanel({
       <div className="summary-footer-modern">
         <div className="summary-footer-left">
           <Activity size={12} />
-          <span>PİYASA DERİNLİĞİ: {markets.length} ENSTRÜMAN</span>
+          <span>{t("summary.depth", { count: markets.length })}</span>
         </div>
         <div className="summary-footer-right">
           <span className={`feed-indicator ${isRefreshing ? "refreshing" : "live"}`}>
             <i />
-            {isRefreshing ? "GÜNCELLENİYOR…" : "CANLI / YAHOO"}
+            {isRefreshing ? t("summary.updating") : t("summary.live")}
           </span>
         </div>
       </div>
@@ -1415,6 +1427,7 @@ function SummaryPanel({
 }
 
 function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { row: MarketRow; points: ChartPoint[]; statement: FinancialStatementKind; onOpenResearch: () => void }) {
+  const { t } = useI18n();
   const [dockStatement, setDockStatement] = useState<FinancialStatementKind>(statement);
 
   useEffect(() => {
@@ -1443,7 +1456,7 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
       const ratio = benchmarkRaw > 0 && lastVal?.raw ? (lastVal.raw / benchmarkRaw) * 100 : null;
       return {
         key: item!.key,
-        label: item!.label,
+        label: financialRowLabel(t, item!.key, item!.label),
         value: lastVal,
         isKeyMetric,
         ratio,
@@ -1452,54 +1465,54 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
     .filter((item) => item.value);
 
   const lastPeriod = statements?.periods.at(-1);
-  const lastYear = lastPeriod ? lastPeriod.asOfDate.slice(0, 4) : "YILLIK";
+  const lastYear = lastPeriod ? lastPeriod.asOfDate.slice(0, 4) : t("analysis.annualFallback");
 
   return (
     <>
       <section className="analysis-dock analysis-dock-expanded financial-analysis-panel">
-        <div className="analysis-dock-head"><span>FİNANSAL ANALİZ</span><b>{row.symbol}</b></div>
-        <div className="analysis-ticker"><span>{row.sourceName ?? row.symbol}</span><small>YAHOO FINANCE · {row.marketState ?? "GECİKMELİ"}</small></div>
-        <div className="analysis-price"><span>SON FİYAT</span><b>{row.value}</b><em className={row.tone}>{row.change} ({row.pct})</em></div>
-        <div className="analysis-metrics"><div><span>DÖNEM YÜKSEK</span><b>{high === null ? "—" : formatPrice(high, row.precision)}</b></div><div><span>DÖNEM DÜŞÜK</span><b>{low === null ? "—" : formatPrice(low, row.precision)}</b></div></div>
-        <div className="analysis-position"><span>FİYAT KONUMU</span><div><i style={{ width: `${position ?? 0}%` }}/></div><b>{position === null ? "VERİ BEKLİYOR" : `%${position}`}</b></div>
-        <div className="analysis-signal-grid"><div><span>DÖNEM ARALIĞI</span><b>{rangePct === null ? "—" : `%${formatPrice(rangePct, 2)}`}</b></div><div><span>MUM SAYISI</span><b>{valid.length || "—"}</b></div><div><span>FİYAT DURUMU</span><b className={row.tone}>{row.tone === "up" ? "POZİTİF" : row.tone === "down" ? "NEGATİF" : "NÖTR"}</b></div><div><span>VERİ KAPSAMI</span><b>{valid.length ? "OHLC" : "BEKLİYOR"}</b></div></div>
+        <div className="analysis-dock-head"><span>{t("analysis.title")}</span><b>{row.symbol}</b></div>
+        <div className="analysis-ticker"><span>{row.sourceName ?? row.symbol}</span><small>YAHOO FINANCE · {row.marketState ?? t("chart.delayed")}</small></div>
+        <div className="analysis-price"><span>{t("analysis.lastPrice")}</span><b>{row.value}</b><em className={row.tone}>{row.change} ({row.pct})</em></div>
+        <div className="analysis-metrics"><div><span>{t("analysis.periodHigh")}</span><b>{high === null ? "—" : formatPrice(high, row.precision)}</b></div><div><span>{t("analysis.periodLow")}</span><b>{low === null ? "—" : formatPrice(low, row.precision)}</b></div></div>
+        <div className="analysis-position"><span>{t("analysis.pricePosition")}</span><div><i style={{ width: `${position ?? 0}%` }}/></div><b>{position === null ? t("analysis.awaitingData") : formatPercent(position)}</b></div>
+        <div className="analysis-signal-grid"><div><span>{t("analysis.periodRange")}</span><b>{rangePct === null ? "—" : formatPercent(formatPrice(rangePct, 2))}</b></div><div><span>{t("analysis.candleCount")}</span><b>{valid.length || "—"}</b></div><div><span>{t("analysis.priceState")}</span><b className={row.tone}>{row.tone === "up" ? t("analysis.positive") : row.tone === "down" ? t("analysis.negative") : t("analysis.neutral")}</b></div><div><span>{t("analysis.dataCoverage")}</span><b>{valid.length ? "OHLC" : t("analysis.pending")}</b></div></div>
       </section>
 
       {/* Upgraded Annual Financials Dock Section */}
-      <section className="annual-financial-panel" aria-label={`${row.symbol} yıllık finansallar`}>
+      <section className="annual-financial-panel" aria-label={t("analysis.annualAria", { symbol: row.symbol })}>
         <div className="annual-financial-head">
           <div className="annual-head-title">
-            <span>YILLIK FİNANSALLAR</span>
+            <span>{t("analysis.annualTitle")}</span>
             <span className="annual-year-chip">{lastYear}</span>
           </div>
           <div className="annual-statement-tabs" role="tablist">
             <button
               className={dockStatement === "income" ? "active" : ""}
               onClick={() => setDockStatement("income")}
-              title="Gelir Tablosu"
+              title={t("analysis.tabIncomeTitle")}
             >
-              GELİR
+              {t("analysis.tabIncome")}
             </button>
             <button
               className={dockStatement === "balance" ? "active" : ""}
               onClick={() => setDockStatement("balance")}
-              title="Bilanço"
+              title={t("analysis.tabBalanceTitle")}
             >
-              BİLANÇO
+              {t("analysis.tabBalance")}
             </button>
             <button
               className={dockStatement === "cashflow" ? "active" : ""}
               onClick={() => setDockStatement("cashflow")}
-              title="Nakit Akımı"
+              title={t("analysis.tabCashTitle")}
             >
-              NAKİT
+              {t("analysis.tabCash")}
             </button>
           </div>
         </div>
 
         <div className="annual-statement-subtitle">
           <FileText size={11} />
-          <span>{statementTitlesTR[dockStatement].title}</span>
+          <span>{t(statementTitleKeys[dockStatement].title)}</span>
           <em>{statements?.chartCurrency ?? row.currency ?? "TRY"}</em>
         </div>
 
@@ -1518,12 +1531,12 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
                         item.ratio >= 0 ? "positive" : "negative"
                       }`}
                     >
-                      Marj %{item.ratio.toFixed(1)}
+                      {t("analysis.marginTag", { value: item.ratio.toFixed(1) })}
                     </span>
                   )}
                   {item.ratio !== null && dockStatement === "balance" && item.key !== "assets" && (
                     <span className="fundamental-ratio-tag neutral">
-                      Pay %{item.ratio.toFixed(0)}
+                      {t("analysis.shareTag", { value: item.ratio.toFixed(0) })}
                     </span>
                   )}
                 </div>
@@ -1539,10 +1552,10 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
               {request.isFetching ? (
                 <div className="annual-loading">
                   <Activity size={14} className="animate-spin" />
-                  <span>YILLIK VERİLER YÜKLENİYOR…</span>
+                  <span>{t("analysis.loadingAnnual")}</span>
                 </div>
               ) : (
-                `${statementLabels[dockStatement]} verisi bu sembol için mevcut değil.`
+                t("analysis.noStatement", { statement: t(statementLabelKeys[dockStatement]) })
               )}
             </div>
           )}
@@ -1550,39 +1563,39 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
 
         <div className="analysis-method">
           <Info size={13} />
-          <span>
-            Yahoo Finance yıllık resmi raporlamalarından derlenmiştir. Rakamlar bildirim para birimi cinsindedir.
-          </span>
+          <span>{t("analysis.method")}</span>
         </div>
 
         <button className="annual-research-btn" onClick={onOpenResearch}>
-          <BookOpen size={14} /> RAPOR & MODEL KÜTÜPHANESİ <ArrowUpRight size={13} />
+          <BookOpen size={14} /> {t("analysis.reportLibrary")} <ArrowUpRight size={13} />
         </button>
       </section>
     </>
   );
 }
 
+const macroIndicators: Array<{ id: string; labelKey: TranslationKey; valueKey: TranslationKey; noteKey: TranslationKey; tone: string }> = [
+  { id: "cbrt", labelKey: "macro.cbrtLabel", valueKey: "macro.cbrtValue", noteKey: "macro.cbrtNote", tone: "flat" },
+  { id: "fed", labelKey: "macro.fedLabel", valueKey: "macro.fedValue", noteKey: "macro.fedNote", tone: "down" },
+  { id: "ecb", labelKey: "macro.ecbLabel", valueKey: "macro.ecbValue", noteKey: "macro.ecbNote", tone: "down" },
+  { id: "tr10y", labelKey: "macro.tr10yLabel", valueKey: "macro.tr10yValue", noteKey: "macro.tr10yNote", tone: "flat" },
+  { id: "us10y", labelKey: "macro.us10yLabel", valueKey: "macro.us10yValue", noteKey: "macro.us10yNote", tone: "up" },
+  { id: "cds", labelKey: "macro.cdsLabel", valueKey: "macro.cdsValue", noteKey: "macro.cdsNote", tone: "down" },
+  { id: "cpiTr", labelKey: "macro.cpiTrLabel", valueKey: "macro.cpiTrValue", noteKey: "macro.cpiTrNote", tone: "down" },
+  { id: "cpiUs", labelKey: "macro.cpiUsLabel", valueKey: "macro.cpiUsValue", noteKey: "macro.cpiUsNote", tone: "flat" },
+];
+
 function MacroEconomyPanel() {
-  const indicators = [
-    { label: "TCMB 1H REPO (POLİTİKA)", value: "%45,00", note: "Sabit · Şahin Duruş", tone: "flat" },
-    { label: "FED FUNDS HEDEFİ", value: "%4,50 - 4,75", note: "Gevşeme Beklentisi", tone: "down" },
-    { label: "ECB MEVDUAT FAİZİ", value: "%3,00", note: "Faiz İndirimi", tone: "down" },
-    { label: "TR 10Y HAZİNE TAHVİLİ", value: "%28,40", note: "Getiri Eğrisi", tone: "flat" },
-    { label: "ABD 10Y TAHVİL GETİRİSİ", value: "%4,26", note: "Küresel Gösterge", tone: "up" },
-    { label: "TÜRKİYE CDS (5 YIL)", value: "262 bp", note: "Risk Primi Düşük", tone: "down" },
-    { label: "TÜFE ENFLASYON (TR)", value: "%39,05", note: "Dezenflasyon Süreci", tone: "down" },
-    { label: "TÜFE ENFLASYON (ABD)", value: "%2,90", note: "Çekirdek Enflasyon", tone: "flat" },
-  ];
+  const { t } = useI18n();
   return (
     <div className="macro-economy-panel">
       <div className="macro-grid">
-        {indicators.map((item) => (
-          <div key={item.label} className="macro-item">
-            <span className="macro-item-label">{item.label}</span>
+        {macroIndicators.map((item) => (
+          <div key={item.id} className="macro-item">
+            <span className="macro-item-label">{t(item.labelKey)}</span>
             <div className="macro-item-val-row">
-              <b className="macro-item-val">{item.value}</b>
-              <small className={`macro-item-tag ${item.tone}`}>{item.note}</small>
+              <b className="macro-item-val">{t(item.valueKey)}</b>
+              <small className={`macro-item-tag ${item.tone}`}>{t(item.noteKey)}</small>
             </div>
           </div>
         ))}
@@ -1591,24 +1604,26 @@ function MacroEconomyPanel() {
   );
 }
 
+const marketSessions: Array<{ id: string; marketKey: TranslationKey; hoursKey: TranslationKey; live: boolean }> = [
+  { id: "bist", marketKey: "hours.bist", hoursKey: "hours.bistTime", live: true },
+  { id: "nyse", marketKey: "hours.nyse", hoursKey: "hours.nyseTime", live: false },
+  { id: "lse", marketKey: "hours.lse", hoursKey: "hours.lseTime", live: false },
+  { id: "tse", marketKey: "hours.tse", hoursKey: "hours.tseTime", live: false },
+];
+
 function MarketHoursPanel() {
-  const sessions = [
-    { market: "BORSA İSTANBUL (BIST)", hours: "10:00 — 18:00 TRT", status: "AÇIK", live: true },
-    { market: "NEW YORK (NYSE / NASDAQ)", hours: "17:30 — 00:00 TRT", status: "KAPALI", live: false },
-    { market: "LONDRA (LSE)", hours: "11:00 — 19:30 TRT", status: "KAPALI", live: false },
-    { market: "TOKYO (TSE)", hours: "03:00 — 09:00 TRT", status: "KAPALI", live: false },
-  ];
+  const { t } = useI18n();
   return (
     <div className="market-hours-panel">
       <div className="hours-list">
-        {sessions.map((s) => (
-          <div key={s.market} className="hours-row">
+        {marketSessions.map((session) => (
+          <div key={session.id} className="hours-row">
             <div className="hours-info">
-              <b>{s.market}</b>
-              <small>{s.hours}</small>
+              <b>{t(session.marketKey)}</b>
+              <small>{t(session.hoursKey)}</small>
             </div>
-            <span className={`hours-badge ${s.live ? "live" : "closed"}`}>
-              <i /> {s.status}
+            <span className={`hours-badge ${session.live ? "live" : "closed"}`}>
+              <i /> {session.live ? t("hours.open") : t("hours.closed")}
             </span>
           </div>
         ))}
@@ -1617,26 +1632,28 @@ function MarketHoursPanel() {
   );
 }
 
+const valuationConcepts: Array<{ id: string; titleKey: TranslationKey; descKey: TranslationKey }> = [
+  { id: "dcf", titleKey: "valuation.dcfTitle", descKey: "valuation.dcfDesc" },
+  { id: "roic", titleKey: "valuation.roicTitle", descKey: "valuation.roicDesc" },
+  { id: "dupont", titleKey: "valuation.dupontTitle", descKey: "valuation.dupontDesc" },
+  { id: "peer", titleKey: "valuation.peerTitle", descKey: "valuation.peerDesc" },
+];
+
 function ValuationDeskPanel({ onOpenResearch }: { onOpenResearch: () => void }) {
-  const concepts = [
-    { title: "İNDİRGENMİŞ NAKİT AKIMI (DCF)", desc: "FCFF / FCFE projeksiyonu, WACC ve terminal değer köprüsüyle firma değeri hesaplama." },
-    { title: "SERMAYE GETİRİSİ (ROIC vs. WACC)", desc: "Sürdürülebilir rekabet hendeklerinin (Moat) yatırılan sermayeye getiri üstünlüğü." },
-    { title: "DUPONT AYRIŞTIRMASI", desc: "ROE = Net Kar Marjı × Varlık Devir Hızı × Finansal Kaldıraç Çarpanı." },
-    { title: "PİYASA ÇARPANLARI (PEER GROUP)", desc: "F/K, FD/FAVÖK ve PD/DD rasyolarının sektör medyanı ve tarihsel bant kıyası." },
-  ];
+  const { t } = useI18n();
   return (
     <div className="valuation-desk-panel">
       <div className="valuation-card-list">
-        {concepts.map((c) => (
-          <div key={c.title} className="valuation-card">
-            <b>{c.title}</b>
-            <p>{c.desc}</p>
+        {valuationConcepts.map((concept) => (
+          <div key={concept.id} className="valuation-card">
+            <b>{t(concept.titleKey)}</b>
+            <p>{t(concept.descKey)}</p>
           </div>
         ))}
       </div>
       <div className="valuation-footer">
         <button onClick={onOpenResearch} className="valuation-link-btn">
-          <BookOpen size={13} /> ARAŞTIRMA METODOLOJİSİNİ İNCELE <ArrowUpRight size={12} />
+          <BookOpen size={13} /> {t("valuation.cta")} <ArrowUpRight size={12} />
         </button>
       </div>
     </div>
@@ -1668,6 +1685,7 @@ function WatchlistPanel({
   onClearRecent: () => void;
   onOpenChart?: (symbol: string) => void;
 }) {
+  const { t } = useI18n();
   const [scanMode, setScanMode] = useState<"ALL" | "GAINERS" | "LOSERS" | "VOLATILE">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [watchSearch, setWatchSearch] = useState("");
@@ -1717,18 +1735,18 @@ function WatchlistPanel({
     <div className="watchlist-container">
       <div className="watch-panel-tabs">
         <button className={tab === "WATCH" ? "active" : ""} onClick={() => onTab("WATCH")}>
-          İZLEME LİSTESİ
+          {t("watch.tabWatch")}
         </button>
         <button className={tab === "DISCOVER" ? "active" : ""} onClick={() => onTab("DISCOVER")}>
-          PİYASA KEŞFİ
+          {t("watch.tabDiscover")}
         </button>
       </div>
 
       {tab === "WATCH" ? (
         <div className="watchlist-inner-wrap">
           <div className="watchlist-label">
-            <span>VARSAYILAN PİYASA EVRENİ</span>
-            <small>{filteredWatchRows.length} / {watchRows.length} SEMBOL</small>
+            <span>{t("watch.universeLabel")}</span>
+            <small>{t("watch.symbolCount", { shown: filteredWatchRows.length, total: watchRows.length })}</small>
           </div>
 
           <div className="watchlist-search-box">
@@ -1736,12 +1754,12 @@ function WatchlistPanel({
               <Search size={12} />
               <input
                 type="text"
-                placeholder="Listede filtrele (THYAO, AAPL...)"
+                placeholder={t("watch.filterPlaceholder")}
                 value={watchSearch}
                 onChange={(e) => setWatchSearch(e.target.value)}
               />
               {watchSearch && (
-                <button onClick={() => setWatchSearch("")} className="watchlist-search-clear" aria-label="Aramayı Temizle">
+                <button onClick={() => setWatchSearch("")} className="watchlist-search-clear" aria-label={t("watch.clearSearch")}>
                   ×
                 </button>
               )}
@@ -1751,7 +1769,7 @@ function WatchlistPanel({
           <div className="watchlist-filters">
             {(["TÜMÜ", "TÜRKİYE", "ABD", "MAKRO"] as WatchCategory[]).map((item) => (
               <button key={item} className={category === item ? "active" : ""} onClick={() => onCategory(item)}>
-                {item}
+                {lookupLabel(t, "category", item)}
               </button>
             ))}
           </div>
@@ -1765,12 +1783,12 @@ function WatchlistPanel({
                   <div className="watch-row-select" onClick={() => onSelect(item.symbol)}>
                     <div className="watch-item-sym-col">
                       <div className="watch-item-sym-row">
-                        <b>{item.symbol}</b>
-                        <span className="watch-kind-badge">{item.kind}</span>
+                        <b>{lookupLabel(t, "symbol", item.symbol)}</b>
+                        <span className="watch-kind-badge">{lookupLabel(t, "kind", item.kind)}</span>
                       </div>
-                      <small className="watch-item-name">{item.sourceName ? item.sourceName : item.symbol}</small>
+                      <small className="watch-item-name">{item.sourceName ? item.sourceName : lookupLabel(t, "symbol", item.symbol)}</small>
                     </div>
-                    <div className="watch-item-bar-col" title={`Değişim gücü: ${item.pct}`}>
+                    <div className="watch-item-bar-col" title={t("watch.changeStrength", { pct: item.pct })}>
                       <div className="watch-bar-track">
                         <div
                           className={`watch-bar-fill ${item.tone}`}
@@ -1793,10 +1811,10 @@ function WatchlistPanel({
                         onSelect(item.symbol);
                         onOpenChart?.(item.symbol);
                       }}
-                      title={`${item.symbol} grafiğini aç`}
+                      title={t("common.openChart", { symbol: item.symbol })}
                     >
                       <LineChart size={12} />
-                      <span>GRAFİK</span>
+                      <span>{t("common.chart")}</span>
                     </button>
                   </div>
                 </div>
@@ -1809,7 +1827,7 @@ function WatchlistPanel({
               <div className="sticky-action-info">
                 <span className="sticky-dot" />
                 <div className="sticky-text-wrap">
-                  <b>{selectedRow.symbol}</b>
+                  <b>{lookupLabel(t, "symbol", selectedRow.symbol)}</b>
                   <span className="sticky-val">{selectedRow.value}</span>
                   <span className={`sticky-pill ${selectedRow.tone}`}>{selectedRow.pct}</span>
                 </div>
@@ -1820,14 +1838,14 @@ function WatchlistPanel({
                 onClick={() => onOpenChart?.(selectedRow.symbol)}
               >
                 <LineChart size={14} />
-                <span>GRAFİĞİ GÖR</span>
+                <span>{t("watch.viewChart")}</span>
               </button>
             </div>
           )}
 
           <div className="watchlist-footnote">
             <Info size={11} />
-            <span>Evren sabittir · Sembole tıklayarak grafik ve verileri yükleyebilirsiniz.</span>
+            <span>{t("watch.footnote")}</span>
           </div>
         </div>
       ) : (
@@ -1836,7 +1854,7 @@ function WatchlistPanel({
           <div className="watchlist-filters discovery-filters">
             {(["TÜMÜ", "TÜRKİYE", "ABD", "MAKRO"] as WatchCategory[]).map((item) => (
               <button key={item} className={category === item ? "active" : ""} onClick={() => onCategory(item)}>
-                {item}
+                {lookupLabel(t, "category", item)}
               </button>
             ))}
           </div>
@@ -1846,12 +1864,12 @@ function WatchlistPanel({
             <div className="recent-group-head">
               <span className="recent-group-title">
                 <History size={13} />
-                <b>SON AÇILANLAR</b>
+                <b>{t("discovery.recentTitle")}</b>
                 <small className="recent-count">{recentRows.length}</small>
               </span>
               {recentRows.length > 0 && (
-                <button className="recent-clear-btn" onClick={onClearRecent} title="Son açılanları temizle">
-                  <Trash2 size={12} /> TEMİZLE
+                <button className="recent-clear-btn" onClick={onClearRecent} title={t("discovery.clearRecentTitle")}>
+                  <Trash2 size={12} /> {t("common.clear")}
                 </button>
               )}
             </div>
@@ -1864,8 +1882,8 @@ function WatchlistPanel({
                     onClick={() => onSelect(item.symbol)}
                   >
                     <div className="recent-item-left">
-                      <b>{item.symbol}</b>
-                      <small>{item.sourceName ?? item.kind}</small>
+                      <b>{lookupLabel(t, "symbol", item.symbol)}</b>
+                      <small>{item.sourceName ?? lookupLabel(t, "kind", item.kind)}</small>
                     </div>
                     <div className="recent-item-right">
                       <strong>{item.value}</strong>
@@ -1882,17 +1900,17 @@ function WatchlistPanel({
                         onSelect(item.symbol);
                         onOpenChart?.(item.symbol);
                       }}
-                      title="Grafiği Aç"
+                      title={t("common.openChartShort")}
                     >
                       <LineChart size={12} />
-                      <span>GRAFİK</span>
+                      <span>{t("common.chart")}</span>
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="recent-empty-prompt">
-                <small>Henüz son açılan sembol yok. Yukarıdaki arama çubuğundan veya listeden sembol seçebilirsiniz.</small>
+                <small>{t("discovery.recentEmpty")}</small>
               </div>
             )}
           </section>
@@ -1903,17 +1921,17 @@ function WatchlistPanel({
               <div className="scanner-title-row">
                 <span className="scanner-title">
                   <SlidersHorizontal size={13} />
-                  <b>PİYASA TARAMA</b>
+                  <b>{t("discovery.scanTitle")}</b>
                 </span>
-                <small className="scanner-count">{scannedItems.length} VARLIK</small>
+                <small className="scanner-count">{t("discovery.assetCount", { count: scannedItems.length })}</small>
               </div>
 
               {/* Scan Mode Toggles */}
               <div className="scanner-mode-tabs">
-                <button className={scanMode === "ALL" ? "active" : ""} onClick={() => setScanMode("ALL")}>TÜMÜ</button>
-                <button className={scanMode === "GAINERS" ? "active" : ""} onClick={() => setScanMode("GAINERS")}>YÜKSELENLER</button>
-                <button className={scanMode === "LOSERS" ? "active" : ""} onClick={() => setScanMode("LOSERS")}>DÜŞENLER</button>
-                <button className={scanMode === "VOLATILE" ? "active" : ""} onClick={() => setScanMode("VOLATILE")}>HAREKETLİ</button>
+                <button className={scanMode === "ALL" ? "active" : ""} onClick={() => setScanMode("ALL")}>{t("discovery.scanAll")}</button>
+                <button className={scanMode === "GAINERS" ? "active" : ""} onClick={() => setScanMode("GAINERS")}>{t("discovery.scanGainers")}</button>
+                <button className={scanMode === "LOSERS" ? "active" : ""} onClick={() => setScanMode("LOSERS")}>{t("discovery.scanLosers")}</button>
+                <button className={scanMode === "VOLATILE" ? "active" : ""} onClick={() => setScanMode("VOLATILE")}>{t("discovery.scanVolatile")}</button>
               </div>
 
               {/* Live Search Input for Scanner */}
@@ -1923,7 +1941,7 @@ function WatchlistPanel({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Taramada sembol / varlık filtrele..."
+                  placeholder={t("discovery.scanPlaceholder")}
                 />
                 {searchTerm && (
                   <button className="scanner-search-clear" onClick={() => setSearchTerm("")}>✕</button>
@@ -1945,10 +1963,10 @@ function WatchlistPanel({
                     >
                       <div className="discovery-row-main">
                         <div className="discovery-sym-wrap">
-                          <b>{item.symbol}</b>
-                          <small className="discovery-kind-badge">{item.kind}</small>
+                          <b>{lookupLabel(t, "symbol", item.symbol)}</b>
+                          <small className="discovery-kind-badge">{lookupLabel(t, "kind", item.kind)}</small>
                         </div>
-                        <span className="discovery-name-text">{item.sourceName ?? item.category}</span>
+                        <span className="discovery-name-text">{item.sourceName ?? lookupLabel(t, "category", item.category)}</span>
                       </div>
                       <div className="discovery-row-bar">
                         <div className="discovery-bar-track">
@@ -1970,17 +1988,17 @@ function WatchlistPanel({
                           onSelect(item.symbol);
                           onOpenChart?.(item.symbol);
                         }}
-                        title="Grafiği Aç"
+                        title={t("common.openChartShort")}
                       >
                         <LineChart size={12} />
-                        <span>GRAFİK</span>
+                        <span>{t("common.chart")}</span>
                       </button>
                     </div>
                   );
                 })
               ) : (
                 <div className="discovery-empty">
-                  <p>Aramaya uygun taranmış sembol bulunamadı.</p>
+                  <p>{t("discovery.empty")}</p>
                 </div>
               )}
             </div>
@@ -1994,10 +2012,11 @@ function WatchlistPanel({
 type MobileModuleFilter = "ALL" | "CHART" | "WATCH" | "FINANCIALS" | "SUMMARY" | "MACRO";
 
 export default function Home() {
+  const { t, language } = useI18n();
   const [activeView, setActiveView] = useState<TerminalView>(() => { const view = new URLSearchParams(window.location.search).get("view"); return view === "PROFILE" ? "PROFILE" : view === "RESEARCH" ? "RESEARCH" : view === "CONTACT" ? "CONTACT" : "DASHBOARD"; });
   const [mobileFilter, setMobileFilter] = useState<MobileModuleFilter>("ALL");
   const [mobileModulesOpen, setMobileModulesOpen] = useState(false);
-  const [selectedSymbol, setSelectedSymbol] = useState("THYAO"); const [interval, setInterval] = useState<(typeof intervals)[number]>("5G"); const [chartMode, setChartMode] = useState<"price" | FinancialStatementKind>(() => { const mode = new URLSearchParams(window.location.search).get("chart"); return mode === "income" || mode === "balance" || mode === "cashflow" ? mode : "price"; }); const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? ""); const [watchCategory, setWatchCategory] = useState<WatchCategory>("TÜMÜ"); const [watchTab, setWatchTab] = useState<"WATCH" | "DISCOVER">(() => new URLSearchParams(window.location.search).get("watch") === "discover" ? "DISCOVER" : "WATCH"); const [mobileMenu, setMobileMenu] = useState(false); const [notificationOpen, setNotificationOpen] = useState(false); const [draggedPanel, setDraggedPanel] = useState<PanelId | null>(null); const [clock, setClock] = useState(() => new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+  const [selectedSymbol, setSelectedSymbol] = useState("THYAO"); const [interval, setInterval] = useState<(typeof intervals)[number]>("5G"); const [chartMode, setChartMode] = useState<"price" | FinancialStatementKind>(() => { const mode = new URLSearchParams(window.location.search).get("chart"); return mode === "income" || mode === "balance" || mode === "cashflow" ? mode : "price"; }); const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? ""); const [watchCategory, setWatchCategory] = useState<WatchCategory>("TÜMÜ"); const [watchTab, setWatchTab] = useState<"WATCH" | "DISCOVER">(() => new URLSearchParams(window.location.search).get("watch") === "discover" ? "DISCOVER" : "WATCH"); const [mobileMenu, setMobileMenu] = useState(false); const [notificationOpen, setNotificationOpen] = useState(false); const [draggedPanel, setDraggedPanel] = useState<PanelId | null>(null); const [clock, setClock] = useState(() => formatClock());
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem("analiz-terminal-order-v10") || "[]"); return Array.isArray(saved) && saved.length === 4 ? saved : defaultPanelOrder; } catch { return defaultPanelOrder; } });
   const [lockedPanels, setLockedPanels] = useState<PanelId[]>(() => { try { const saved = JSON.parse(window.localStorage.getItem("analiz-terminal-locked-panels-v1") || "[]"); return Array.isArray(saved) ? saved.filter((id): id is PanelId => defaultPanelOrder.includes(id)) : []; } catch { return []; } });
   const [discoveredSymbol, setDiscoveredSymbol] = useState<DiscoveredSymbol | null>(null);
@@ -2036,7 +2055,7 @@ export default function Home() {
   }, [discoveredSeed, recentSymbols]);
   const quotes = trpc.market.quotes.useQuery({ symbols: watchUniverse.map((item) => item.providerSymbol) }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const quoteMap = useMemo(() => new Map((quotes.data ?? []).map((item) => [item.symbol, item])), [quotes.data]); const markets = useMemo(() => watchUniverse.map((item) => mergeQuote(item, quoteMap.get(item.providerSymbol))), [watchUniverse, quoteMap]); const row = markets.find((item) => item.symbol === selectedSymbol) ?? markets.find((item) => item.symbol === "THYAO")!;
   const chart = trpc.market.chart.useQuery({ symbol: row.providerSymbol, timeframe: interval }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const statementKind: FinancialStatementKind = chartMode === "price" ? "income" : chartMode; const statements = trpc.market.statements.useQuery({ symbol: row.providerSymbol, statement: statementKind }, { staleTime: 45_000, retry: 1 }); const search = trpc.market.search.useQuery({ query: query.trim().length >= 1 ? query.trim() : "a" }, { enabled: query.trim().length >= 1, staleTime: 30_000, retry: 1 });
-  useEffect(() => { const timer = window.setInterval(() => setClock(new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })), 1000); return () => window.clearInterval(timer); }, []); useEffect(() => { window.localStorage.setItem("analiz-terminal-order-v9", JSON.stringify(panelOrder)); }, [panelOrder]); useEffect(() => { window.localStorage.setItem("analiz-terminal-locked-panels-v1", JSON.stringify(lockedPanels)); }, [lockedPanels]); useEffect(() => { window.localStorage.removeItem("analiz-terminal-user-watchlist-v1"); }, []); useEffect(() => { window.localStorage.setItem("analiz-terminal-recent-symbols-v1", JSON.stringify(recentSymbols)); }, [recentSymbols]);
+  useEffect(() => { setClock(formatClock()); const timer = window.setInterval(() => setClock(formatClock()), 1000); return () => window.clearInterval(timer); }, [language]); useEffect(() => { window.localStorage.setItem("analiz-terminal-order-v9", JSON.stringify(panelOrder)); }, [panelOrder]); useEffect(() => { window.localStorage.setItem("analiz-terminal-locked-panels-v1", JSON.stringify(lockedPanels)); }, [lockedPanels]); useEffect(() => { window.localStorage.removeItem("analiz-terminal-user-watchlist-v1"); }, []); useEffect(() => { window.localStorage.setItem("analiz-terminal-recent-symbols-v1", JSON.stringify(recentSymbols)); }, [recentSymbols]);
 
   const tickerSymbols = ["BIST 100", "BIST 30", "THYAO", "ASELS", "TUPRS", "AKBNK", "S&P 500", "NASDAQ 100", "USD/TRY", "ALTIN", "PETROL", "VIX", "AAPL", "MSFT"];
   const tickerItems = useMemo(() => {
@@ -2069,7 +2088,7 @@ export default function Home() {
   const clearRecentSymbols = () => {
     setRecentSymbols([]);
     window.localStorage.removeItem("analiz-terminal-recent-symbols-v1");
-    toast.message("Son açılanlar temizlendi.");
+    toast.message(t("toast.recentCleared"));
   };
 
   const terminalRef = useRef<HTMLDivElement | null>(null);
@@ -2215,7 +2234,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
     refreshScrollTriggers();
   };
-  const chooseSymbol = (symbol: string) => { setSelectedSymbol(symbol); setRecentSymbols((items) => rememberRecentSymbol(items, symbol)); toast.message(`${symbol} grafiği açıldı.`, { description: "Gerçek veri yükleniyor." }); }; const togglePanelLock = (id: PanelId) => setLockedPanels((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]); const reorder = (target: PanelId) => { if (!draggedPanel || draggedPanel === target) return; setPanelOrder((order) => placeUnlockedPanelBefore(order, draggedPanel, target, lockedPanels)); setDraggedPanel(null); toast.message("Panel yerleşimi güncellendi."); }; const openSearchResult = (item: { symbol: string; name: string }) => { const symbol = normalizeDiscoverySymbol(item.symbol); setDiscoveredSymbol({ symbol, providerSymbol: item.symbol, name: item.name }); chooseSymbol(symbol); setWatchTab("DISCOVER"); setQuery(""); toast.message(`${item.symbol} tek seferlik inceleme için açıldı.`, { description: "Sembol sabit izleme evrenine eklenmedi." }); }; const resetLayout = () => { setPanelOrder(defaultPanelOrder); setLockedPanels([]); setDraggedPanel(null); toast.message("Terminal düzeni varsayılana döndü."); };
+  const chooseSymbol = (symbol: string) => { setSelectedSymbol(symbol); setRecentSymbols((items) => rememberRecentSymbol(items, symbol)); toast.message(t("toast.chartOpened", { symbol }), { description: t("toast.chartOpenedDesc") }); }; const togglePanelLock = (id: PanelId) => setLockedPanels((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]); const reorder = (target: PanelId) => { if (!draggedPanel || draggedPanel === target) return; setPanelOrder((order) => placeUnlockedPanelBefore(order, draggedPanel, target, lockedPanels)); setDraggedPanel(null); toast.message(t("toast.layoutUpdated")); }; const openSearchResult = (item: { symbol: string; name: string }) => { const symbol = normalizeDiscoverySymbol(item.symbol); setDiscoveredSymbol({ symbol, providerSymbol: item.symbol, name: item.name }); chooseSymbol(symbol); setWatchTab("DISCOVER"); setQuery(""); toast.message(t("toast.discoveryOpened", { symbol: item.symbol }), { description: t("toast.discoveryOpenedDesc") }); }; const resetLayout = () => { setPanelOrder(defaultPanelOrder); setLockedPanels([]); setDraggedPanel(null); toast.message(t("toast.layoutReset")); };
 
   const handleSelectMobileModule = (modId: MobileModuleId) => {
     if (modId === "PROFILE") {
@@ -2243,12 +2262,12 @@ export default function Home() {
     setMobileModulesOpen(false);
   };
   const panels: Record<PanelId, React.ReactNode> = {
-    profile: <TerminalPanel key="profile" id="profile" title="ONUR İNAL PROFİLİ" code="ANALYST" className="profile-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("profile")} onToggleLock={() => togglePanelLock("profile")}><ProfilePanel onOpenFullProfile={() => changeView("PROFILE")} /></TerminalPanel>,
+    profile: <TerminalPanel key="profile" id="profile" title={t("panels.profile")} code="ANALYST" className="profile-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("profile")} onToggleLock={() => togglePanelLock("profile")}><ProfilePanel onOpenFullProfile={() => changeView("PROFILE")} /></TerminalPanel>,
     chart: (
       <TerminalPanel
         key="chart"
         id="chart"
-        title="FİYAT & FİNANSALLAR"
+        title={t("panels.chart")}
         code="CHART"
         className="chart-panel"
         dragged={draggedPanel}
@@ -2259,15 +2278,15 @@ export default function Home() {
       >
         <div className="chart-toolbar chart-toolbar-stacked">
           <div className="chart-symbol-select-wrap">
-            <span className="symbol-select-kind">{row.kind}</span>
+            <span className="symbol-select-kind">{lookupLabel(t, "kind", row.kind)}</span>
             <select
               value={selectedSymbol}
               onChange={(event) => chooseSymbol(event.target.value)}
-              aria-label="Sembol seç"
+              aria-label={t("chart.symbolAria")}
             >
               {markets.map((item) => (
                 <option key={item.providerSymbol} value={item.symbol}>
-                  {item.symbol} · {item.kind} ({item.currency})
+                  {lookupLabel(t, "symbol", item.symbol)} · {lookupLabel(t, "kind", item.kind)} ({item.currency})
                 </option>
               ))}
             </select>
@@ -2284,45 +2303,45 @@ export default function Home() {
                   setInterval(item);
                 }}
               >
-                {item}
+                {t(`chart.interval.${item}` as TranslationKey)}
               </button>
             ))}
           </div>
 
-          <div className="analysis-tabs" role="tablist" aria-label="Grafik görünümü">
+          <div className="analysis-tabs" role="tablist" aria-label={t("chart.viewAria")}>
             <button
               className={`tab-btn-price ${chartMode === "price" ? "active" : ""}`}
               onClick={() => setChartMode("price")}
             >
               <SlidersHorizontal size={11} />
-              <span>FİYAT</span>
+              <span>{t("chart.tabPrice")}</span>
             </button>
             <button
               className={`tab-btn-income ${chartMode === "income" ? "active" : ""}`}
               onClick={() => setChartMode("income")}
             >
               <TrendingUp size={11} />
-              <span>INCOME</span>
+              <span>{t("chart.tabIncome")}</span>
             </button>
             <button
               className={`tab-btn-balance ${chartMode === "balance" ? "active" : ""}`}
               onClick={() => setChartMode("balance")}
             >
               <Scale size={11} />
-              <span>BALANCE</span>
+              <span>{t("chart.tabBalance")}</span>
             </button>
             <button
               className={`tab-btn-cashflow ${chartMode === "cashflow" ? "active" : ""}`}
               onClick={() => setChartMode("cashflow")}
             >
               <Coins size={11} />
-              <span>CASH FLOW</span>
+              <span>{t("chart.tabCashflow")}</span>
             </button>
           </div>
 
           <span className="chart-toolbar-note">
             <BarChart3 size={12} />
-            <span>{chartMode === "price" ? "CANLI OHLC & HACİM" : "4 YILLIK RAPORLANAN BİLANÇO"}</span>
+            <span>{chartMode === "price" ? t("chart.notePrice") : t("chart.noteStatement")}</span>
           </span>
         </div>
 
@@ -2347,11 +2366,11 @@ export default function Home() {
         )}
       </TerminalPanel>
     ),
-    summary: <TerminalPanel key="summary" id="summary" title="PİYASA ÖZETİ" code="MARKET_PULSE" className="summary-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("summary")} onToggleLock={() => togglePanelLock("summary")}><SummaryPanel markets={markets} isRefreshing={quotes.isFetching} selectedSymbol={selectedSymbol} onSelect={chooseSymbol}/></TerminalPanel>,
-    archive: <TerminalPanel key="archive" id="archive" title="EĞİTİM & ARAŞTIRMA" code="RESEARCH_DESK" className="archive-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("archive")} onToggleLock={() => togglePanelLock("archive")}><div className="education-bar"><div><span>EĞİTİM</span><b>Afyon Kocatepe Üniversitesi</b><small>Uluslararası Ticaret ve Finansman & İktisat · Çift Ana Dal</small></div><div><span>YETKİNLİKLER</span><b>Finansal Analiz · Python · Excel</b><small>Pandas · SQL temelleri · IBM Cognos</small></div><a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer"><BookOpen size={15}/> Measure Moat<ExternalLink size={12}/></a></div><div className="archive-compact"><div className="archive-copy"><span>ARAŞTIRMA ARŞİVİ</span><b>Finansal analiz çalışmalarını incele</b><small>Kaynak PDF’ler, yöntem notları ve yayın metadatası rapor kütüphanesinde tutulur.</small></div><button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> RAPOR KÜTÜPHANESİ <ArrowUpRight size={13}/></button></div></TerminalPanel>,
+    summary: <TerminalPanel key="summary" id="summary" title={t("panels.summary")} code="MARKET_PULSE" className="summary-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("summary")} onToggleLock={() => togglePanelLock("summary")}><SummaryPanel markets={markets} isRefreshing={quotes.isFetching} selectedSymbol={selectedSymbol} onSelect={chooseSymbol}/></TerminalPanel>,
+    archive: <TerminalPanel key="archive" id="archive" title={t("panels.archive")} code="RESEARCH_DESK" className="archive-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("archive")} onToggleLock={() => togglePanelLock("archive")}><div className="education-bar"><div><span>{t("archive.educationLabel")}</span><b>{t("archive.university")}</b><small>{t("archive.program")}</small></div><div><span>{t("archive.skillsLabel")}</span><b>{t("archive.skillsValue")}</b><small>{t("archive.skillsNote")}</small></div><a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer"><BookOpen size={15}/> Measure Moat<ExternalLink size={12}/></a></div><div className="archive-compact"><div className="archive-copy"><span>{t("archive.title")}</span><b>{t("archive.headline")}</b><small>{t("archive.note")}</small></div><button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("archive.cta")} <ArrowUpRight size={13}/></button></div></TerminalPanel>,
   };
   const content = activeView === "PROFILE" ? (
-    <TerminalPanel id="profile" title="ANALİST PROFİLİ // DETAYLI GÖRÜNÜM" code="ANALYST_PROFILE" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="module-panel">
+    <TerminalPanel id="profile" title={t("panels.profileFull")} code="ANALYST_PROFILE" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="module-panel">
       <ProfileView onBack={() => changeView("DASHBOARD")} onContact={() => changeView("CONTACT")} />
     </TerminalPanel>
   ) : activeView === "RESEARCH" ? (
@@ -2369,8 +2388,23 @@ export default function Home() {
   ) : (
     <div className="workspace-grid">{panelOrder.map((id) => panels[id])}</div>
   );
-  const activeLabel = activeView === "PROFILE" ? "PROFİL / 03" : activeView === "RESEARCH" ? "RAPORLAR / 02" : activeView === "CONTACT" ? "BAĞLANTI / 04" : "PANO / 01";
-  const notifications = [{ label: quotes.isFetching ? "PİYASA VERİSİ GÜNCELLENİYOR" : "PİYASA VERİSİ BAĞLI", detail: quotes.isFetching ? "Yahoo fiyat evreni yenileniyor." : "Fiyat evreni son başarılı sağlayıcı yanıtıyla hazır." }, { label: chart.isFetching ? "SEÇİLİ GRAFİK YÜKLENİYOR" : `${row.symbol} GRAFİĞİ HAZIR`, detail: chart.isFetching ? "OHLC mumları isteniyor." : `${interval} aralığında OHLC görünümü açık.` }, { label: `${lockedPanels.length} PANEL KİLİTLİ`, detail: lockedPanels.length ? "Kilitli paneller sürükle-bırak hedefi değildir." : "Panel menüsünden konum kilidi ekleyebilirsin." }];
+  const activeLabel = activeView === "PROFILE" ? t("path.profile") : activeView === "RESEARCH" ? t("path.research") : activeView === "CONTACT" ? t("path.contact") : t("path.dashboard");
+  const notifications = [
+    {
+      label: quotes.isFetching ? t("notif.marketUpdating") : t("notif.marketConnected"),
+      detail: quotes.isFetching ? t("notif.marketUpdatingDetail") : t("notif.marketConnectedDetail"),
+    },
+    {
+      label: chart.isFetching ? t("notif.chartLoading") : t("notif.chartReady", { symbol: row.symbol }),
+      detail: chart.isFetching
+        ? t("notif.chartLoadingDetail")
+        : t("notif.chartReadyDetail", { interval: t(`chart.interval.${interval}` as TranslationKey) }),
+    },
+    {
+      label: t("notif.panelsLocked", { count: lockedPanels.length }),
+      detail: lockedPanels.length ? t("notif.panelsLockedDetail") : t("notif.panelsUnlockedDetail"),
+    },
+  ];
   return <div ref={terminalRef} className={`terminal-app view-${activeView.toLowerCase()}`}>
     <header className="app-chrome">
       <div className="app-identity">
@@ -2381,30 +2415,31 @@ export default function Home() {
         </div>
       </div>
       <div className="chrome-center">
-        <Activity size={13}/> PİYASA VERİSİ <em>{quotes.isFetching ? "GÜNCELLENİYOR" : "YAHOO FINANCE"}</em>
-        <span>TR / UTC+3 · {clock}</span>
+        <Activity size={13}/> {t("chrome.marketData")} <em>{quotes.isFetching ? t("chrome.updating") : "YAHOO FINANCE"}</em>
+        <span>{t("chrome.clock", { clock })}</span>
       </div>
       <div className="chrome-actions">
-        <button onClick={() => quotes.refetch()} title="Veriyi yenile"><Activity size={15}/></button>
-        <button className="notification-trigger" onClick={() => setNotificationOpen((state) => !state)} title="Bildirim merkezi" aria-expanded={notificationOpen}><Bell size={15}/><i/></button>
-        <span className="connection-state"><i/> BAĞLI</span>
+        <LanguageSwitcher />
+        <button onClick={() => quotes.refetch()} title={t("chrome.refresh")}><Activity size={15}/></button>
+        <button className="notification-trigger" onClick={() => setNotificationOpen((state) => !state)} title={t("chrome.notifications")} aria-expanded={notificationOpen}><Bell size={15}/><i/></button>
+        <span className="connection-state"><i/> {t("chrome.connected")}</span>
         {notificationOpen && <div className="notification-center">
-          <div><b>BİLDİRİM MERKEZİ</b><button onClick={() => setNotificationOpen(false)}>KAPAT</button></div>
+          <div><b>{t("chrome.notificationCenter")}</b><button onClick={() => setNotificationOpen(false)}>{t("common.close")}</button></div>
           {notifications.map((item) => <article key={item.label}><i/><span><b>{item.label}</b><small>{item.detail}</small></span></article>)}
         </div>}
       </div>
     </header>
     <nav className="tool-ribbon">
-      <button className="terminal-menu-toggle" onClick={() => setMobileModulesOpen(true)}><Layers size={16}/> MODÜLLER</button>
+      <button className="terminal-menu-toggle" onClick={() => setMobileModulesOpen(true)}><Layers size={16}/> {t("nav.modules")}</button>
       <div className={mobileMenu ? "tool-menu open" : "tool-menu"}>
-        {(["DASHBOARD", "PROFILE", "RESEARCH", "CONTACT"] as TerminalView[]).map((view) => <button key={view} className={activeView === view ? "tool-button active" : "tool-button"} onClick={() => changeView(view)}>{view === "DASHBOARD" ? <Grid2X2 size={16}/> : view === "PROFILE" ? <UserRound size={16}/> : view === "RESEARCH" ? <BookOpen size={16}/> : <Mail size={16}/>} {view === "DASHBOARD" ? "PANO" : view === "PROFILE" ? "PROFİL" : view === "RESEARCH" ? "RAPORLAR" : "BAĞLANTI"}</button>)}
+        {(["DASHBOARD", "PROFILE", "RESEARCH", "CONTACT"] as TerminalView[]).map((view) => <button key={view} className={activeView === view ? "tool-button active" : "tool-button"} onClick={() => changeView(view)}>{view === "DASHBOARD" ? <Grid2X2 size={16}/> : view === "PROFILE" ? <UserRound size={16}/> : view === "RESEARCH" ? <BookOpen size={16}/> : <Mail size={16}/>} {view === "DASHBOARD" ? t("nav.dashboard") : view === "PROFILE" ? t("nav.profile") : view === "RESEARCH" ? t("nav.research") : t("nav.contact")}</button>)}
       </div>
       <GlobalMarketSearch query={query} onQuery={setQuery} results={search.data ?? []} isLoading={search.isFetching} isError={search.isError} onSelect={openSearchResult}/>
     </nav>
-    <div className="ticker-tape-container" aria-label="Canlı Piyasa Akışı">
+    <div className="ticker-tape-container" aria-label={t("ticker.aria")}>
       <div className="ticker-tape-label">
         <span className="ticker-tape-dot" />
-        <span>CANLI AKIŞ</span>
+        <span>{t("ticker.live")}</span>
       </div>
       <div className="ticker-tape-track-wrapper">
         <div className="ticker-tape-track">
@@ -2413,9 +2448,9 @@ export default function Home() {
               key={`${item.symbol}-${idx}`}
               className={`ticker-tape-chip ${selectedSymbol === item.symbol ? "selected" : ""}`}
               onClick={() => chooseSymbol(item.symbol)}
-              title={`${item.symbol} grafiğini aç`}
+              title={t("common.openChart", { symbol: item.symbol })}
             >
-              <span className="ticker-sym">{item.symbol}</span>
+              <span className="ticker-sym">{lookupLabel(t, "symbol", item.symbol)}</span>
               <span className="ticker-val">{item.value}</span>
               <span className={`ticker-pill ${item.tone}`}>{item.pct}</span>
             </button>
@@ -2424,49 +2459,49 @@ export default function Home() {
       </div>
     </div>
     {activeView === "DASHBOARD" && (
-      <div className="mobile-category-bar" aria-label="Modül Filtreleri">
+      <div className="mobile-category-bar" aria-label={t("mobileFilter.aria")}>
         <button
           className={mobileFilter === "ALL" ? "active" : ""}
           onClick={() => setMobileFilter("ALL")}
         >
-          TÜMÜ
+          {t("mobileFilter.all")}
         </button>
         <button
           className={mobileFilter === "CHART" ? "active" : ""}
           onClick={() => setMobileFilter("CHART")}
         >
-          <LineChart size={13} /> GRAFİK & BİLANÇO
+          <LineChart size={13} /> {t("mobileFilter.chart")}
         </button>
         <button
           className={mobileFilter === "WATCH" ? "active" : ""}
           onClick={() => setMobileFilter("WATCH")}
         >
-          <TrendingUp size={13} /> İZLEME LİSTESİ
+          <TrendingUp size={13} /> {t("mobileFilter.watch")}
         </button>
         <button
           className={mobileFilter === "FINANCIALS" ? "active" : ""}
           onClick={() => setMobileFilter("FINANCIALS")}
         >
-          <PieChart size={13} /> FİNANSMAN
+          <PieChart size={13} /> {t("mobileFilter.financials")}
         </button>
         <button
           className={mobileFilter === "SUMMARY" ? "active" : ""}
           onClick={() => setMobileFilter("SUMMARY")}
         >
-          <Grid2X2 size={13} /> PİYASA ÖZETİ
+          <Grid2X2 size={13} /> {t("mobileFilter.summary")}
         </button>
         <button
           className={mobileFilter === "MACRO" ? "active" : ""}
           onClick={() => setMobileFilter("MACRO")}
         >
-          <Globe size={13} /> MAKRO & SEANS
+          <Globe size={13} /> {t("mobileFilter.macro")}
         </button>
       </div>
     )}
     <div className={`terminal-layout ${activeView !== "DASHBOARD" ? "terminal-layout-fullscreen" : `mobile-filter-${mobileFilter.toLowerCase()}`}`}>
       {activeView === "DASHBOARD" && (
         <aside className="left-dock">
-          <TerminalPanel id="watch-dock" title={watchTab === "WATCH" ? "İZLEME LİSTESİ" : "PİYASA KEŞFİ"} code={watchTab === "WATCH" ? "WATCHLIST" : "DISCOVERY"} dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="watchlist-panel">
+          <TerminalPanel id="watch-dock" title={watchTab === "WATCH" ? t("panels.watchlist") : t("panels.discovery")} code={watchTab === "WATCH" ? "WATCHLIST" : "DISCOVERY"} dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="watchlist-panel">
             <WatchlistPanel
               tab={watchTab}
               onTab={setWatchTab}
@@ -2488,23 +2523,23 @@ export default function Home() {
           {mobileFilter === "MACRO" && (
             <div className="macro-mobile-header-bar">
               <div className="macro-mobile-title-wrap">
-                <span className="macro-mobile-pill">KÜRESEL MAKRO</span>
-                <b>GÖSTERGELER & SEANS DÖNGÜSÜ</b>
+                <span className="macro-mobile-pill">{t("macro.mobilePill")}</span>
+                <b>{t("macro.mobileTitle")}</b>
               </div>
               <button
                 className="macro-back-to-chart-btn"
                 onClick={() => setMobileFilter("CHART")}
               >
-                <Grid2X2 size={13} /> GRAFİĞE DÖN
+                <Grid2X2 size={13} /> {t("macro.backToChart")}
               </button>
             </div>
           )}
 
-          <TerminalPanel id="macro-dock" title="MAKRO GÖSTERGELER & FAİZLER" code="MACRO_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="macro-panel">
+          <TerminalPanel id="macro-dock" title={t("panels.macro")} code="MACRO_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="macro-panel">
             <MacroEconomyPanel />
           </TerminalPanel>
 
-          <TerminalPanel id="hours-dock" title="KÜRESEL SEANS DÖNGÜSÜ" code="MARKET_HOURS" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="hours-panel">
+          <TerminalPanel id="hours-dock" title={t("panels.hours")} code="MARKET_HOURS" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="hours-panel">
             <MarketHoursPanel />
           </TerminalPanel>
         </aside>
@@ -2516,8 +2551,8 @@ export default function Home() {
             <ChevronDown size={13} className="path-arrow"/>
             <b>{activeLabel}</b>
             <div/>
-            <span className="layout-lock-state">{lockedPanels.length ? `${lockedPanels.length} KİLİTLİ` : "DÜZEN AÇIK"}</span>
-            <button className="layout-reset" onClick={resetLayout}>DÜZENİ SIFIRLA</button>
+            <span className="layout-lock-state">{lockedPanels.length ? t("workspace.locked", { count: lockedPanels.length }) : t("workspace.layoutOpen")}</span>
+            <button className="layout-reset" onClick={resetLayout}>{t("workspace.resetLayout")}</button>
           </div>
         )}
         {content}
@@ -2525,13 +2560,13 @@ export default function Home() {
       {activeView === "DASHBOARD" && (
         <aside className="right-dock">
           <div className="quick-links">
-            <span>KISA YOLLAR</span>
-            <button onClick={() => changeView("PROFILE")}><UserRound size={15}/> ANALİST PROFİLİ <ArrowUpRight size={13}/></button>
-            <button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> RAPOR KÜTÜPHANESİ <ArrowUpRight size={13}/></button>
-            <button onClick={() => changeView("CONTACT")}><Mail size={15}/> İLETİŞİM MASASI <ArrowUpRight size={13}/></button>
+            <span>{t("quick.title")}</span>
+            <button onClick={() => changeView("PROFILE")}><UserRound size={15}/> {t("quick.profile")} <ArrowUpRight size={13}/></button>
+            <button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("quick.research")} <ArrowUpRight size={13}/></button>
+            <button onClick={() => changeView("CONTACT")}><Mail size={15}/> {t("quick.contact")} <ArrowUpRight size={13}/></button>
           </div>
           <FinancialAnalysisPanel row={row} points={chart.data?.points ?? []} statement={statementKind} onOpenResearch={() => changeView("RESEARCH")}/>
-          <TerminalPanel id="valuation-dock" title="DEĞERLEME & MODELLEME" code="VALUATION_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="valuation-panel">
+          <TerminalPanel id="valuation-dock" title={t("panels.valuation")} code="VALUATION_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="valuation-panel">
             <ValuationDeskPanel onOpenResearch={() => changeView("RESEARCH")} />
           </TerminalPanel>
         </aside>
@@ -2541,7 +2576,7 @@ export default function Home() {
     <TerminalFooter onNavigate={changeView} />
 
     {/* Mobile Bottom App Navigation (Play Store / App Store style) */}
-    <nav className="mobile-bottom-nav" aria-label="Mobil Navigasyon">
+    <nav className="mobile-bottom-nav" aria-label={t("bottomNav.aria")}>
       <button
         className={`bottom-nav-tab ${activeView === "DASHBOARD" && mobileFilter === "ALL" ? "active" : ""}`}
         onClick={() => {
@@ -2550,7 +2585,7 @@ export default function Home() {
         }}
       >
         <Grid2X2 size={19} />
-        <span>Pano</span>
+        <span>{t("bottomNav.dashboard")}</span>
       </button>
 
       <button
@@ -2561,7 +2596,7 @@ export default function Home() {
         }}
       >
         <TrendingUp size={19} />
-        <span>Piyasa</span>
+        <span>{t("bottomNav.market")}</span>
       </button>
 
       <button
@@ -2572,7 +2607,7 @@ export default function Home() {
         }}
       >
         <LineChart size={19} />
-        <span>Grafik</span>
+        <span>{t("bottomNav.chart")}</span>
       </button>
 
       <button
@@ -2583,7 +2618,7 @@ export default function Home() {
           <Layers size={19} />
           <span className="bottom-badge-dot" />
         </div>
-        <span>Modüller</span>
+        <span>{t("bottomNav.modules")}</span>
       </button>
 
       <button
@@ -2591,7 +2626,7 @@ export default function Home() {
         onClick={() => changeView("PROFILE")}
       >
         <UserRound size={19} />
-        <span>Profil</span>
+        <span>{t("bottomNav.profile")}</span>
       </button>
     </nav>
 
