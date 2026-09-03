@@ -486,6 +486,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   align-items: stretch;
   width: 100%;
   height: 48px;
+  padding-right: 14px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-1);
   backdrop-filter: blur(10px);
@@ -529,12 +530,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Global Market Search Bar */
 .global-market-search {
-  position: absolute;
+  /* Şeritte menüden sonra kalan alanı doldurur; auto kenar boşlukları
+     kutuyu bu alanın ortasında tutar, böylece menüyle çakışması imkânsızdır. */
+  position: relative;
   z-index: 75;
-  top: 6px;
-  left: 50%;
-  width: min(480px, 36vw);
-  transform: translateX(-50%);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 660px;
+  margin: 6px auto;
 }
 
 .global-search-input {
@@ -5472,7 +5475,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     padding: 8px 12px;
   }
   .global-market-search {
-    width: 280px;
+    max-width: 580px;
   }
 }
 
@@ -5534,7 +5537,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     align-items: stretch;
   }
   .global-market-search {
-    width: min(300px, 30vw);
+    max-width: 480px;
   }
 }
 
@@ -5687,14 +5690,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     border-color: rgba(0, 245, 155, 0.35);
     color: var(--primary);
   }
+  .tool-ribbon {
+    padding-right: 8px;
+  }
   .global-market-search {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    width: 270px;
-    max-width: 38vw;
-    margin-left: auto;
+    max-width: 440px;
   }
   .global-search-input {
     min-height: 32px;
@@ -5894,14 +5894,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 
   .global-market-search {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    width: auto;
-    flex: 1;
-    max-width: 220px;
-    margin-left: auto;
+    max-width: none;
   }
 
   .global-search-input {
@@ -7120,9 +7113,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 
   .global-market-search {
-    flex: 1;
-    max-width: none !important;
-    margin-left: 8px !important;
+    max-width: none;
+    margin-left: 8px;
   }
 }
 
