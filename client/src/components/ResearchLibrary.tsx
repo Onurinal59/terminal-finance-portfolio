@@ -25,6 +25,7 @@ import { useContent } from "@/content/ContentContext";
 import { type ResearchReport, type ReportCategory } from "../data/researchReports";
 import { gsap, useGSAP } from "../lib/gsap";
 import { useI18n, type TranslationKey } from "@/i18n";
+import { copyText } from "@/lib/clipboard";
 
 interface ResearchLibraryProps {
   onBack: () => void;
@@ -129,8 +130,11 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
       ticker: report.ticker,
       target: report.targetPrice || t("research.shareNoTarget"),
     });
-    navigator.clipboard.writeText(text);
-    toast.success(t("research.toastShare"));
+    void copyText(text).then((ok) =>
+      ok
+        ? toast.success(t("research.toastShare"))
+        : toast.error(t("toast.copyFailed"), { description: t("toast.copyFailedDesc") })
+    );
   };
 
   const handlePrint = () => {

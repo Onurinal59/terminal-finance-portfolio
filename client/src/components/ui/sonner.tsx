@@ -1,23 +1,25 @@
-import { useTheme } from "next-themes";
+/**
+ * Bildirim (toast) kabı.
+ *
+ * Görünüm terminalin diline uydurulmuştur: koyu yüzey, sola yaslı durum
+ * şeridi ve mono tipografi. Konumlandırma önemli — mobilde alt gezinme çubuğu,
+ * tablette yüzen dock sabit duruyor; bildirim onların üstünde kalmalı, bu
+ * yüzden alt boşluk `index.css` içinde kırılım başına ayarlanır.
+ */
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
-
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  );
-};
+const Toaster = (props: ToasterProps) => (
+  <Sonner
+    className="terminal-toaster"
+    position="bottom-right"
+    // Terminalde bildirimler yığılmaz; üst üste binmek yerine alt alta dizilir.
+    expand
+    visibleToasts={3}
+    duration={4200}
+    closeButton
+    gap={8}
+    {...props}
+  />
+);
 
 export { Toaster };

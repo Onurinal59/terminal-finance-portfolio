@@ -37,7 +37,8 @@ const ESKI = [
   "/media/onur-inal.jpg", "/cv/Onur_Inal_CV",
 ];
 
-const b = await chromium.launch();
+// Ozel bir Chromium yolu gerekiyorsa CHROMIUM_PATH ile verilir; yoksa Playwright kendi indirdigini kullanir.
+const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const c = await b.newContext({ viewport: { width: 1440, height: 950 } });
 await c.route("**/*", async (route) => {
   const url = route.request().url();
@@ -80,19 +81,52 @@ for (const view of ["", "PROFILE", "RESEARCH", "CONTACT"]) {
 }
 
 // CV indirme butonlari: tiklaninca yeni adrese mi gidiyor?
-await p.goto(`${ORIGIN}/?lang=tr&view=PROFILE`, { waitUntil: "domcontentloaded" });
-await p.waitForTimeout(2500);
-const cvHedefleri = await p.evaluate(() => {
-  const yakalanan = [];
-  const orij = HTMLAnchorElement.prototype.click;
-  HTMLAnchorElement.prototype.click = function () { yakalanan.push(this.href); };
-  document.querySelectorAll(".cv-download-center button").forEach((b) => b.click());
-  HTMLAnchorElement.prototype.click = orij;
-  return yakalanan;
-});
-console.log("  CV indirme hedefleri:", cvHedefleri.length ? cvHedefleri : "(buton bulunamadi)");
-if (cvHedefleri.length && cvHedefleri.some((h) => !h.toLowerCase().includes("test-cdn"))) {
-  console.log("  ✗ CV butonlarindan bazilari eski adrese gidiyor"); sorun++;
+// Farkli kaynaktan gelen CV'ler artik once fetch ile aliniyor (bkz. lib/fileDownload),
+// bu yuzden ag istegini ve indirilen dosya adini birlikte olcuyoruz.
+for (const [gorunum, secici] of [["PROFILE", ".cv-download-center button"], ["CONTACT", ".cv-buttons-grid button"]]) {
+  await p.goto(`${ORIGIN}/?lang=tr&view=${gorunum}`, { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(2500);
+  await p.evaluate(() => {
+    const w = window;
+    w.__cvIstekleri = [];
+    w.__cvDosyalari = [];
+    const orijFetch = w.fetch;
+    w.fetch = (girdi, ayar) => {
+      const adres = typeof girdi === "string" ? girdi : girdi?.url ?? String(girdi);
+      if (adres.includes(".pdf")) {
+        w.__cvIstekleri.push(adres);
+        return Promise.resolve(new Response(new Blob(["%PDF-1.4 test"], { type: "application/pdf" }), { status: 200 }));
+      }
+      return orijFetch(girdi, ayar);
+    };
+    const orijClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.download) w.__cvDosyalari.push(this.download);
+      else w.__cvIstekleri.push(this.href);
+    };
+    w.__cvGeriAl = () => { w.fetch = orijFetch; HTMLAnchorElement.prototype.click = orijClick; };
+  });
+  const dugmeler = await p.locator(secici).all();
+  for (const dugme of dugmeler) {
+    await dugme.click({ force: true }).catch(() => {});
+    // Indirme surerken butonlar kilitleniyor; bir sonraki tiklama icin serbest kalmasini bekle.
+    await p.waitForTimeout(700);
+  }
+  const sonuc = await p.evaluate(() => {
+    const w = window;
+    w.__cvGeriAl?.();
+    return { istekler: w.__cvIstekleri, dosyalar: w.__cvDosyalari };
+  });
+  console.log(`  ${gorunum} CV istekleri:`, sonuc.istekler.length ? sonuc.istekler : "(buton bulunamadi)");
+  if (!sonuc.istekler.length) {
+    console.log(`  ✗ ${gorunum}: CV butonu bulunamadi`); sorun++;
+  } else if (sonuc.istekler.some((h) => !h.toLowerCase().includes("test-cdn"))) {
+    console.log(`  ✗ ${gorunum}: bazi CV butonlari eski adrese gidiyor`); sorun++;
+  } else if (!sonuc.dosyalar.length) {
+    console.log(`  ✗ ${gorunum}: dosya indirme tetiklenmedi`); sorun++;
+  } else {
+    console.log(`  ✓ ${gorunum}: ${sonuc.dosyalar.length} dosya indirildi ->`, sonuc.dosyalar);
+  }
 }
 
 console.log(sorun === 0 ? "\nSONUC: TUM SITEDE YAYILIYOR" : `\nSONUC: ${sorun} YERDE YAYILMIYOR`);

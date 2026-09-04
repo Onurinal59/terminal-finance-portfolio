@@ -21,6 +21,9 @@ import { buildContactMailto } from "../lib/contactMailto";
 import { gsap, useGSAP } from "../lib/gsap";
 import { useI18n, type TranslationKey } from "@/i18n";
 import { useContent } from "@/content/ContentContext";
+import type { CvSlot } from "@shared/siteContent";
+import { useCvDownload } from "@/hooks/useCvDownload";
+import { copyText } from "@/lib/clipboard";
 
 interface ContactDeskProps {
   onBack: () => void;
@@ -35,6 +38,14 @@ interface QuickTopicDefinition {
   subjectKey: TranslationKey;
   templateKey: TranslationKey;
 }
+
+/** CV indirme kutusundaki dört düğme; dosyalar içerik katmanından gelir. */
+const CV_BUTTONS: Array<{ slot: CvSlot; labelKey: TranslationKey }> = [
+  { slot: "trPhoto", labelKey: "contact.cvTrPhoto" },
+  { slot: "trPlain", labelKey: "contact.cvTrAts" },
+  { slot: "enPhoto", labelKey: "contact.cvEnPhoto" },
+  { slot: "enPlain", labelKey: "contact.cvEnAts" },
+];
 
 const QUICK_TOPICS: QuickTopicDefinition[] = [
   {
@@ -70,6 +81,7 @@ const QUICK_TOPICS: QuickTopicDefinition[] = [
 export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject }) => {
   const { t, language } = useI18n();
   const { links, media, cvFiles } = useContent();
+  const { download: downloadCv, isDownloading: isCvDownloading } = useCvDownload();
   /** Bağlantıyı okunur bir etikete çevirir: protokolü ve sondaki eğik çizgiyi atar. */
   const readableLink = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
   const EMAIL = links.email;
@@ -112,23 +124,17 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
     toast.info(t("contact.toastTemplate", { topic: t(topic.labelKey) }));
   };
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(EMAIL);
+  const handleCopyEmail = async () => {
+    // Kopyalama gerçekten başarılı olmadan "kopyalandı" demiyoruz.
+    if (!(await copyText(EMAIL))) {
+      toast.error(t("toast.copyFailed"), { description: t("toast.copyFailedDesc") });
+      return;
+    }
     setCopiedEmail(true);
     toast.success(t("contact.toastCopied"), {
       description: EMAIL,
     });
     setTimeout(() => setCopiedEmail(false), 2500);
-  };
-
-  const handleDownloadCv = (href: string, filename: string) => {
-    const a = document.createElement("a");
-    a.href = href;
-    a.download = filename;
-    a.click();
-    toast.success(t("toast.cvStarted"), {
-      description: filename,
-    });
   };
 
   const mailtoUrl = useMemo(() => {
@@ -448,55 +454,18 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
               <span>{t("contact.cvHubTitle")}</span>
             </div>
             <div className="cv-buttons-grid">
-              <button
-                type="button"
-                className="btn-cv-download primary"
-                onClick={() =>
-                  handleDownloadCv(
-cvFiles.trPhoto.url,
-                    cvFiles.trPhoto.fileName
-                  )
-                }
-              >
-                <FileDown size={13} />
-                <span>{t("contact.cvTrPhoto")}</span>
-              </button>
-              <button
-                type="button"
-                className="btn-cv-download"
-                onClick={() =>
-                  handleDownloadCv(
-cvFiles.trPlain.url,
-                    cvFiles.trPlain.fileName
-                  )
-                }
-              >
-                <FileDown size={13} />
-                <span>{t("contact.cvTrAts")}</span>
-              </button>
-              <button
-                type="button"
-                className="btn-cv-download"
-                onClick={() =>
-                  handleDownloadCv(
-cvFiles.enPhoto.url,
-                    cvFiles.enPhoto.fileName
-                  )
-                }
-              >
-                <FileDown size={13} />
-                <span>{t("contact.cvEnPhoto")}</span>
-              </button>
-              <button
-                type="button"
-                className="btn-cv-download"
-                onClick={() =>
-                  handleDownloadCv(cvFiles.enPlain.url, cvFiles.enPlain.fileName)
-                }
-              >
-                <FileDown size={13} />
-                <span>{t("contact.cvEnAts")}</span>
-              </button>
+              {CV_BUTTONS.map((item, index) => (
+                <button
+                  key={item.slot}
+                  type="button"
+                  className={`btn-cv-download ${index === 0 ? "primary" : ""}`}
+                  disabled={isCvDownloading}
+                  onClick={() => downloadCv(cvFiles[item.slot].url, cvFiles[item.slot].fileName)}
+                >
+                  <FileDown size={13} />
+                  <span>{t(item.labelKey)}</span>
+                </button>
+              ))}
             </div>
           </div>
 

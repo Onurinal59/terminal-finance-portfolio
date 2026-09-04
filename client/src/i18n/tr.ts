@@ -480,6 +480,13 @@ export const tr = {
   "toast.layoutReset": "Terminal düzeni varsayılana döndü.",
   "toast.recentCleared": "Son açılanlar temizlendi.",
   "toast.cvStarted": "CV indirmesi başlatıldı.",
+  "toast.cvPreparing": "CV hazırlanıyor…",
+  "toast.cvOpened": "CV yeni sekmede açıldı.",
+  "toast.cvOpenedDesc": "Tarayıcı doğrudan indirmeye izin vermedi; açılan sekmeden kaydedebilirsiniz.",
+  "toast.cvFailed": "CV indirilemedi.",
+  "toast.cvFailedDesc": "Bağlantı kurulamadı. Birkaç saniye sonra tekrar deneyin.",
+  "toast.copyFailed": "Panoya kopyalanamadı.",
+  "toast.copyFailedDesc": "Tarayıcı izin vermedi; metni elle seçip kopyalayabilirsiniz.",
 
   // --- Küresel arama ---
   "search.placeholder": "Yahoo sembol, şirket veya piyasa varlığı ara... (Örn: THYAO, AAPL, BTC)",

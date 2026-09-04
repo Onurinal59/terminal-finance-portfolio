@@ -1055,6 +1055,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Dar yan sütunlarda tek satıra sığmayan başlıklar ("MAKRO GÖSTERGELER &
+   FAİZLER") üç noktaya dönüşüp okunamaz hâle geliyordu. Orada başlık iki
+   satıra kadar sarılır; harf aralığı da bir tık daraltılır. */
+.left-dock .panel-title,
+.right-dock .panel-title {
+  align-items: flex-start;
+  padding: 7px 0;
+  letter-spacing: 0.045em;
+  white-space: normal;
+}
+
+.left-dock .panel-title-text,
+.right-dock .panel-title-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.left-dock .panel-led,
+.right-dock .panel-led {
+  margin-top: 4px;
+}
 .panel-title em {
   flex-shrink: 0;
   margin-left: 4px;
@@ -3104,6 +3132,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .pulse-badge {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   gap: 4px;
   padding: 2px 7px;
   border-radius: 3px;
@@ -3126,11 +3155,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
+/* Dar oturum pusulasında "12 pozitif · 7 negatif" tek satıra sığmıyordu;
+   nowrap kutunun dışına taşırıyordu. Artık sarabiliyor. */
 .pulse-pill-wrap small {
+  min-width: 0;
   color: #64748b;
   font-size: 9.5px;
   font-family: var(--font-mono);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .summary-gauge {
@@ -4490,7 +4522,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   text-decoration: none;
   cursor: pointer;
   transition: all 0.15s ease;
-  white-space: nowrap;
+  /* Etiket içerikten geliyor ("…VERCEL.APP'İ ZİYARET ET"); nowrap dar
+     ekranlarda butonu kutusunun dışına taşırıyordu. */
+  max-width: 100%;
+  padding-block: 7px;
+  text-align: center;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 .btn-accent:hover {
   background: rgba(56, 189, 248, 0.22);
@@ -4514,7 +4552,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 3px;
   cursor: pointer;
   transition: all 0.15s ease;
-  white-space: nowrap;
+  max-width: 100%;
+  padding-block: 7px;
+  text-align: center;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 .btn-outline:hover {
   color: var(--text-primary);
@@ -5274,13 +5316,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: var(--border);
 }
 
+/* Etiket + değer aynı satıra sığmazsa değer satırı alta iner. Türkçe etiketler
+   ("TÜRKİYE CDS (5 YIL)") ve canlı aralıklar ("%3,50 – %3,75") dar dock'ta yan
+   yana sığmıyordu; sabit tek satır düzeni içeriği kutunun dışına taşırıyordu. */
 .macro-item {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   padding: 8px 12px;
   background: #071018;
-  gap: 8px;
+  gap: 3px 10px;
 }
 
 .macro-item:hover {
@@ -5288,17 +5334,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .macro-item-label {
+  flex: 1 1 118px;
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 600;
   color: #94a3b8;
   letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
 }
 
 .macro-item-val-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: 0;
+  gap: 4px 8px;
 }
 
 .macro-item-val {
@@ -5306,15 +5359,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   font-size: 12px;
   font-weight: 700;
   color: #ffffff;
+  /* Aralığın iki ucu ("3,50 – 3,75") ortadan bölünmesin. */
+  white-space: nowrap;
 }
 
 .macro-item-tag {
+  max-width: 100%;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 2px;
-  white-space: nowrap;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .macro-item-tag.flat {
@@ -5636,6 +5693,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .chrome-actions {
     gap: 8px;
     padding-right: 0;
+    flex-shrink: 0;
   }
 
   .terminal-layout {
@@ -5876,12 +5934,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     padding: 0 10px;
     font-size: 10px;
   }
+  /* flex-shrink:0 yüzünden kimlik bloğu daralmıyor, 360px'lik telefonlarda üst
+     bar yatay olarak taşıyordu. Artık daralır ve gerekirse başlık kısalır. */
   .app-identity {
+    min-width: 0;
     padding-left: 0;
     gap: 8px;
+    flex-shrink: 1;
   }
   .app-identity small {
     display: none;
+  }
+  .app-title-group {
+    min-width: 0;
+  }
+  .app-title-group b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .app-identity b {
     font-size: 11px;
@@ -7450,14 +7520,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
   .terminal-layout.mobile-filter-macro .macro-item {
     display: flex !important;
+    flex-wrap: wrap !important;
     justify-content: space-between !important;
-    align-items: center !important;
+    align-items: baseline !important;
     padding: 12px 14px !important;
     background: #0a1622 !important;
     border: 1px solid rgba(0, 245, 155, 0.12) !important;
     border-radius: 5px !important;
     min-height: 52px !important;
-    gap: 12px !important;
+    gap: 6px 12px !important;
   }
 
   .terminal-layout.mobile-filter-macro .macro-item:hover {
@@ -7470,14 +7541,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     font-weight: 700 !important;
     color: #cbd5e1 !important;
     letter-spacing: 0.02em !important;
-    flex: 1 1 auto !important;
+    /* 130px'in altına düşmek yerine değer satırını alta indirir. */
+    flex: 1 1 130px !important;
+    min-width: 0 !important;
   }
 
   .terminal-layout.mobile-filter-macro .macro-item-val-row {
     display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    flex-shrink: 0 !important;
+    flex-wrap: wrap !important;
+    align-items: baseline !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+    min-width: 0 !important;
+    gap: 5px 8px !important;
   }
 
   .terminal-layout.mobile-filter-macro .macro-item-val {
@@ -7488,11 +7564,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 
   .terminal-layout.mobile-filter-macro .macro-item-tag {
+    max-width: 100% !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     padding: 3px 8px !important;
     border-radius: 4px !important;
-    white-space: nowrap !important;
+    /* Uzun rozetler ("6 Ayın En Düşüğü") kesilmek yerine alt satıra sarsın. */
+    white-space: normal !important;
+    text-align: right !important;
+    overflow-wrap: anywhere !important;
   }
 
   .terminal-layout.mobile-filter-macro .hours-list {
@@ -10430,4 +10510,233 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: rgba(0, 245, 155, 0.1);
   border-bottom: 1px solid rgba(0, 245, 155, 0.32);
   color: #a7f3d0;
+}
+
+/* ==========================================================================
+   Bildirimler (Toast) — terminal görünümü
+   Sonner'ın varsayılan kartı siteyle uyumsuzdu: yuvarlak beyaz kutu, sistem
+   yazı tipi. Burada terminal yüzeyine, mono tipografiye ve duruma göre renkli
+   sol şeride çevriliyor. Konum, sabit alt gezinme çubuklarının üstünde kalacak
+   şekilde kırılım başına ayarlanıyor.
+   ========================================================================== */
+/* Sonner konum değişkenlerini satır içi stille yazıyor; kırılım başına
+   ayarlayabilmek için buradaki değerler !important ile üstüne geçiyor. */
+.terminal-toaster {
+  --width: 348px !important;
+  --offset-right: 18px !important;
+  --offset-bottom: 18px !important;
+  font-family: var(--font-sans);
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px 12px 16px;
+  background: linear-gradient(180deg, rgba(16, 28, 39, 0.97), rgba(8, 13, 18, 0.97));
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-left: 2px solid var(--tone, var(--text-secondary));
+  border-radius: 4px;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+}
+
+/* Durum rengi tek bir değişkenden yayılır: şerit, ikon ve üst çizgi. */
+.terminal-toaster [data-sonner-toast][data-type="success"] { --tone: var(--primary); }
+.terminal-toaster [data-sonner-toast][data-type="error"] { --tone: var(--coral); }
+.terminal-toaster [data-sonner-toast][data-type="warning"] { --tone: var(--amber); }
+.terminal-toaster [data-sonner-toast][data-type="info"] { --tone: var(--ice); }
+.terminal-toaster [data-sonner-toast][data-type="loading"] { --tone: var(--text-secondary); }
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-icon] {
+  margin: 1px 0 0;
+  color: var(--tone, var(--text-secondary));
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-content] {
+  min-width: 0;
+  gap: 3px;
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-title] {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-description] {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Kapatma düğmesi: köşede sabit, dokunma hedefi 24px. */
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-close-button] {
+  top: 6px;
+  right: 6px;
+  left: auto;
+  width: 22px;
+  height: 22px;
+  background: rgba(8, 13, 18, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  transform: none;
+  transition: color 0.16s var(--terminal-ease-out), border-color 0.16s var(--terminal-ease-out);
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-close-button]:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.terminal-toaster [data-sonner-toast][data-styled="true"] [data-button] {
+  height: 26px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  color: var(--text-primary);
+}
+
+/* Tablet ve dar masaüstü: alt gezinme çubuğu/dock ekranın altında sabit,
+   bildirim onun üstünde kalmalı. */
+@media (max-width: 1080px) {
+  .terminal-toaster {
+    --offset-bottom: 82px !important;
+  }
+}
+
+/* Telefon: tam genişlik şerit, alt gezinme çubuğunun ve güvenli alanın üstünde. */
+@media (max-width: 768px) {
+  .terminal-toaster {
+    --mobile-offset-left: 10px !important;
+    --mobile-offset-right: 10px !important;
+    --mobile-offset-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+    --offset-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Genişliği Sonner hesaplıyor (100% - kenar boşlukları); üzerine yazmak
+     bildirimi ekranın dışına taşırıyordu. Burada yalnızca iç boşluk daralır. */
+  .terminal-toaster [data-sonner-toast][data-styled="true"] {
+    padding: 11px 13px 11px 14px;
+  }
+
+  .terminal-toaster [data-sonner-toast][data-styled="true"] [data-title] {
+    font-size: 12px;
+  }
+}
+
+/* Hareket azaltma tercihine saygı: kayarak değil, yerinde belirir. */
+@media (prefers-reduced-motion: reduce) {
+  .terminal-toaster [data-sonner-toast] {
+    transition: opacity 0.15s linear !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   Dokunmatik ergonomisi (tablet ve telefon)
+   WCAG 2.2'nin 24px asgari hedef boyutunu sağlamayan düğmeler vardı: alt
+   bilgi bağlantıları 17-21px, dil düğmeleri 19px, arama alanı 18px yüksekti.
+   Görsel tasarımı değiştirmeden yalnızca dokunma alanı büyütülüyor.
+   ========================================================================== */
+@media (max-width: 1080px) {
+  .footer-link-btn,
+  .footer-ext-link {
+    min-height: 32px;
+    padding-block: 6px;
+  }
+
+  .chrome-actions .language-switcher button.language-option {
+    height: 30px;
+    min-width: 34px;
+    padding: 0 9px;
+  }
+
+  .global-search-input input {
+    min-height: 30px;
+  }
+
+  .layout-reset {
+    min-height: 32px;
+    padding: 6px 12px;
+  }
+
+  .ticker-tape-chip {
+    min-height: 28px;
+  }
+
+  .watchlist-search-inner input,
+  .toolbar-search-box input,
+  .scanner-search-wrapper input {
+    min-height: 30px;
+  }
+}
+
+/* Çok dar telefonlarda (≤400px) üst barda yer kalmıyor; dil düğmeleri
+   dokunulabilir kalmalı ama daha dar olmalı. */
+@media (max-width: 400px) {
+  .chrome-actions .language-switcher button.language-option {
+    min-width: 28px;
+    padding: 0 6px;
+  }
+}
+
+/* Uzun yer tutucu metinleri (örn. arama ipucu) alanın dışına taşmak yerine
+   üç noktayla kısalsın. */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input:not([type]) {
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Devre dışı durumlar ve klavye odağı
+   ========================================================================== */
+
+/* Sitede hiç devre dışı stili yoktu: CV indirilirken kilitlenen düğmeler
+   tıklanabilir görünüyordu. Artık durum gözle görülür. */
+button:disabled,
+button[aria-disabled="true"],
+a[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: saturate(0.6);
+}
+
+button:disabled:hover,
+button[aria-disabled="true"]:hover {
+  box-shadow: none;
+}
+
+/* Bazı alanlar `:focus { outline: none }` ile odak halkasını siliyordu; bu
+   fare için sorun değil ama klavyeyle gezen biri nerede olduğunu göremiyordu.
+   Aşağıdaki kurallar dosyanın sonunda olduğu için o silmelerin üzerine geçer. */
+.contact-text-input:focus-visible,
+.contact-textarea:focus-visible,
+.sheet-search-input:focus-visible,
+.scanner-search-wrapper input:focus-visible,
+.toolbar-search-box input:focus-visible,
+.global-search-input input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px var(--primary-glow);
 }

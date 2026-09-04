@@ -486,6 +486,13 @@ export const en: Dictionary = {
   "toast.layoutReset": "Terminal layout restored to default.",
   "toast.recentCleared": "Recently opened list cleared.",
   "toast.cvStarted": "CV download started.",
+  "toast.cvPreparing": "Preparing the CV…",
+  "toast.cvOpened": "CV opened in a new tab.",
+  "toast.cvOpenedDesc": "The browser blocked the direct download; save it from the tab that opened.",
+  "toast.cvFailed": "The CV could not be downloaded.",
+  "toast.cvFailedDesc": "The connection failed. Please try again in a few seconds.",
+  "toast.copyFailed": "Could not copy to the clipboard.",
+  "toast.copyFailedDesc": "The browser blocked it; you can select and copy the text manually.",
 
   // --- Global search ---
   "search.placeholder": "Search Yahoo symbols, companies or market assets... (e.g. THYAO, AAPL, BTC)",

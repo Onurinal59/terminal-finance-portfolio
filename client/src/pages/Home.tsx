@@ -18,6 +18,7 @@ import { TerminalFooter } from "@/components/TerminalFooter";
 import { excludeTransientDiscovery, normalizeDiscoverySymbol } from "@/lib/marketDiscovery";
 import { getAutoScrollDelta, placeUnlockedPanelBefore } from "@/lib/panelOrder";
 import { rememberRecentSymbol } from "@/lib/recentSymbols";
+import { useCvDownload } from "@/hooks/useCvDownload";
 import { gsap, refreshScrollTriggers, useGSAP } from "@/lib/gsap";
 import { trpc } from "@/lib/trpc";
 import {
@@ -944,6 +945,7 @@ function StatementExplorer({
 function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) {
   const { t } = useI18n();
   const { isBlockVisible, links, media, cvFiles } = useContent();
+  const { download: downloadCv } = useCvDownload();
   const [downloadStep, setDownloadStep] = useState<"idle" | "language" | "format" | "ready" | "downloading">("idle");
   const [cvLanguage, setCvLanguage] = useState<"TR" | "EN">("TR");
   const [format, setFormat] = useState<"photo" | "plain">("photo");
@@ -953,15 +955,10 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
   };
   const chooseLanguage = (next: "TR" | "EN") => { setCvLanguage(next); setDownloadStep("format"); };
   const chooseFormat = (next: "photo" | "plain") => { setFormat(next); setDownloadStep("ready"); };
-  const beginDownload = () => {
+  const beginDownload = async () => {
     setDownloadStep("downloading");
-    window.setTimeout(() => {
-      const anchor = document.createElement("a");
-      anchor.href = cv.url;
-      anchor.download = cv.fileName;
-      anchor.click();
-      setDownloadStep("ready");
-    }, 600);
+    await downloadCv(cv.url, cv.fileName);
+    setDownloadStep("ready");
   };
 
   return (
@@ -1072,13 +1069,7 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
 function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () => void }) {
   const { t } = useI18n();
   const { isBlockVisible, links, media, cvFiles, projects } = useContent();
-  const downloadCv = (href: string, filename: string) => {
-    const a = document.createElement("a");
-    a.href = href;
-    a.download = filename;
-    a.click();
-    toast.success(t("toast.cvStarted"));
-  };
+  const { download: downloadCv, isDownloading: isCvDownloading } = useCvDownload();
 
   return (
     <div className="profile-view-module">
@@ -1163,28 +1154,28 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
               <span>{t("profileView.cvCenter")}</span>
             </div>
             <div className="cv-cards-grid">
-              <button onClick={() => downloadCv(cvFiles.trPhoto.url, cvFiles.trPhoto.fileName)}>
+              <button disabled={isCvDownloading} onClick={() => downloadCv(cvFiles.trPhoto.url, cvFiles.trPhoto.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvTrPhoto")}</b>
                   <small>{t("profileView.cvTrPhotoNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv(cvFiles.trPlain.url, cvFiles.trPlain.fileName)}>
+              <button disabled={isCvDownloading} onClick={() => downloadCv(cvFiles.trPlain.url, cvFiles.trPlain.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvTrAts")}</b>
                   <small>{t("profileView.cvTrAtsNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv(cvFiles.enPhoto.url, cvFiles.enPhoto.fileName)}>
+              <button disabled={isCvDownloading} onClick={() => downloadCv(cvFiles.enPhoto.url, cvFiles.enPhoto.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvEnPhoto")}</b>
                   <small>{t("profileView.cvEnPhotoNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv(cvFiles.enPlain.url, cvFiles.enPlain.fileName)}>
+              <button disabled={isCvDownloading} onClick={() => downloadCv(cvFiles.enPlain.url, cvFiles.enPlain.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvEnAts")}</b>
