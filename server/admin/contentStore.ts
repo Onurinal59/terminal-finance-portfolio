@@ -36,6 +36,42 @@ async function findContentBlob() {
 }
 
 /**
+ * Canlı veri özelliği eklenmeden önce kaydedilmiş göstergeleri yükseltir.
+ *
+ * O tarihte kaydedilen kayıtlarda `source` alanı hiç yok; zod bunları "manual"
+ * sayardı ve koddaki canlı varsayılanlar hiç devreye giremezdi. Alanın *yokluğu*
+ * "kullanıcı bilerek manuel seçti" demek olmadığı için, tanıdığımız kimlikler
+ * için canlı yapılandırmayı bir kez uyguluyoruz. Panelden yapılan her kayıt
+ * `source` alanını açıkça yazdığı için bu yükseltme bir daha tetiklenmez.
+ */
+const LEGACY_LIVE_DEFAULTS: Record<string, { symbol: string; display: "percent" | "number"; precision: number }> = {
+  us10y: { symbol: "^TNX", display: "percent", precision: 2 },
+};
+
+function upgradeLegacyMacro(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const document = raw as Record<string, unknown>;
+  const macro = document.macro as Record<string, unknown> | undefined;
+  const indicators = macro?.indicators;
+  if (!Array.isArray(indicators)) return raw;
+
+  let changed = false;
+  const upgraded = indicators.map((indicator) => {
+    if (!indicator || typeof indicator !== "object") return indicator;
+    const entry = indicator as Record<string, unknown>;
+    if ("source" in entry) return entry;
+    const preset = LEGACY_LIVE_DEFAULTS[String(entry.id)];
+    if (!preset) return entry;
+    changed = true;
+    return { ...entry, source: "yahoo", ...preset };
+  });
+
+  if (!changed) return raw;
+  console.log("[Admin] Eski makro kayıtları canlı varsayılanlara yükseltildi.");
+  return { ...document, macro: { ...macro, indicators: upgraded } };
+}
+
+/**
  * Kayıtlı içeriği okur. Depo yapılandırılmamışsa veya belge henüz yoksa boş
  * belge döner; site bu durumda koddaki varsayılanlarla çalışmaya devam eder.
  */
@@ -58,7 +94,7 @@ export async function readSiteContent(options: { fresh?: boolean } = {}): Promis
     const response = await fetch(`${blob.url}?v=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new ContentStoreError(`İçerik indirilemedi (${response.status})`);
 
-    const parsed = siteContentSchema.safeParse(await response.json());
+    const parsed = siteContentSchema.safeParse(upgradeLegacyMacro(await response.json()));
     if (!parsed.success) {
       console.error("[Admin] Kayıtlı içerik şemaya uymuyor:", parsed.error.issues.slice(0, 3));
       return EMPTY_SITE_CONTENT;
@@ -125,3 +161,6 @@ export async function listReportFiles(prefix = "") {
 export async function deleteBlobByUrl(url: string) {
   await del(url, { token: requireToken() });
 }
+
+/** Yalnızca testler için: göç mantığını dışarı açar. */
+export const __testing = { upgradeLegacyMacro };
