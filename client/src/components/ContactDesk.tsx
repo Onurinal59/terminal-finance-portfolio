@@ -69,7 +69,9 @@ const QUICK_TOPICS: QuickTopicDefinition[] = [
 
 export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject }) => {
   const { t, language } = useI18n();
-  const { links, media } = useContent();
+  const { links, media, cvFiles } = useContent();
+  /** Bağlantıyı okunur bir etikete çevirir: protokolü ve sondaki eğik çizgiyi atar. */
+  const readableLink = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
   const EMAIL = links.email;
   const LINKEDIN_URL = links.linkedin;
   const MEASURE_MOAT_URL = links.measureMoat;
@@ -417,7 +419,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
               </div>
               <div className="channel-details">
                 <span className="channel-label">{t("contact.channelLinkedin")}</span>
-                <b className="channel-value">linkedin.com/in/onur-inal</b>
+                <b className="channel-value">{readableLink(LINKEDIN_URL)}</b>
               </div>
               <ExternalLink size={14} className="channel-external-icon" />
             </a>
@@ -433,7 +435,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
               </div>
               <div className="channel-details">
                 <span className="channel-label">{t("contact.channelMoat")}</span>
-                <b className="channel-value">measure-moat.vercel.app</b>
+                <b className="channel-value">{readableLink(MEASURE_MOAT_URL)}</b>
               </div>
               <ExternalLink size={14} className="channel-external-icon" />
             </a>
@@ -451,8 +453,8 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 className="btn-cv-download primary"
                 onClick={() =>
                   handleDownloadCv(
-                    "/cv/Onur_Inal_CV_TR_Fotografli.pdf",
-                    "Onur_Inal_CV_TR_Fotografli.pdf"
+cvFiles.trPhoto.url,
+                    cvFiles.trPhoto.fileName
                   )
                 }
               >
@@ -464,8 +466,8 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 className="btn-cv-download"
                 onClick={() =>
                   handleDownloadCv(
-                    "/cv/Onur_Inal_CV_TR_ATS.pdf",
-                    "Onur_Inal_CV_TR_ATS.pdf"
+cvFiles.trPlain.url,
+                    cvFiles.trPlain.fileName
                   )
                 }
               >
@@ -477,8 +479,8 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 className="btn-cv-download"
                 onClick={() =>
                   handleDownloadCv(
-                    "/cv/Onur_Inal_CV_EN_Fotografli.pdf",
-                    "Onur_Inal_CV_EN_Fotografli.pdf"
+cvFiles.enPhoto.url,
+                    cvFiles.enPhoto.fileName
                   )
                 }
               >
@@ -489,7 +491,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
                 type="button"
                 className="btn-cv-download"
                 onClick={() =>
-                  handleDownloadCv("/cv/Onur_Inal_CV_EN_ATS.pdf", "Onur_Inal_CV_EN_ATS.pdf")
+                  handleDownloadCv(cvFiles.enPlain.url, cvFiles.enPlain.fileName)
                 }
               >
                 <FileDown size={13} />

@@ -46,6 +46,37 @@ async function findContentBlob() {
  * yapılan her kayıt `source` alanını açıkça yazdığı için yükseltme bir daha
  * tetiklenmez; kullanıcı canlıyı manuele çevirirse o seçim korunur.
  */
+/**
+ * Bozuk bir kaydı onarır: birden fazla gösterge aynı seriye bağlanmışsa hepsi
+ * aynı değeri gösterir. Bu durum panelin eski bir hatasından doğdu (kaynak
+ * "yahoo" seçilince sembol boşsa sessizce "^TNX" yazılıyordu) ve kimsenin
+ * kasten kuracağı bir yapılandırma değil — sunucu artık böyle bir kaydı
+ * reddediyor. Elde kalan bozuk belgeleri okuma sırasında düzeltiyoruz ki
+ * kullanıcı tek tık bile atmak zorunda kalmasın.
+ */
+function repairDuplicateSeries(indicators: Array<Record<string, unknown>>) {
+  const counts = new Map<string, number>();
+  for (const entry of indicators) {
+    if (entry.source === "manual" || !entry.symbol) continue;
+    const key = `${entry.source}:${entry.symbol}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const duplicated = new Set(Array.from(counts.entries()).filter(([, n]) => n > 1).map(([key]) => key));
+  if (!duplicated.size) return { indicators, changed: false };
+
+  const repaired = indicators.map((entry) => {
+    const key = `${entry.source}:${entry.symbol}`;
+    if (!duplicated.has(key)) return entry;
+    const preset = DEFAULT_MACRO_SERIES[String(entry.id)];
+    // Bilinen bir kaynağı varsa oraya bağla, yoksa elle girilen değerine dön.
+    return preset ? { ...entry, ...preset } : { ...entry, source: "manual", symbol: undefined };
+  });
+
+  console.log("[Admin] Aynı seriye bağlanmış göstergeler onarıldı:", Array.from(duplicated).join(", "));
+  return { indicators: repaired, changed: true };
+}
+
 function upgradeLegacyMacro(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const document = raw as Record<string, unknown>;
@@ -64,9 +95,10 @@ function upgradeLegacyMacro(raw: unknown): unknown {
     return { ...entry, ...preset };
   });
 
-  if (!changed) return raw;
-  console.log("[Admin] Eski makro kayıtları canlı varsayılanlara yükseltildi.");
-  return { ...document, macro: { ...macro, indicators: upgraded } };
+  const repair = repairDuplicateSeries(upgraded as Array<Record<string, unknown>>);
+  if (!changed && !repair.changed) return raw;
+  if (changed) console.log("[Admin] Eski makro kayıtları canlı varsayılanlara yükseltildi.");
+  return { ...document, macro: { ...macro, indicators: repair.indicators } };
 }
 
 /**

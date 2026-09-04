@@ -28,6 +28,7 @@ import {
   Save,
   Trash2,
   User,
+  UserRound,
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ import { DEFAULT_SESSION_IDS } from "@/content/defaults";
 import { DEFAULT_WATCHLIST_SYMBOLS } from "./Home";
 import { CategoriesTab, CvTab, LinksTab, MediaTab } from "./admin/AssetPanels";
 import { BilingualField, Field, Section, TextInput, Toggle } from "./admin/fields";
+import { ProfilePanel } from "./admin/ProfilePanel";
 import { ReportsPanel } from "./admin/ReportsPanel";
 import { TextsPanel } from "./admin/TextsPanel";
 import { buildWorkingDraft, toDraftPayload, useDraft, type WorkingDraft } from "./admin/useDraft";
@@ -57,6 +59,7 @@ const NAV_GROUPS = [
   {
     title: "Profil",
     items: [
+      { id: "profile", label: "Profil sayfası", icon: UserRound, hint: "Kimlik, eğitim, yetkinlikler, özet" },
       { id: "media", label: "Görseller", icon: ImageIcon, hint: "Profil fotoğrafı ve paylaşım kapağı" },
       { id: "cv", label: "CV dosyaları", icon: User, hint: "Dört dil ve biçim yuvası" },
       { id: "links", label: "Bağlantılar", icon: Link2, hint: "LinkedIn, e-posta, projeler" },
@@ -397,6 +400,9 @@ function Editor({ email, name, storageReady }: { email: string; name: string; st
           {tab === "categories" && <CategoriesTab draft={draft} update={update} />}
           {tab === "texts" && (
             <TextsPanel overrides={draft.translations} onChange={(translations) => update({ translations })} />
+          )}
+          {tab === "profile" && (
+            <ProfilePanel overrides={draft.translations} onChange={(translations) => update({ translations })} />
           )}
           {tab === "media" && <MediaTab draft={draft} update={update} />}
           {tab === "cv" && <CvTab draft={draft} update={update} />}
