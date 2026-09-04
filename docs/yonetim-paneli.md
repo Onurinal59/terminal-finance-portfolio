@@ -9,22 +9,38 @@ biri Vercel'de olmak üzere iki kurulum gerekiyor. Toplam ~10 dakika.
 
 ### 1.1 OAuth istemcisi oluştur
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → sağ üstten yeni bir proje
-   oluştur (örn. `onurinal-portfolio`).
-2. Sol menü → **APIs & Services → OAuth consent screen**
-   - User Type: **External**
-   - Uygulama adı: `Onur İnal Yönetim Paneli`, destek e-postası: kendi adresin
-   - Kaydet. **Test users** bölümüne kendi Gmail adresini ekle.
-   - Uygulamayı yayımlamana gerek yok; test modunda kendi hesabınla girebilirsin.
-3. Sol menü → **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+Google bu ekranları yeniledi: eski "APIs & Services → OAuth consent screen" yolu artık
+**Google Auth Platform** altında. Aşağısı yeni arayüze göre.
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → üstten bir proje oluştur
+   veya seç (örn. `onurinal-terminal`).
+2. Arama kutusuna **Google Auth Platform** yazıp aç.
+3. **Overview** — ilk kez giriyorsan bir başlangıç akışı çıkar, doldur:
+   - App name: `Onur İnal Yönetim Paneli`
+   - User support email: kendi adresin
+   - Audience: **External**
+   - Contact information: kendi adresin
+   - Politikayı kabul edip **Create**
+4. **Audience** — Publishing status **Testing** kalsın, *Publish app'e basma*.
+   Aşağıdaki **Test users** bölümüne **Add users** ile kendi Gmail adresini ekle.
+
+   > Testing modunda yalnızca test kullanıcıları giriş yapabilir — istediğimiz tam
+   > olarak bu. Üstelik bu modda Google doğrulaması (verification) gerekmez.
+5. **Clients → Create client**
    - Application type: **Web application**
    - Name: `onurinal-admin`
-   - **Authorized redirect URIs** kısmına tam olarak şunu ekle:
+   - **Authorized redirect URIs → ADD URI**, tam olarak şunu yapıştır:
      ```
      https://onurinal.vercel.app/api/admin/callback
      ```
-     (Yerelde de denemek istersen ikinci satır olarak `http://127.0.0.1:3000/api/admin/callback`)
-   - Oluştur. Çıkan **Client ID** ve **Client secret** değerlerini kopyala.
+     Sonda `/` olmayacak ve `https` olacak; tek karakter fark ederse Google
+     `redirect_uri_mismatch` hatası verir.
+     (Yerelde de denemek istersen ikinci URI olarak `http://127.0.0.1:3000/api/admin/callback`)
+   - **Create** → çıkan **Client ID** ve **Client secret** değerlerini kopyala.
+     Secret'ı sonra tekrar göremezsin, hemen bir yere al.
+6. **Data Access** — dokunman gerekmiyor. İstediğimiz `openid`, `email`, `profile`
+   kapsamları hassas olmayan kapsamlar; Google bunları zaten veriyor.
+7. **Verification Center** — Testing modunda kaldığın sürece burayla işin yok.
 
 ### 1.2 Oturum anahtarı üret
 
