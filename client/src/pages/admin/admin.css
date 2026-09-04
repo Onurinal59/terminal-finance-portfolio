@@ -1154,3 +1154,9 @@ select.adm-input {
   line-height: 1.5;
   color: var(--adm-muted);
 }
+
+/* Aynı seriye bağlanmış kartlar gözden kaçmasın. */
+.adm-card.is-duplicate {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.05);
+}

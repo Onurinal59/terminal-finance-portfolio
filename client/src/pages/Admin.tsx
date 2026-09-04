@@ -579,11 +579,44 @@ function MacroTab({ draft, update }: TabProps) {
     setIndicators(next);
   };
 
-  const hasManual = indicators.some((item) => item.source !== "yahoo");
+  const hasManual = indicators.some((item) => item.source === "manual");
+
+  /**
+   * Aynı seriye bağlanmış göstergeler. Hepsi aynı değeri gösterdiği için
+   * gözden kaçması kolay; panelde açıkça uyarıyoruz.
+   */
+  const duplicateSeries = new Set(
+    indicators
+      .filter((item) => item.source !== "manual" && item.symbol)
+      .map((item) => `${item.source}:${item.symbol}`)
+      .filter((key, index, all) => all.indexOf(key) !== index)
+  );
+
+  const missingSeries = indicators.filter((item) => item.source !== "manual" && !item.symbol?.trim());
+
+  /** Her göstergeyi bilinen kaynağına, bilineni yoksa manuele döndürür. */
+  const resetSources = () => {
+    update({
+      macro: {
+        snapshotDate,
+        indicators: indicators.map((item) => {
+          const preset = DEFAULT_MACRO_SERIES[item.id];
+          if (preset) return { ...item, ...preset };
+          return { ...item, source: "manual" as const, symbol: undefined };
+        }),
+      },
+    });
+    toast.success("Kaynaklar varsayılana döndürüldü. Kaydetmeyi unutmayın.");
+  };
 
   return (
     <>
       <Section
+        actions={
+          <button type="button" className="adm-btn" onClick={resetSources}>
+            <RotateCcw size={14} /> Varsayılan kaynaklara sıfırla
+          </button>
+        }
         title="Nasıl çalışıyor"
         description="Her gösterge bir API'ye bağlanabilir. Yahoo Finance, ECB Data Portal ve New York Fed anahtarsız çalışır. FRED ve TCMB EVDS ücretsizdir ama birer API anahtarı ister; anahtar tanımlanana kadar o göstergeleri elle güncelleyin."
       >
@@ -598,6 +631,34 @@ function MacroTab({ draft, update }: TabProps) {
           />
         </Field>
         {!hasManual && <p className="adm-count">Şu an tüm göstergeler canlı; bu tarih sitede görünmüyor.</p>}
+
+        {duplicateSeries.size > 0 && (
+          <div className="adm-alert error">
+            <AlertTriangle size={15} />
+            <div>
+              <b>Birden fazla gösterge aynı seriye bağlı</b>
+              <p>
+                Aşağıdaki kartlarda aynı seri kullanılıyor, bu yüzden hepsi aynı değeri gösterir:{" "}
+                <code>{Array.from(duplicateSeries).join(", ")}</code>. Her göstergeye kendi serisini verin
+                veya "Varsayılan kaynaklara sıfırla" ile hepsini düzeltin.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {missingSeries.length > 0 && (
+          <div className="adm-alert warn">
+            <AlertTriangle size={15} />
+            <div>
+              <b>Seri kimliği boş</b>
+              <p>
+                Şu göstergelerin kaynağı seçili ama serisi girilmemiş:{" "}
+                <code>{missingSeries.map((item) => item.label.tr || item.id).join(", ")}</code>. Sitede
+                "VERİ YOK" görünürler.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="adm-provider-grid">
           {MACRO_SOURCES.filter((source) => source !== "manual").map((source) => (
@@ -638,7 +699,12 @@ function MacroTab({ draft, update }: TabProps) {
           {indicators.map((item, index) => {
             const isLive = item.source !== "manual";
             return (
-              <div key={item.id} className={`adm-card ${isLive ? "is-live" : ""}`}>
+              <div
+                key={item.id}
+                className={`adm-card ${isLive ? "is-live" : ""} ${
+                  item.symbol && duplicateSeries.has(`${item.source}:${item.symbol}`) ? "is-duplicate" : ""
+                }`}
+              >
                 <div className="adm-card-head">
                   <b>
                     {item.label.tr || item.id}
