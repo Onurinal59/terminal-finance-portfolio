@@ -692,6 +692,11 @@ select.adm-input {
 .adm-alert code {
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.adm-alert > div {
+  min-width: 0;
 }
 
 .adm-alert.error {
@@ -941,14 +946,6 @@ select.adm-input {
   padding-left: 32px;
 }
 
-.adm-text-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 4px;
-}
 
 .adm-text-row {
   padding: 11px 13px;
@@ -1014,6 +1011,7 @@ select.adm-input {
 .adm-slot-body {
   flex: 1 1 220px;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .adm-slot-body b {
@@ -1063,6 +1061,20 @@ select.adm-input {
   flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .adm-slot-preview {
+    width: 100%;
+    height: 120px;
+  }
+  .adm-slot-actions {
+    width: 100%;
+  }
+  .adm-slot-actions .adm-btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* ---------- Canlı gösterge rozeti ---------- */
@@ -1146,6 +1158,11 @@ select.adm-input {
   color: var(--adm-accent);
 }
 
+.adm-suggestion > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .adm-suggestion small {
   display: block;
   margin-top: 3px;
@@ -1159,4 +1176,94 @@ select.adm-input {
 .adm-card.is-duplicate {
   border-color: rgba(248, 113, 113, 0.5);
   background: rgba(248, 113, 113, 0.05);
+}
+
+/* ---------- Metin editörü: sayfa ve bölüm grupları ---------- */
+
+.adm-text-area + .adm-text-area {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--adm-line);
+}
+
+.adm-text-area-title {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--adm-accent);
+}
+
+.adm-text-area-desc {
+  margin: 3px 0 12px;
+  font-size: 11.5px;
+  color: var(--adm-muted);
+}
+
+.adm-text-group + .adm-text-group {
+  margin-top: 10px;
+}
+
+.adm-text-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 6px;
+  color: var(--adm-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.adm-text-group-head:hover {
+  border-color: var(--adm-line-strong);
+}
+
+.adm-text-group-head svg {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.adm-text-group-head.is-collapsed svg {
+  transform: rotate(-90deg);
+}
+
+.adm-text-group-head b {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.adm-text-group-head span {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  background: rgba(148, 163, 184, 0.14);
+  border-radius: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: var(--adm-muted);
+}
+
+.adm-text-group-head em {
+  flex-shrink: 0;
+  font-style: normal;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9.5px;
+  color: var(--adm-accent);
+}
+
+.adm-text-group-desc {
+  margin: 6px 0 0;
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--adm-muted);
+}
+
+.adm-text-group .adm-text-row {
+  margin-top: 8px;
 }
