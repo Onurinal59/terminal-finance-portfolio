@@ -397,6 +397,7 @@ export const tr = {
   "macro.cpiUsValue": "%3,40",
   "macro.cpiUsNote": "Temmuz Verisi",
   "macro.live": "CANLI",
+  "macro.unavailable": "VERİ YOK",
   "macro.liveLabel": "Canlı veriler Yahoo Finance · dakikada bir yenilenir",
   "macro.snapshotLabel": "Manuel anlık görüntü · {date}",
   "macro.snapshotSources": "Kaynak: TCMB, Fed, ECB, TÜİK, BLS, piyasa verileri",

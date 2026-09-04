@@ -400,6 +400,7 @@ export const en: Dictionary = {
   "macro.cpiUsValue": "3.40%",
   "macro.cpiUsNote": "July print",
   "macro.live": "LIVE",
+  "macro.unavailable": "NO DATA",
   "macro.liveLabel": "Live data from Yahoo Finance · refreshed every minute",
   "macro.snapshotLabel": "Manual snapshot · {date}",
   "macro.snapshotSources": "Source: CBRT, Fed, ECB, TurkStat, BLS, market data",

@@ -110,7 +110,21 @@ const MACRO_TONE_LABELS: Record<(typeof MACRO_TONES)[number], string> = {
 
 const MACRO_SOURCE_LABELS: Record<(typeof MACRO_SOURCES)[number], string> = {
   manual: "Elle girilen değer",
-  yahoo: "Yahoo Finance'ten canlı",
+  yahoo: "Yahoo Finance (piyasa verisi)",
+  nyfed: "New York Fed (ABD faizleri)",
+  ecb: "ECB Data Portal (euro bölgesi)",
+  fred: "FRED (ABD makro serileri)",
+  evds: "TCMB EVDS (Türkiye serileri)",
+};
+
+/** Her kaynağın seri kimliğini nasıl yazacağını anlatan ipuçları. */
+const MACRO_SOURCE_HINTS: Record<(typeof MACRO_SOURCES)[number], string> = {
+  manual: "",
+  yahoo: "Yahoo sembolü. Örnekler: ^TNX (ABD 10Y), ^TYX (30Y), ^VIX, DX-Y.NYB (dolar endeksi), USDTRY=X, GC=F (altın), XU100.IS (BIST 100).",
+  nyfed: "effr-target → FOMC hedef aralığı, effr → gerçekleşen federal fon faizi.",
+  ecb: "ECB seri anahtarı. Örnekler: FM.D.U2.EUR.4F.KR.DFR.LEV (mevduat faizi), ICP.M.U2.N.000000.4.ANR (euro bölgesi enflasyonu).",
+  fred: "FRED seri kimliği. Örnekler: CPIAUCSL (ABD TÜFE), DFEDTARU (Fed hedef üst sınır), DGS10 (ABD 10Y).",
+  evds: "EVDS seri kodu. TCMB EVDS sitesinde seriyi bulup kodunu kopyalayın (örn. TP.APIFON4).",
 };
 
 const MACRO_DISPLAY_LABELS: Record<(typeof MACRO_DISPLAYS)[number], string> = {
@@ -497,6 +511,8 @@ function NoticesTab({ draft, update }: TabProps) {
 
 function MacroTab({ draft, update }: TabProps) {
   const { indicators, snapshotDate } = draft.macro;
+  const providers = trpc.macro.providers.useQuery(undefined, { staleTime: 60_000 });
+  const providerReady: Partial<Record<(typeof MACRO_SOURCES)[number], boolean>> = providers.data ?? {};
 
   const patch = (index: number, value: Partial<MacroIndicatorContent>) =>
     update({
@@ -519,7 +535,7 @@ function MacroTab({ draft, update }: TabProps) {
     <>
       <Section
         title="Nasıl çalışıyor"
-        description="Politika faizleri, enflasyon ve CDS gibi veriler borsada işlem gören enstrüman olmadıkları için Yahoo Finance'te yok; onlar elle güncellenir. Tahvil getirisi, endeks, kur ve emtia gibi piyasa verileri canlı çekilebilir."
+        description="Her gösterge bir API'ye bağlanabilir. Yahoo Finance, ECB Data Portal ve New York Fed anahtarsız çalışır. FRED ve TCMB EVDS ücretsizdir ama birer API anahtarı ister; anahtar tanımlanana kadar o göstergeleri elle güncelleyin."
       >
         <Field
           label="Manuel göstergelerin tarihi"
@@ -532,6 +548,15 @@ function MacroTab({ draft, update }: TabProps) {
           />
         </Field>
         {!hasManual && <p className="adm-count">Şu an tüm göstergeler canlı; bu tarih sitede görünmüyor.</p>}
+
+        <div className="adm-provider-grid">
+          {MACRO_SOURCES.filter((source) => source !== "manual").map((source) => (
+            <div key={source} className={`adm-provider ${providerReady[source] === false ? "is-off" : "is-on"}`}>
+              <b>{MACRO_SOURCE_LABELS[source]}</b>
+              <small>{providerReady[source] === false ? "API anahtarı gerekiyor" : "Hazır"}</small>
+            </div>
+          ))}
+        </div>
       </Section>
 
       <Section
@@ -613,12 +638,18 @@ function MacroTab({ draft, update }: TabProps) {
 
                 {isLive ? (
                   <>
-                    <Field
-                      label="Yahoo sembolü"
-                      hint="Örnekler: ^TNX (ABD 10Y), ^TYX (30Y), ^VIX, DX-Y.NYB (dolar endeksi), USDTRY=X, GC=F (altın), XU100.IS (BIST 100)."
-                    >
+                    <Field label="Seri kimliği" hint={MACRO_SOURCE_HINTS[item.source]}>
                       <TextInput value={item.symbol ?? ""} onChange={(symbol) => patch(index, { symbol })} />
                     </Field>
+                    {providerReady[item.source] === false && (
+                      <div className="adm-alert warn">
+                        <AlertTriangle size={14} />
+                        <span>
+                          Bu kaynak için API anahtarı tanımlı değil, gösterge sitede "VERİ YOK" görünür.
+                          Vercel'e {item.source === "fred" ? "FRED_API_KEY" : "EVDS_API_KEY"} ekleyin.
+                        </span>
+                      </div>
+                    )}
                     <div className="adm-grid-2">
                       <Field label="Gösterim">
                         <select

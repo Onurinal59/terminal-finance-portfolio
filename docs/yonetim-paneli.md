@@ -132,7 +132,7 @@ Panel sol kenar çubuğundan dört gruba ayrılır.
 
 | Bölüm | Ne yapar |
 | --- | --- |
-| Makro göstergeler | Gösterge ekle/sil/sırala. Her gösterge ya elle girilir ya Yahoo'dan canlı gelir |
+| Makro göstergeler | Gösterge ekle/sil/sırala. Her gösterge bir API'ye bağlanabilir (aşağıya bak) |
 | Piyasa seansları | Hangi borsalar listelensin (açık/kapalı otomatik hesaplanır) |
 | İzleme listesi | Panodaki varsayılan sembol listesi ve sırası |
 
@@ -143,20 +143,44 @@ Panel sol kenar çubuğundan dört gruba ayrılır.
 | Görünürlük | GPA rozeti, CV indirme, LinkedIn butonu, pano modülleri gibi 11 blok |
 | Uyarılar | Rapor kütüphanesindeki uyarı kutusu ve site geneli duyuru bandı |
 
-### Makro göstergeler: canlı ve manuel
+### Makro göstergeler: hangi veri nereden gelir
 
-Her göstergenin bir **veri kaynağı** vardır:
+Her göstergenin bir **veri kaynağı** vardır. Kaynağı seçtiğinde değer otomatik
+gelir, sen bir daha elle güncellemezsin.
 
-- **Yahoo Finance'ten canlı** — bir sembol girersin (`^TNX`, `DX-Y.NYB`, `^VIX`, `USDTRY=X`,
-  `GC=F`, `XU100.IS` …), değer ve günlük değişim otomatik gelir, dakikada bir yenilenir.
-  Rozetin rengi değişimin yönüne göre belirlenir. Etiketin başında yanıp sönen yeşil
-  bir nokta çıkar.
-- **Elle girilen değer** — değeri ve rozeti sen yazarsın.
+**Anahtarsız çalışanlar** — hiçbir kurulum gerekmez:
 
-Politika faizleri (TCMB, Fed, ECB), enflasyon verileri ve CDS primi borsada işlem gören
-enstrümanlar olmadıkları için **Yahoo Finance'te yok**; onlar elle güncellenir. Panelde
-"Manuel göstergelerin tarihi" alanını da tazelemeyi unutma — sitenin altında
-"Manuel anlık görüntü · …" satırında görünür.
+| Kaynak | Ne verir | Seri kimliği örneği |
+| --- | --- | --- |
+| Yahoo Finance | Tahvil getirisi, endeks, kur, emtia, hisse | `^TNX`, `^TYX`, `^VIX`, `DX-Y.NYB`, `USDTRY=X`, `GC=F`, `XU100.IS` |
+| New York Fed | ABD federal fon faizi ve FOMC hedef aralığı | `effr-target`, `effr` |
+| ECB Data Portal | Euro bölgesi politika faizleri ve enflasyon | `FM.D.U2.EUR.4F.KR.DFR.LEV`, `ICP.M.U2.N.000000.4.ANR` |
+
+**API anahtarı isteyenler** — ikisi de ücretsiz, kayıt birkaç dakika:
+
+| Kaynak | Ne verir | Anahtar |
+| --- | --- | --- |
+| FRED | ABD makro serileri (TÜFE, tahvil, işsizlik…) | `FRED_API_KEY` — [fred.stlouisfed.org](https://fred.stlouisfed.org/docs/api/api_key.html) |
+| TCMB EVDS | Türkiye serileri (politika faizi, TÜFE, tahvil) | `EVDS_API_KEY` — [evds2.tcmb.gov.tr](https://evds2.tcmb.gov.tr/) → üye ol → Profil → API Anahtarı |
+
+Anahtarı aldıktan sonra Vercel → Settings → Environment Variables'a ekleyip
+yeniden dağıt. Panelin Makro sekmesinde her kaynağın "Hazır" mı yoksa
+"API anahtarı gerekiyor" mu olduğunu gösteren bir durum kutusu var.
+
+**Kaynağı olmayanlar.** Türkiye 5 yıllık CDS priminin ücretsiz ve açık bir API'si
+yok; o gösterge elle güncellenmeye devam eder. Panelde "Manuel göstergelerin
+tarihi" alanını da tazelemeyi unutma — sitenin altında "Manuel anlık görüntü · …"
+satırında görünür.
+
+**Rozetler.** Piyasa verilerinde (Yahoo) rozet günlük yüzde değişimi gösterir ve
+rengi yönüne göre belirlenir. Politika faizi, enflasyon gibi yavaş serilerde
+günlük değişim anlamsız olduğu için rozet verinin **tarihini** gösterir; renk
+bir önceki gözleme göre yön alır. Bir kaynak geçici olarak yanıt vermezse
+gösterge "VERİ YOK" der, site çökmez.
+
+**Yenileme.** Piyasa verileri dakikada bir, makro seriler yarım saatte bir
+tazelenir. Sunucu sonuçları önbelleklediği için her ziyaretçi dış API'ye
+ayrı istek atmaz.
 
 ### Dosya yükleme
 

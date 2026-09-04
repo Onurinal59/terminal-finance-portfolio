@@ -6,6 +6,7 @@
  * revision sayacıyla eşzamanlı kaydetmeleri yakalar.
  */
 import { del, list, put } from "@vercel/blob";
+import { DEFAULT_MACRO_SERIES } from "../../shared/macroDefaults.js";
 import { EMPTY_SITE_CONTENT, siteContentSchema, type SiteContent, type SiteContentDraft } from "../../shared/siteContent.js";
 import { ADMIN_ENV } from "./env.js";
 
@@ -40,14 +41,11 @@ async function findContentBlob() {
  *
  * O tarihte kaydedilen kayıtlarda `source` alanı hiç yok; zod bunları "manual"
  * sayardı ve koddaki canlı varsayılanlar hiç devreye giremezdi. Alanın *yokluğu*
- * "kullanıcı bilerek manuel seçti" demek olmadığı için, tanıdığımız kimlikler
- * için canlı yapılandırmayı bir kez uyguluyoruz. Panelden yapılan her kayıt
- * `source` alanını açıkça yazdığı için bu yükseltme bir daha tetiklenmez.
+ * "kullanıcı bilerek manuel seçti" demek olmadığı için, DEFAULT_MACRO_SERIES'te
+ * karşılığı olan kimliklere canlı yapılandırmayı bir kez uyguluyoruz. Panelden
+ * yapılan her kayıt `source` alanını açıkça yazdığı için yükseltme bir daha
+ * tetiklenmez; kullanıcı canlıyı manuele çevirirse o seçim korunur.
  */
-const LEGACY_LIVE_DEFAULTS: Record<string, { symbol: string; display: "percent" | "number"; precision: number }> = {
-  us10y: { symbol: "^TNX", display: "percent", precision: 2 },
-};
-
 function upgradeLegacyMacro(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const document = raw as Record<string, unknown>;
@@ -60,10 +58,10 @@ function upgradeLegacyMacro(raw: unknown): unknown {
     if (!indicator || typeof indicator !== "object") return indicator;
     const entry = indicator as Record<string, unknown>;
     if ("source" in entry) return entry;
-    const preset = LEGACY_LIVE_DEFAULTS[String(entry.id)];
+    const preset = DEFAULT_MACRO_SERIES[String(entry.id)];
     if (!preset) return entry;
     changed = true;
-    return { ...entry, source: "yahoo", ...preset };
+    return { ...entry, ...preset };
   });
 
   if (!changed) return raw;

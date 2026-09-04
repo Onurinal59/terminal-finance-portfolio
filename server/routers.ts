@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { publicProcedure, router } from "./_core/trpc.js";
 import { adminRouter, contentRouter } from "./admin/router.js";
+import { macroProviderStatus, resolveMacroLive } from "./macro/index.js";
 import { getChart, getFinancialStatements, getQuotes, searchSymbols, timeframes } from "./market.js";
 import { z } from "zod";
 
@@ -11,6 +12,14 @@ export const appRouter = router({
   system: systemRouter,
   content: contentRouter,
   admin: adminRouter,
+  macro: router({
+    /**
+     * Canlı makro değerleri. Hangi serilerin çekileceğini kayıtlı içerik belirler,
+     * istemci girdi vermez; böylece dışarıya rastgele istek yaptırılamaz.
+     */
+    live: publicProcedure.query(() => resolveMacroLive()),
+    providers: publicProcedure.query(() => macroProviderStatus()),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

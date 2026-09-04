@@ -29,7 +29,7 @@ export type ReportCategoryContent = z.infer<typeof reportCategorySchema>;
 export const REPORT_TONES = ["bullish", "moat", "neutral", "highlight"] as const;
 export const MACRO_TONES = ["up", "down", "flat"] as const;
 /** Bir makro göstergenin değeri elle mi girilir, Yahoo'dan mı gelir. */
-export const MACRO_SOURCES = ["manual", "yahoo"] as const;
+export const MACRO_SOURCES = ["manual", "yahoo", "ecb", "nyfed", "fred", "evds"] as const;
 /** Canlı değerin gösterim biçimi: yüzde mi düz sayı mı. */
 export const MACRO_DISPLAYS = ["percent", "number"] as const;
 export const BANNER_TONES = ["info", "warning", "success"] as const;
@@ -93,8 +93,8 @@ export const macroIndicatorSchema = z.object({
   note: localizedTextSchema,
   /** Eski kayıtlarda bu alan yok; varsayılan olarak manuel sayılır. */
   source: z.enum(MACRO_SOURCES).default("manual"),
-  /** Yahoo sembolü, örn. ^TNX. Yalnızca source === "yahoo" iken anlamlı. */
-  symbol: z.string().max(24).optional(),
+  /** Kaynağa göre seri kimliği: Yahoo sembolü, ECB seri anahtarı, FRED/EVDS seri kodu. */
+  symbol: z.string().max(64).optional(),
   display: z.enum(MACRO_DISPLAYS).optional(),
   precision: z.number().int().min(0).max(4).optional(),
 });

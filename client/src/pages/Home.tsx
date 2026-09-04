@@ -1613,30 +1613,16 @@ function MacroEconomyPanel() {
   const { t, locale, language } = useI18n();
   const { macroIndicators, macroSnapshotDate } = useContent();
 
-  // Canlı göstergeler tek bir istekte çekilir; dakikada bir tazelenir.
-  const liveSymbols = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          macroIndicators
-            .filter((item) => item.source === "yahoo" && item.symbol)
-            .map((item) => item.symbol as string)
-        )
-      ),
-    [macroIndicators]
-  );
+  const hasLive = macroIndicators.some((item) => item.source !== "manual" && item.symbol);
+  const hasManual = macroIndicators.some((item) => item.source === "manual");
 
-  const liveQuotes = trpc.market.quotes.useQuery(
-    { symbols: liveSymbols },
-    { enabled: liveSymbols.length > 0, refetchInterval: 60_000, staleTime: 40_000, retry: 1 }
-  );
-
-  const quoteMap = useMemo(
-    () => new Map((liveQuotes.data ?? []).map((quote) => [quote.symbol, quote])),
-    [liveQuotes.data]
-  );
-
-  const hasManual = macroIndicators.some((item) => item.source !== "yahoo");
+  // Hangi serilerin çekileceğine sunucu karar verir; istemci sadece sonucu okur.
+  const live = trpc.macro.live.useQuery(undefined, {
+    enabled: hasLive,
+    refetchInterval: 60_000,
+    staleTime: 45_000,
+    retry: 1,
+  });
 
   const snapshotDate = useMemo(() => {
     const parsed = new Date(`${macroSnapshotDate}T00:00:00`);
@@ -1644,43 +1630,77 @@ function MacroEconomyPanel() {
     return parsed.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   }, [macroSnapshotDate, locale]);
 
+  /** Sağlayıcıdan gelen tarih; EVDS gün-ay-yıl, diğerleri ISO döndürür. */
+  const formatAsOf = (asOf: string | null | undefined) => {
+    if (!asOf) return "";
+    const iso = /^\d{2}-\d{2}-\d{4}$/.test(asOf) ? asOf.split("-").reverse().join("-") : asOf;
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return asOf;
+    return parsed.toLocaleDateString(locale, { day: "numeric", month: "short" });
+  };
+
   /** Canlı bir göstergenin ekranda görünecek değeri, rozeti ve rengi. */
   const resolveLive = (item: (typeof macroIndicators)[number]) => {
-    const quote = item.symbol ? quoteMap.get(item.symbol) : undefined;
-    if (!quote) {
-      return { value: "—", note: t("macro.live"), tone: "flat" as const };
+    const reading = live.data?.[item.id];
+
+    if (!reading) {
+      return { value: "—", note: live.isError ? t("macro.unavailable") : t("macro.live"), tone: "flat" as const };
     }
+    if (!reading.ok) {
+      return { value: "—", note: t("macro.unavailable"), tone: "flat" as const };
+    }
+
     const precision = item.precision ?? 2;
-    const formatted = formatDecimal(quote.price, precision);
-    const value = item.display === "percent" ? formatPercent(formatted) : formatted;
-    const changePercent = quote.changePercent;
-    if (changePercent === null || changePercent === undefined) {
-      return { value, note: t("macro.live"), tone: "flat" as const };
+    const format = (input: number) =>
+      item.display === "percent" ? formatPercent(formatDecimal(input, precision)) : formatDecimal(input, precision);
+
+    const value =
+      reading.kind === "range" && reading.high !== null && reading.high !== undefined
+        ? `${format(reading.value ?? 0)} – ${format(reading.high)}`
+        : reading.value === null
+          ? "—"
+          : format(reading.value);
+
+    // Piyasa verisinde günlük değişim anlamlı; politika faizi gibi yavaş
+    // serilerde onun yerine verinin tarihi gösterilir.
+    if (typeof reading.changePercent === "number") {
+      const change = reading.changePercent;
+      const sign = change > 0 ? "+" : change < 0 ? "-" : "";
+      return {
+        value,
+        note: `${sign}${formatPercent(formatDecimal(Math.abs(change), 2))}`,
+        tone: change > 0 ? ("up" as const) : change < 0 ? ("down" as const) : ("flat" as const),
+      };
     }
-    // İşaret yüzde imlecinin dışında kalmalı: Türkçede "-%0,32", "%-0,32" değil.
-    const sign = changePercent > 0 ? "+" : changePercent < 0 ? "-" : "";
-    return {
-      value,
-      note: `${sign}${formatPercent(formatDecimal(Math.abs(changePercent), 2))}`,
-      tone: changePercent > 0 ? ("up" as const) : changePercent < 0 ? ("down" as const) : ("flat" as const),
-    };
+
+    const previous = reading.previous;
+    const current = reading.value;
+    const tone =
+      typeof previous === "number" && typeof current === "number" && previous !== current
+        ? current > previous
+          ? ("up" as const)
+          : ("down" as const)
+        : ("flat" as const);
+
+    return { value, note: formatAsOf(reading.asOf) || t("macro.live"), tone };
   };
 
   return (
     <div className="macro-economy-panel">
       <div className="macro-grid">
         {macroIndicators.map((item) => {
-          const live = item.source === "yahoo" ? resolveLive(item) : null;
+          const isLive = item.source !== "manual" && Boolean(item.symbol);
+          const resolved = isLive ? resolveLive(item) : null;
           return (
             <div key={item.id} className="macro-item">
               <span className="macro-item-label">
                 {item.label[language]}
-                {live && <i className="macro-live-dot" title={t("macro.live")} />}
+                {isLive && <i className="macro-live-dot" title={t("macro.live")} />}
               </span>
               <div className="macro-item-val-row">
-                <b className="macro-item-val">{live ? live.value : item.value[language]}</b>
-                <small className={`macro-item-tag ${live ? live.tone : item.tone}`}>
-                  {live ? live.note : item.note[language]}
+                <b className="macro-item-val">{resolved ? resolved.value : item.value[language]}</b>
+                <small className={`macro-item-tag ${resolved ? resolved.tone : item.tone}`}>
+                  {resolved ? resolved.note : item.note[language]}
                 </small>
               </div>
             </div>
@@ -1688,7 +1708,7 @@ function MacroEconomyPanel() {
         })}
       </div>
       <div className="macro-snapshot-note">
-        {liveSymbols.length > 0 && <span>{t("macro.liveLabel")}</span>}
+        {hasLive && <span>{t("macro.liveLabel")}</span>}
         {hasManual && <span>{t("macro.snapshotLabel", { date: snapshotDate })}</span>}
         <small>{t("macro.snapshotSources")}</small>
       </div>
