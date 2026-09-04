@@ -1,0 +1,762 @@
+/* Yönetim paneli. Siteyle aynı terminal paleti, ama form odaklı bir düzen. */
+
+.adm-shell {
+  --adm-bg: #050b10;
+  --adm-panel: #0a141d;
+  --adm-panel-2: #0d1a25;
+  --adm-line: rgba(148, 163, 184, 0.18);
+  --adm-line-strong: rgba(148, 163, 184, 0.32);
+  --adm-text: #e2e8f0;
+  --adm-muted: #8ba0b3;
+  --adm-accent: #00f59b;
+
+  min-height: 100vh;
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.adm-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.adm-spin {
+  animation: adm-rotate 1s linear infinite;
+}
+
+@keyframes adm-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Giriş ekranı ---------- */
+
+.adm-login-card {
+  width: min(440px, 100%);
+  padding: 32px;
+  background: var(--adm-panel);
+  border: 1px solid var(--adm-line);
+  border-radius: 10px;
+  text-align: left;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+}
+
+.adm-login-kicker {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--adm-accent);
+  margin-bottom: 14px;
+}
+
+.adm-login-card h1 {
+  margin: 0 0 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.adm-login-copy {
+  margin: 0 0 20px;
+  color: var(--adm-muted);
+  line-height: 1.6;
+}
+
+/* ---------- Üst bar ve sekmeler ---------- */
+
+.adm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(5, 11, 16, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--adm-line);
+}
+
+.adm-topbar-left,
+.adm-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.adm-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.adm-revision,
+.adm-user {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--adm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--adm-muted);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.adm-back-link:hover {
+  color: var(--adm-text);
+}
+
+.adm-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 10px 20px 0;
+  border-bottom: 1px solid var(--adm-line);
+}
+
+.adm-tabs button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--adm-muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adm-tabs button:hover {
+  color: var(--adm-text);
+}
+
+.adm-tabs button.is-active {
+  background: var(--adm-panel);
+  border-color: var(--adm-line);
+  color: var(--adm-accent);
+}
+
+.adm-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ---------- Bölümler ---------- */
+
+.adm-section {
+  background: var(--adm-panel);
+  border: 1px solid var(--adm-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.adm-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--adm-line);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.adm-section-head h2 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.adm-section-head p {
+  margin: 5px 0 0;
+  color: var(--adm-muted);
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 70ch;
+}
+
+.adm-section-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Form alanları ---------- */
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-field-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+}
+
+.adm-field-hint {
+  color: #64798c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.adm-input {
+  width: 100%;
+  padding: 8px 11px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 5px;
+  color: var(--adm-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.adm-input:focus {
+  outline: none;
+  border-color: rgba(0, 245, 155, 0.55);
+  box-shadow: 0 0 0 2px rgba(0, 245, 155, 0.12);
+}
+
+.adm-textarea {
+  resize: vertical;
+  min-height: 38px;
+}
+
+select.adm-input {
+  cursor: pointer;
+}
+
+.adm-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+}
+
+.adm-bilingual {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 10px;
+}
+
+.adm-lang-tag {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--adm-accent);
+}
+
+.adm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--adm-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ---------- Açma/kapama ---------- */
+
+.adm-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 10px 12px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.adm-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.adm-toggle-track {
+  flex-shrink: 0;
+  position: relative;
+  width: 34px;
+  height: 19px;
+  margin-top: 1px;
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.adm-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.adm-toggle.is-on .adm-toggle-track {
+  background: rgba(0, 245, 155, 0.4);
+}
+
+.adm-toggle.is-on .adm-toggle-thumb {
+  transform: translateX(15px);
+  background: var(--adm-accent);
+}
+
+.adm-toggle-copy b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.adm-toggle-copy small {
+  display: block;
+  margin-top: 2px;
+  color: var(--adm-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.adm-toggle-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 10px;
+}
+
+/* ---------- Butonlar ---------- */
+
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid var(--adm-line-strong);
+  border-radius: 5px;
+  color: var(--adm-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.adm-btn:hover:not(:disabled):not(.is-disabled) {
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.adm-btn:disabled,
+.adm-btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.adm-btn.primary {
+  background: var(--adm-accent);
+  border-color: var(--adm-accent);
+  color: #03080e;
+}
+
+.adm-btn.primary:hover:not(:disabled) {
+  background: #00e08c;
+}
+
+.adm-btn.ghost {
+  background: transparent;
+}
+
+.adm-btn.danger {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}
+
+.adm-btn.small {
+  padding: 6px 10px;
+  font-size: 11.5px;
+}
+
+.adm-btn.block {
+  width: 100%;
+  padding: 11px 14px;
+}
+
+.adm-icon-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid var(--adm-line);
+  border-radius: 5px;
+  color: var(--adm-muted);
+  cursor: pointer;
+}
+
+.adm-icon-btn:hover {
+  color: var(--adm-text);
+  border-color: var(--adm-line-strong);
+}
+
+.adm-icon-btn.danger:hover {
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+/* ---------- Uyarı kutuları ---------- */
+
+.adm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 7px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.adm-alert p {
+  margin: 3px 0 0;
+}
+
+.adm-alert code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+}
+
+.adm-alert.error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+.adm-alert.warn {
+  background: rgba(251, 191, 36, 0.09);
+  border: 1px solid rgba(251, 191, 36, 0.34);
+  color: #fde68a;
+}
+
+.adm-inline-alert {
+  max-width: 1180px;
+  margin: 16px auto 0;
+  width: calc(100% - 40px);
+}
+
+/* ---------- Listeler ve kartlar ---------- */
+
+.adm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.adm-metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)) auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 14px;
+}
+
+.adm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 8px;
+}
+
+.adm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.adm-empty {
+  padding: 22px;
+  color: var(--adm-muted);
+  text-align: center;
+  font-size: 12.5px;
+}
+
+.adm-count {
+  margin: 0;
+  color: var(--adm-muted);
+  font-size: 11.5px;
+}
+
+/* ---------- Rapor düzenleyici ---------- */
+
+.adm-split {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .adm-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.adm-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.adm-report-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 8px;
+  padding: 9px 11px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 6px;
+  color: var(--adm-text);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.adm-report-row:hover {
+  border-color: var(--adm-line-strong);
+}
+
+.adm-report-row.is-active {
+  border-color: rgba(0, 245, 155, 0.5);
+  background: rgba(0, 245, 155, 0.06);
+}
+
+.adm-report-ticker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--adm-accent);
+}
+
+.adm-report-title {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  color: var(--adm-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-report-state {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+}
+
+.adm-report-state.on {
+  color: var(--adm-accent);
+}
+
+.adm-report-state.off {
+  color: #fbbf24;
+}
+
+.adm-report-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.adm-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adm-pdf-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 7px;
+}
+
+.adm-pdf-box p {
+  margin: 3px 0 0;
+  color: var(--adm-muted);
+  font-size: 11.5px;
+}
+
+.adm-pdf-box a {
+  color: var(--adm-accent);
+}
+
+.adm-pdf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adm-locale-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.adm-locale-tabs button {
+  padding: 7px 13px;
+  background: transparent;
+  border: 1px solid var(--adm-line);
+  border-radius: 5px;
+  color: var(--adm-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adm-locale-tabs button.is-active {
+  border-color: rgba(0, 245, 155, 0.5);
+  background: rgba(0, 245, 155, 0.08);
+  color: var(--adm-accent);
+}
+
+.adm-copy-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Metin düzenleyici ---------- */
+
+.adm-text-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .adm-text-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.adm-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.adm-search svg {
+  position: absolute;
+  left: 10px;
+  color: var(--adm-muted);
+  pointer-events: none;
+}
+
+.adm-search .adm-input {
+  padding-left: 32px;
+}
+
+.adm-text-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.adm-text-row {
+  padding: 11px 13px;
+  background: var(--adm-panel-2);
+  border: 1px solid var(--adm-line);
+  border-radius: 7px;
+}
+
+.adm-text-row.is-changed {
+  border-color: rgba(0, 245, 155, 0.4);
+}
+
+.adm-text-key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.adm-text-key code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  color: var(--adm-muted);
+  word-break: break-all;
+}
+
+.adm-text-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 10px;
+}

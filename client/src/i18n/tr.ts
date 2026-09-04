@@ -711,6 +711,11 @@ export const tr = {
   "research.sampleNoticeTitle": "Örnek çalışma:",
   "research.sampleNoticeText":
     "Bu kütüphanedeki dosyalar, değerleme metodolojisini ve rapor formatını göstermek için hazırlanmış örnek analizlerdir. Hedef fiyatlar ve projeksiyonlar gerçek bir yatırım tavsiyesi değildir.",
+  "research.openPdf": "PDF RAPORU AÇ",
+  "research.openPdfNewTab": "PDF raporunu yeni sekmede aç",
+  "research.cardPdf": "PDF",
+  "research.libraryEmptyTitle": "Kütüphanede henüz rapor yok",
+  "research.libraryEmptyDesc": "Yayımlanan araştırma dosyaları burada listelenir.",
   "research.backToLibrary": "TÜM RAPORLAR KÜTÜPHANESİNE DÖN",
   "research.openLiveChart": "CANLI GRAFİĞİ AÇ",
   "research.share": "Paylaş",

@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Filter,
   Grid2X2,
+  FileText,
   Info,
   LineChart,
   Mail,
@@ -20,7 +21,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getResearchReports, type ResearchReport, type ReportCategory } from "../data/researchReports";
+import { useContent } from "@/content/ContentContext";
+import { type ResearchReport, type ReportCategory } from "../data/researchReports";
 import { gsap, useGSAP } from "../lib/gsap";
 import { useI18n, type TranslationKey } from "@/i18n";
 
@@ -44,7 +46,21 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
   onOpenSymbolChart,
 }) => {
   const { t, language } = useI18n();
-  const reports = useMemo(() => getResearchReports(language), [language]);
+  const { reports: storedReports, researchNotice } = useContent();
+
+  // Panelden gelen kayıtlar iki dili birlikte taşır; görünüm için aktif dilin
+  // metinleriyle düzleştiriyoruz. Taslak (yayımlanmamış) raporlar sitede çıkmaz.
+  const reports = useMemo<ResearchReport[]>(
+    () =>
+      storedReports
+        .filter((report) => report.published)
+        .map((report) => ({ ...report, ...report.copy[language] })),
+    [storedReports, language]
+  );
+
+  const noticeTitle = researchNotice.enabled ? researchNotice.title[language]?.trim() : "";
+  const noticeText = researchNotice.enabled ? researchNotice.text[language]?.trim() : "";
+  const showNotice = Boolean(noticeTitle || noticeText);
 
   const [selectedCategory, setSelectedCategory] = useState<ReportCategory>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,9 +107,12 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
     return reports.find((r) => r.id === activeReportId) || filteredReports[0] || reports[0];
   }, [reports, activeReportId, filteredReports]);
 
+  // Panelden tüm raporlar kaldırılmışsa bileşenin geri kalanı çalışamaz.
+  const hasReports = reports.length > 0 && Boolean(activeReport);
+
   // Next report for the reading room footer teaser
   const nextReport = useMemo(() => {
-    const currentIndex = reports.findIndex((r) => r.id === activeReport.id);
+    const currentIndex = reports.findIndex((r) => r.id === activeReport?.id);
     if (currentIndex >= 0 && currentIndex < reports.length - 1) {
       return reports[currentIndex + 1];
     }
@@ -178,7 +197,7 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
           )}
 
           <button
-            onClick={() => onContact(t("research.requestSubject", { ticker: activeReport.ticker }))}
+            onClick={() => onContact(t("research.requestSubject", { ticker: activeReport?.ticker ?? "" }))}
             className="btn-terminal-primary"
           >
             <Mail size={14} /> {t("research.requestModel")}
@@ -187,15 +206,27 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
       </div>
 
       {/* 2. MODE: CATALOG (GRID VIEW WITH FEATURED REPORT) */}
-      {readingMode === "CATALOG" && (
+      {readingMode === "CATALOG" && !hasReports && (
+        <div className="research-catalog-wrapper">
+          <div className="reports-empty-state">
+            <Info size={26} className="notice-icon" />
+            <h3>{t("research.libraryEmptyTitle")}</h3>
+            <p>{t("research.libraryEmptyDesc")}</p>
+          </div>
+        </div>
+      )}
+
+      {readingMode === "CATALOG" && hasReports && (
         <div className="research-catalog-wrapper">
           {/* Kütüphane genelinde örnek çalışma uyarısı */}
-          <div className="research-sample-notice">
-            <Info size={16} className="notice-icon" />
-            <p>
-              <strong>{t("research.sampleNoticeTitle")}</strong> {t("research.sampleNoticeText")}
-            </p>
-          </div>
+          {showNotice && (
+            <div className="research-sample-notice">
+              <Info size={16} className="notice-icon" />
+              <p>
+                {noticeTitle && <strong>{noticeTitle}</strong>} {noticeText}
+              </p>
+            </div>
+          )}
 
           {/* Spotlight Featured Report */}
           {featured && (
@@ -386,6 +417,18 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
                       >
                         <BookOpen size={13} /> {t("research.cardReadDossier")}
                       </button>
+
+                      {report.pdfUrl && (
+                        <a
+                          href={report.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-card-pdf"
+                          title={t("research.openPdfNewTab")}
+                        >
+                          <FileText size={13} /> {t("research.cardPdf")}
+                        </a>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -410,6 +453,18 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
             </div>
 
             <div className="reader-action-group">
+              {activeReport.pdfUrl && (
+                <a
+                  href={activeReport.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-reader-pdf"
+                  title={t("research.openPdfNewTab")}
+                >
+                  <FileText size={14} /> {t("research.openPdf")} <ExternalLink size={12} />
+                </a>
+              )}
+
               {onOpenSymbolChart && activeReport.ticker && !activeReport.ticker.includes("-") && (
                 <button
                   onClick={() => onOpenSymbolChart(activeReport.ticker)}
@@ -466,15 +521,17 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
               </div>
 
               {/* Örnek çalışma uyarısı */}
-              <div className="paper-notice-callout">
-                <div className="notice-callout-info">
-                  <Info size={18} className="notice-icon" />
-                  <div>
-                    <strong>{t("research.sampleNoticeTitle")}</strong>
-                    <p>{t("research.sampleNoticeText")}</p>
+              {showNotice && (
+                <div className="paper-notice-callout">
+                  <div className="notice-callout-info">
+                    <Info size={18} className="notice-icon" />
+                    <div>
+                      {noticeTitle && <strong>{noticeTitle}</strong>}
+                      <p>{noticeText}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Target Price & Valuation Highlights Matrix */}

@@ -1,0 +1,57 @@
+/**
+ * Rapor PDF yüklemesi.
+ *
+ * Dosya sunucudan geçmez: tarayıcı doğrudan Vercel Blob'a yükler, bu uç yalnızca
+ * kısa ömürlü bir yükleme jetonu verir. Böylece sunucusuz fonksiyonun gövde
+ * sınırına (~4.5 MB) takılmadan büyük PDF'ler yüklenebilir.
+ */
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import type { Express, Request, Response } from "express";
+import { ADMIN_ENV } from "./env.js";
+import { readAdminSession } from "./session.js";
+
+const ALLOWED_TYPES = ["application/pdf"];
+const MAX_SIZE_BYTES = 25 * 1024 * 1024;
+
+export function registerAdminUploadRoute(app: Express) {
+  app.post("/api/admin/upload", async (req: Request, res: Response) => {
+    const session = await readAdminSession(req);
+    if (!session) {
+      res.status(401).json({ error: "Yönetici oturumu bulunamadı" });
+      return;
+    }
+    if (!ADMIN_ENV.blobToken) {
+      res.status(412).json({ error: "BLOB_READ_WRITE_TOKEN tanımlı değil" });
+      return;
+    }
+
+    try {
+      const result = await handleUpload({
+        body: req.body as HandleUploadBody,
+        request: req,
+        token: ADMIN_ENV.blobToken,
+        onBeforeGenerateToken: async (pathname) => {
+          // Yükleme yolunu sunucu kısıtlar; istemci rastgele bir yere yazamaz.
+          if (!pathname.startsWith("reports/")) {
+            throw new Error("Yalnızca reports/ altına yükleme yapılabilir");
+          }
+          return {
+            allowedContentTypes: ALLOWED_TYPES,
+            maximumSizeInBytes: MAX_SIZE_BYTES,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ email: session.email }),
+          };
+        },
+        onUploadCompleted: async ({ blob }) => {
+          console.log("[Admin] PDF yüklendi:", blob.pathname);
+        },
+      });
+
+      res.json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Yükleme başarısız";
+      console.error("[Admin] Yükleme hatası:", error);
+      res.status(400).json({ error: message });
+    }
+  });
+}

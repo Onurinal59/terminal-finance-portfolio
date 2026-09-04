@@ -1,5 +1,6 @@
 /** Dil bağımsız biçimlendirme yardımcıları: aktif yereli kullanır. */
 import { getActiveLanguage, getActiveLocale } from "./config";
+import { getTranslationOverride } from "./overrides";
 import type { TranslationKey } from "./tr";
 import { tr } from "./tr";
 import { en } from "./en";
@@ -8,7 +9,8 @@ const dictionaries = { tr, en };
 
 /** React ağacı dışından (modül seviyesi yardımcılar) çeviri okumak için. */
 export function translate(key: TranslationKey): string {
-  return dictionaries[getActiveLanguage()][key] ?? key;
+  const language = getActiveLanguage();
+  return getTranslationOverride(language, key) ?? dictionaries[language][key] ?? key;
 }
 
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions) {

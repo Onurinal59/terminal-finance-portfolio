@@ -7,6 +7,7 @@ import {
   setActiveLanguage,
   type Language,
 } from "./config";
+import { getTranslationOverride } from "./overrides";
 import { tr, type TranslationKey } from "./tr";
 import { en } from "./en";
 
@@ -32,7 +33,17 @@ function interpolate(template: string, vars?: TranslateVars) {
   );
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+/**
+ * `overridesRevision`, yönetim panelinden gelen metinler değiştiğinde artan bir
+ * sayaçtır; `t` bu değere bağlı olduğu için içerik yüklenince ağaç tazelenir.
+ */
+export function LanguageProvider({
+  children,
+  overridesRevision = 0,
+}: {
+  children: React.ReactNode;
+  overridesRevision?: number;
+}) {
   const [language, setLanguageState] = useState<Language>(() => detectLanguage());
 
   // Modül seviyesindeki biçimlendiriciler React ağacının dışında da okunduğu için
@@ -46,10 +57,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       // localStorage kullanılamıyor
     }
     document.documentElement.lang = language;
-    document.title = dictionaries[language]["meta.title"];
+    document.title = getTranslationOverride(language, "meta.title") ?? dictionaries[language]["meta.title"];
     const description = document.querySelector('meta[name="description"]');
-    if (description) description.setAttribute("content", dictionaries[language]["meta.description"]);
-  }, [language]);
+    if (description) {
+      description.setAttribute(
+        "content",
+        getTranslationOverride(language, "meta.description") ?? dictionaries[language]["meta.description"]
+      );
+    }
+  }, [language, overridesRevision]);
 
   const setLanguage = useCallback((next: Language) => {
     setActiveLanguage(next);
@@ -65,8 +81,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback<Translate>(
-    (key, vars) => interpolate(dictionaries[language][key] ?? dictionaries[DEFAULT_LANGUAGE][key] ?? key, vars),
-    [language]
+    (key, vars) =>
+      interpolate(
+        getTranslationOverride(language, key) ??
+          dictionaries[language][key] ??
+          dictionaries[DEFAULT_LANGUAGE][key] ??
+          key,
+        vars
+      ),
+    [language, overridesRevision]
   );
 
   const value = useMemo<LanguageContextValue>(

@@ -25,7 +25,8 @@
 :root {
   /* Sabit üst bar yığını: app-chrome (38) + tool-ribbon (48) + ticker (30).
      Yapışkan öğeler bu değeri referans alır, altına kayıp başlığı örtmezler. */
-  --fixed-header-height: 116px;
+  --banner-height: 0px;
+  --fixed-header-height: calc(116px + var(--banner-height));
 
   /* Surface & Base */
   --background: #06090d;
@@ -154,7 +155,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  padding-top: 118px;
+  padding-top: calc(118px + var(--banner-height));
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
   background-color: var(--background);
@@ -189,7 +190,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .app-chrome {
   position: fixed;
   z-index: 45;
-  top: 0;
+  top: var(--banner-height);
   left: 0;
   display: grid;
   grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
@@ -484,7 +485,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .tool-ribbon {
   position: fixed;
   z-index: 40;
-  top: 38px;
+  top: calc(38px + var(--banner-height));
   left: 0;
   display: flex;
   align-items: stretch;
@@ -756,7 +757,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ticker-tape-container {
   position: fixed;
   z-index: 38;
-  top: 86px;
+  top: calc(86px + var(--banner-height));
   left: 0;
   display: flex;
   align-items: center;
@@ -5803,7 +5804,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
 
   :root {
-    --fixed-header-height: 110px;
+    --fixed-header-height: calc(110px + var(--banner-height));
   }
 
   .ticker-tape-container {
@@ -10335,6 +10336,82 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   Site Announcement Banner (yönetim panelinden açılır)
+   ========================================================================== */
 
+/* Sabit üst barların üstünde durur; yüksekliği --banner-height ile diğer
+   katmanlara bildirilir, böylece hiçbir şeyin üzerine binmez. */
+.site-banner {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 44px 8px 16px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
 
+.site-banner p {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
+.site-banner-icon {
+  flex-shrink: 0;
+}
+
+.site-banner-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.site-banner-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.site-banner-close:hover {
+  opacity: 1;
+}
+
+.site-banner.tone-info {
+  background: rgba(56, 189, 248, 0.12);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.34);
+  color: #bae6fd;
+}
+
+.site-banner.tone-warning {
+  background: rgba(251, 191, 36, 0.12);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.34);
+  color: #fde68a;
+}
+
+.site-banner.tone-success {
+  background: rgba(0, 245, 155, 0.1);
+  border-bottom: 1px solid rgba(0, 245, 155, 0.32);
+  color: #a7f3d0;
+}

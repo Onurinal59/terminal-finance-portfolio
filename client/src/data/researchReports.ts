@@ -20,6 +20,8 @@ interface ReportBase {
   upsidePotential?: string;
   author: string;
   link: string;
+  /** Yönetim panelinden gerçek bir PDF yüklendiğinde dolar; statik verilerde boştur. */
+  pdfUrl?: string;
 }
 
 /** Dile göre değişen metinler. */
@@ -49,7 +51,7 @@ export type ResearchReport = ReportBase & ReportCopy;
  * Yeni rapor eklemek için REPORT_BASE listesine bir kayıt, ardından REPORT_COPY içindeki
  * her dile aynı id ile metin bloğu ekleyin. Raporlar site içinde okunur; ayrı PDF dosyası tutulmaz.
  */
-const REPORT_BASE: ReportBase[] = [
+export const REPORT_BASE: ReportBase[] = [
   {
     id: "R-01",
     ticker: "THYAO",
@@ -123,7 +125,7 @@ const REPORT_BASE: ReportBase[] = [
   },
 ];
 
-const REPORT_COPY: Record<Language, Record<string, ReportCopy>> = {
+export const REPORT_COPY: Record<Language, Record<string, ReportCopy>> = {
   tr: {
     "R-01": {
       title: "Türk Hava Yolları (THYAO): Küresel Filo Hamlesi, Kargo Katkısı ve CASK/RASK Dinamikleri",

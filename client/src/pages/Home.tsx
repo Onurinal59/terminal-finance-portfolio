@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 import { GlobalMarketSearch } from "@/components/GlobalMarketSearch";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useContent } from "@/content/ContentContext";
 import { MobileModulesSheet, type MobileModuleId } from "@/components/MobileModulesSheet";
 import { ResearchLibrary } from "@/components/ResearchLibrary";
 import { ContactDesk } from "@/components/ContactDesk";
@@ -98,6 +99,9 @@ const marketSeeds: MarketRow[] = [
   ["ABD 10Y", "^TNX", "MAKRO", "TAHVİL", 3, "%"],
   ["BTC-USD", "BTC-USD", "MAKRO", "KRİPTO", 2, "USD"],
 ].map(([symbol, providerSymbol, category, kind, precision, currency]) => ({ symbol: String(symbol), providerSymbol: String(providerSymbol), category: category as MarketRow["category"], kind: String(kind), precision: Number(precision), currency: String(currency), value: "—", change: "—", pct: "—", tone: "flat" as const, last: 0 }));
+
+/** Yönetim panelinin "izleme listesi" sekmesine varsayılan evreni göstermek için. */
+export const DEFAULT_WATCHLIST_SYMBOLS = marketSeeds.map((seed) => seed.symbol);
 
 const statementLabelKeys: Record<FinancialStatementKind, TranslationKey> = {
   income: "statement.income.label",
@@ -941,6 +945,7 @@ function StatementExplorer({
 
 function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) {
   const { t } = useI18n();
+  const { isBlockVisible } = useContent();
   const [downloadStep, setDownloadStep] = useState<"idle" | "language" | "format" | "ready" | "downloading">("idle");
   const [cvLanguage, setCvLanguage] = useState<"TR" | "EN">("TR");
   const [format, setFormat] = useState<"photo" | "plain">("photo");
@@ -970,35 +975,43 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
           <h1>{t("profile.name")}</h1>
           <p>{t("profile.role")}</p>
           <div className="profile-links">
-            <a href={linkedInUrl} target="_blank" rel="noreferrer" className="profile-social-link">
-              <Linkedin size={13} /> {t("profile.linkedin")} <ExternalLink size={11} />
-            </a>
+            {isBlockVisible("profile.linkedin") && (
+              <a href={linkedInUrl} target="_blank" rel="noreferrer" className="profile-social-link">
+                <Linkedin size={13} /> {t("profile.linkedin")} <ExternalLink size={11} />
+              </a>
+            )}
             <button onClick={onOpenFullProfile} className="profile-expand-link">
               <UserRound size={13} /> {t("profile.fullProfile")} <ArrowUpRight size={11} />
             </button>
           </div>
         </div>
-        <div className="profile-mark">
-          <b>{t("profile.gpaValue")}</b>
-          <small>{t("profile.gpaLabel")}</small>
-        </div>
+        {isBlockVisible("profile.gpa") && (
+          <div className="profile-mark">
+            <b>{t("profile.gpaValue")}</b>
+            <small>{t("profile.gpaLabel")}</small>
+          </div>
+        )}
       </div>
 
       <div className="profile-highlights-grid">
-        <div className="highlight-pill">
-          <BookOpen size={15} />
-          <div>
-            <span>{t("profile.researchLabel")}</span>
-            <b>{t("profile.researchValue")}</b>
+        {isBlockVisible("profile.research") && (
+          <div className="highlight-pill">
+            <BookOpen size={15} />
+            <div>
+              <span>{t("profile.researchLabel")}</span>
+              <b>{t("profile.researchValue")}</b>
+            </div>
           </div>
-        </div>
-        <div className="highlight-pill">
-          <Code2 size={15} />
-          <div>
-            <span>{t("profile.techLabel")}</span>
-            <b>{t("profile.techValue")}</b>
+        )}
+        {isBlockVisible("profile.tech") && (
+          <div className="highlight-pill">
+            <Code2 size={15} />
+            <div>
+              <span>{t("profile.techLabel")}</span>
+              <b>{t("profile.techValue")}</b>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="profile-summary">
@@ -1006,6 +1019,7 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
         <p>{t("profile.summaryText")}</p>
       </div>
 
+      {isBlockVisible("profile.cvDownload") && (
       <div className={`cv-selector cv-step-${downloadStep}`}>
         <div className="cv-info">
           <span>{t("cv.title")}</span>
@@ -1049,12 +1063,14 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }
 
 function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () => void }) {
   const { t } = useI18n();
+  const { isBlockVisible } = useContent();
   const downloadCv = (href: string, filename: string) => {
     const a = document.createElement("a");
     a.href = href;
@@ -1089,10 +1105,12 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
             </div>
             <h2>{t("profile.name")}</h2>
             <p>{t("profileView.role")}</p>
-            <div className="analyst-gpa-badge">
-              <span>{t("profileView.gpaLabel")}</span>
-              <b>{t("profileView.gpaValue")} <small>{t("profileView.gpaScale")}</small></b>
-            </div>
+            {isBlockVisible("profileView.gpa") && (
+              <div className="analyst-gpa-badge">
+                <span>{t("profileView.gpaLabel")}</span>
+                <b>{t("profileView.gpaValue")} <small>{t("profileView.gpaScale")}</small></b>
+              </div>
+            )}
           </div>
 
           <div className="analyst-facts">
@@ -1202,10 +1220,12 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
                   <p>
                     {t("profileView.academicDetail")} <b>{t("profileView.academicGpa")}</b>
                   </p>
-                  <div className="award-callout">
-                    <Award size={15} />
-                    <span><b>{t("profileView.awardTitle")}</b> {t("profileView.awardDesc")}</span>
-                  </div>
+                  {isBlockVisible("profileView.awards") && (
+                    <div className="award-callout">
+                      <Award size={15} />
+                      <span><b>{t("profileView.awardTitle")}</b> {t("profileView.awardDesc")}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1583,39 +1603,30 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
   );
 }
 
-const macroIndicators: Array<{ id: string; labelKey: TranslationKey; valueKey: TranslationKey; noteKey: TranslationKey; tone: string }> = [
-  { id: "cbrt", labelKey: "macro.cbrtLabel", valueKey: "macro.cbrtValue", noteKey: "macro.cbrtNote", tone: "flat" },
-  { id: "fed", labelKey: "macro.fedLabel", valueKey: "macro.fedValue", noteKey: "macro.fedNote", tone: "flat" },
-  { id: "ecb", labelKey: "macro.ecbLabel", valueKey: "macro.ecbValue", noteKey: "macro.ecbNote", tone: "up" },
-  { id: "tr10y", labelKey: "macro.tr10yLabel", valueKey: "macro.tr10yValue", noteKey: "macro.tr10yNote", tone: "flat" },
-  { id: "us10y", labelKey: "macro.us10yLabel", valueKey: "macro.us10yValue", noteKey: "macro.us10yNote", tone: "flat" },
-  { id: "cds", labelKey: "macro.cdsLabel", valueKey: "macro.cdsValue", noteKey: "macro.cdsNote", tone: "down" },
-  { id: "cpiTr", labelKey: "macro.cpiTrLabel", valueKey: "macro.cpiTrValue", noteKey: "macro.cpiTrNote", tone: "down" },
-  { id: "cpiUs", labelKey: "macro.cpiUsLabel", valueKey: "macro.cpiUsValue", noteKey: "macro.cpiUsNote", tone: "down" },
-];
-
 /**
- * Makro göstergeler canlı bir veri kaynağından değil, elle güncellenen bir anlık görüntüden gelir.
- * Değerleri tazeledikçe bu tarihi de güncelleyin; panelin altbilgisinde okuyucuya gösterilir.
+ * Makro göstergeler canlı bir veri kaynağından değil, elle güncellenen bir anlık
+ * görüntüden gelir. Değerler ve tarih yönetim panelinden düzenlenir; panel hiç
+ * kullanılmamışsa koddaki varsayılanlar (content/defaults.ts) gösterilir.
  */
-const MACRO_SNAPSHOT_DATE = "2026-09-04";
-
 function MacroEconomyPanel() {
-  const { t, locale } = useI18n();
-  const snapshotDate = new Date(`${MACRO_SNAPSHOT_DATE}T00:00:00`).toLocaleDateString(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const { t, locale, language } = useI18n();
+  const { macroIndicators, macroSnapshotDate } = useContent();
+
+  const snapshotDate = useMemo(() => {
+    const parsed = new Date(`${macroSnapshotDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return macroSnapshotDate;
+    return parsed.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+  }, [macroSnapshotDate, locale]);
+
   return (
     <div className="macro-economy-panel">
       <div className="macro-grid">
         {macroIndicators.map((item) => (
           <div key={item.id} className="macro-item">
-            <span className="macro-item-label">{t(item.labelKey)}</span>
+            <span className="macro-item-label">{item.label[language]}</span>
             <div className="macro-item-val-row">
-              <b className="macro-item-val">{t(item.valueKey)}</b>
-              <small className={`macro-item-tag ${item.tone}`}>{t(item.noteKey)}</small>
+              <b className="macro-item-val">{item.value[language]}</b>
+              <small className={`macro-item-tag ${item.tone}`}>{item.note[language]}</small>
             </div>
           </div>
         ))}
@@ -1686,6 +1697,7 @@ function isSessionOpen(session: MarketSession, now: Date) {
 
 function MarketHoursPanel() {
   const { t } = useI18n();
+  const { isSessionEnabled } = useContent();
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -1696,7 +1708,7 @@ function MarketHoursPanel() {
   return (
     <div className="market-hours-panel">
       <div className="hours-list">
-        {marketSessions.map((session) => {
+        {marketSessions.filter((session) => isSessionEnabled(session.id)).map((session) => {
           const live = isSessionOpen(session, now);
           return (
             <div key={session.id} className="hours-row">
@@ -2098,6 +2110,7 @@ type MobileModuleFilter = "ALL" | "CHART" | "WATCH" | "FINANCIALS" | "SUMMARY" |
 
 export default function Home() {
   const { t, language } = useI18n();
+  const { isBlockVisible, watchlistOverride } = useContent();
   const [activeView, setActiveView] = useState<TerminalView>(() => { const view = new URLSearchParams(window.location.search).get("view"); return view === "PROFILE" ? "PROFILE" : view === "RESEARCH" ? "RESEARCH" : view === "CONTACT" ? "CONTACT" : "DASHBOARD"; });
   const [mobileFilter, setMobileFilter] = useState<MobileModuleFilter>("ALL");
   const [mobileModulesOpen, setMobileModulesOpen] = useState(false);
@@ -2117,7 +2130,14 @@ export default function Home() {
   });
   const discoveredSeed = useMemo<MarketRow | null>(() => discoveredSymbol ? { symbol: discoveredSymbol.symbol, providerSymbol: discoveredSymbol.providerSymbol, category: "ABD", kind: "KEŞİF", value: "—", change: "—", pct: "—", tone: "flat", last: 0, precision: 2, currency: "—", sourceName: discoveredSymbol.name } : null, [discoveredSymbol]);
   const watchUniverse = useMemo(() => {
-    const list = [...marketSeeds];
+    // Panelden bir liste verilmişse varsayılan evren onunla sınırlanır ve
+    // panelde girilen sıra korunur; tanınmayan kodlar sessizce atlanır.
+    const seeds = watchlistOverride
+      ? watchlistOverride
+          .map((symbol) => marketSeeds.find((seed) => seed.symbol === symbol))
+          .filter((seed): seed is MarketRow => Boolean(seed))
+      : marketSeeds;
+    const list = seeds.length ? [...seeds] : [...marketSeeds];
     if (discoveredSeed) list.push(discoveredSeed);
     for (const sym of recentSymbols) {
       if (!list.some((item) => item.symbol === sym)) {
@@ -2137,7 +2157,7 @@ export default function Home() {
       }
     }
     return list.filter((item, index, all) => all.findIndex((candidate) => candidate.providerSymbol === item.providerSymbol) === index);
-  }, [discoveredSeed, recentSymbols]);
+  }, [discoveredSeed, recentSymbols, watchlistOverride]);
   const quotes = trpc.market.quotes.useQuery({ symbols: watchUniverse.map((item) => item.providerSymbol) }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const quoteMap = useMemo(() => new Map((quotes.data ?? []).map((item) => [item.symbol, item])), [quotes.data]); const markets = useMemo(() => watchUniverse.map((item) => mergeQuote(item, quoteMap.get(item.providerSymbol))), [watchUniverse, quoteMap]); const row = markets.find((item) => item.symbol === selectedSymbol) ?? markets.find((item) => item.symbol === "THYAO")!;
   const chart = trpc.market.chart.useQuery({ symbol: row.providerSymbol, timeframe: interval }, { refetchInterval: 60_000, staleTime: 40_000, retry: 1 }); const statementKind: FinancialStatementKind = chartMode === "price" ? "income" : chartMode; const statements = trpc.market.statements.useQuery({ symbol: row.providerSymbol, statement: statementKind }, { staleTime: 45_000, retry: 1 }); const search = trpc.market.search.useQuery({ query: query.trim().length >= 1 ? query.trim() : "a" }, { enabled: query.trim().length >= 1, staleTime: 30_000, retry: 1 });
   useEffect(() => { setClock(formatClock()); const timer = window.setInterval(() => setClock(formatClock()), 1000); return () => window.clearInterval(timer); }, [language]); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.panelOrder, JSON.stringify(panelOrder)); }, [panelOrder]); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.lockedPanels, JSON.stringify(lockedPanels)); }, [lockedPanels]); useEffect(() => { window.localStorage.removeItem(STORAGE_KEYS.legacyWatchlist); }, []); useEffect(() => { window.localStorage.setItem(STORAGE_KEYS.recentSymbols, JSON.stringify(recentSymbols)); }, [recentSymbols]);
@@ -2517,7 +2537,7 @@ export default function Home() {
     <nav className="tool-ribbon">
       <button className="terminal-menu-toggle" onClick={() => setMobileModulesOpen(true)}><Layers size={16}/> {t("nav.modules")}</button>
       <div className={mobileMenu ? "tool-menu open" : "tool-menu"}>
-        {(["DASHBOARD", "PROFILE", "RESEARCH", "CONTACT"] as TerminalView[]).map((view) => <button key={view} className={activeView === view ? "tool-button active" : "tool-button"} onClick={() => changeView(view)}>{view === "DASHBOARD" ? <Grid2X2 size={16}/> : view === "PROFILE" ? <UserRound size={16}/> : view === "RESEARCH" ? <BookOpen size={16}/> : <Mail size={16}/>} {view === "DASHBOARD" ? t("nav.dashboard") : view === "PROFILE" ? t("nav.profile") : view === "RESEARCH" ? t("nav.research") : t("nav.contact")}</button>)}
+        {(["DASHBOARD", "PROFILE", "RESEARCH", "CONTACT"] as TerminalView[]).filter((view) => view !== "RESEARCH" || isBlockVisible("nav.research")).map((view) => <button key={view} className={activeView === view ? "tool-button active" : "tool-button"} onClick={() => changeView(view)}>{view === "DASHBOARD" ? <Grid2X2 size={16}/> : view === "PROFILE" ? <UserRound size={16}/> : view === "RESEARCH" ? <BookOpen size={16}/> : <Mail size={16}/>} {view === "DASHBOARD" ? t("nav.dashboard") : view === "PROFILE" ? t("nav.profile") : view === "RESEARCH" ? t("nav.research") : t("nav.contact")}</button>)}
       </div>
       <GlobalMarketSearch query={query} onQuery={setQuery} results={search.data ?? []} isLoading={search.isFetching} isError={search.isError} onSelect={openSearchResult}/>
     </nav>
@@ -2620,13 +2640,17 @@ export default function Home() {
             </div>
           )}
 
-          <TerminalPanel id="macro-dock" title={t("panels.macro")} code="MACRO_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="macro-panel">
-            <MacroEconomyPanel />
-          </TerminalPanel>
+          {isBlockVisible("dashboard.macroPanel") && (
+            <TerminalPanel id="macro-dock" title={t("panels.macro")} code="MACRO_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="macro-panel">
+              <MacroEconomyPanel />
+            </TerminalPanel>
+          )}
 
-          <TerminalPanel id="hours-dock" title={t("panels.hours")} code="MARKET_HOURS" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="hours-panel">
-            <MarketHoursPanel />
-          </TerminalPanel>
+          {isBlockVisible("dashboard.hoursPanel") && (
+            <TerminalPanel id="hours-dock" title={t("panels.hours")} code="MARKET_HOURS" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="hours-panel">
+              <MarketHoursPanel />
+            </TerminalPanel>
+          )}
         </aside>
       )}
       <main ref={workspaceRef} className="terminal-workspace">
@@ -2647,13 +2671,15 @@ export default function Home() {
           <div className="quick-links">
             <span>{t("quick.title")}</span>
             <button onClick={() => changeView("PROFILE")}><UserRound size={15}/> {t("quick.profile")} <ArrowUpRight size={13}/></button>
-            <button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("quick.research")} <ArrowUpRight size={13}/></button>
+            {isBlockVisible("nav.research") && <button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("quick.research")} <ArrowUpRight size={13}/></button>}
             <button onClick={() => changeView("CONTACT")}><Mail size={15}/> {t("quick.contact")} <ArrowUpRight size={13}/></button>
           </div>
           <FinancialAnalysisPanel row={row} points={chart.data?.points ?? []} statement={statementKind} onOpenResearch={() => changeView("RESEARCH")}/>
-          <TerminalPanel id="valuation-dock" title={t("panels.valuation")} code="VALUATION_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="valuation-panel">
-            <ValuationDeskPanel onOpenResearch={() => changeView("RESEARCH")} />
-          </TerminalPanel>
+          {isBlockVisible("dashboard.valuationPanel") && (
+            <TerminalPanel id="valuation-dock" title={t("panels.valuation")} code="VALUATION_DESK" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="valuation-panel">
+              <ValuationDeskPanel onOpenResearch={() => changeView("RESEARCH")} />
+            </TerminalPanel>
+          )}
         </aside>
       )}
     </div>

@@ -726,6 +726,11 @@ export const en: Dictionary = {
   "research.sampleNoticeTitle": "Sample work:",
   "research.sampleNoticeText":
     "The dossiers in this library are sample analyses written to demonstrate the valuation methodology and report format. The target prices and projections are not real investment advice.",
+  "research.openPdf": "OPEN THE PDF",
+  "research.openPdfNewTab": "Open the PDF report in a new tab",
+  "research.cardPdf": "PDF",
+  "research.libraryEmptyTitle": "No reports in the library yet",
+  "research.libraryEmptyDesc": "Published research dossiers are listed here.",
   "research.backToLibrary": "BACK TO THE FULL REPORT LIBRARY",
   "research.openLiveChart": "OPEN LIVE CHART",
   "research.share": "Share",
