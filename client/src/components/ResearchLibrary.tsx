@@ -32,13 +32,7 @@ interface ResearchLibraryProps {
   onOpenSymbolChart?: (symbol: string) => void;
 }
 
-const CATEGORY_TABS: Array<{ id: ReportCategory; labelKey: TranslationKey }> = [
-  { id: "ALL", labelKey: "research.catAll" },
-  { id: "EQUITY", labelKey: "research.catEquity" },
-  { id: "MOAT", labelKey: "research.catMoat" },
-  { id: "SECTOR", labelKey: "research.catSector" },
-  { id: "MACRO", labelKey: "research.catMacro" },
-];
+
 
 export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
   onBack,
@@ -46,7 +40,16 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
   onOpenSymbolChart,
 }) => {
   const { t, language } = useI18n();
-  const { reports: storedReports, researchNotice } = useContent();
+  const { reports: storedReports, researchNotice, reportCategories } = useContent();
+
+  // "Tümü" sanal bir sekmedir; kalanlar panelde tanımlı kategorilerden gelir.
+  const categoryTabs = useMemo(
+    () => [
+      { id: "ALL", label: t("research.catAll") },
+      ...reportCategories.map((category) => ({ id: category.id, label: category.label[language] })),
+    ],
+    [reportCategories, language, t]
+  );
 
   // Panelden gelen kayıtlar iki dili birlikte taşır; görünüm için aktif dilin
   // metinleriyle düzleştiriyoruz. Taslak (yayımlanmamış) raporlar sitede çıkmaz.
@@ -69,20 +72,13 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
   const [readingMode, setReadingMode] = useState<"CATALOG" | "DOSSIER">("CATALOG");
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {
-      ALL: reports.length,
-      EQUITY: 0,
-      MOAT: 0,
-      SECTOR: 0,
-      MACRO: 0,
-    };
-    reports.forEach((r) => {
-      if (counts[r.category] !== undefined) {
-        counts[r.category] += 1;
-      }
-    });
+    const counts: Record<string, number> = { ALL: reports.length };
+    for (const category of reportCategories) counts[category.id] = 0;
+    for (const report of reports) {
+      if (counts[report.category] !== undefined) counts[report.category] += 1;
+    }
     return counts;
-  }, [reports]);
+  }, [reports, reportCategories]);
 
   const filteredReports = useMemo(() => {
     let list = reports;
@@ -309,13 +305,13 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
                 <Filter size={12} /> {t("research.categoryLabel")}
               </span>
               <div className="category-button-group">
-                {CATEGORY_TABS.map((cat) => (
+                {categoryTabs.map((cat) => (
                   <button
                     key={cat.id}
                     className={`category-tab-btn ${selectedCategory === cat.id ? "active" : ""}`}
                     onClick={() => setSelectedCategory(cat.id)}
                   >
-                    <span>{t(cat.labelKey)}</span>
+                    <span>{cat.label}</span>
                     <small>({categoryCounts[cat.id] || 0})</small>
                   </button>
                 ))}

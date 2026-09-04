@@ -17,9 +17,21 @@ export const localizedTextSchema = z.object({
 });
 export type LocalizedText = z.infer<typeof localizedTextSchema>;
 
-export const REPORT_CATEGORIES = ["EQUITY", "MOAT", "SECTOR", "MACRO"] as const;
+/** Kurulumla gelen kategoriler; panelden eklenip çıkarılabilir. */
+export const DEFAULT_REPORT_CATEGORY_IDS = ["EQUITY", "MOAT", "SECTOR", "MACRO"] as const;
+
+/** Rapor kategorisi. Kimlik serbest metin olduğu için yeni kategori eklenebilir. */
+export const reportCategorySchema = z.object({
+  id: z.string().min(1).max(32),
+  label: localizedTextSchema,
+});
+export type ReportCategoryContent = z.infer<typeof reportCategorySchema>;
 export const REPORT_TONES = ["bullish", "moat", "neutral", "highlight"] as const;
 export const MACRO_TONES = ["up", "down", "flat"] as const;
+/** Bir makro göstergenin değeri elle mi girilir, Yahoo'dan mı gelir. */
+export const MACRO_SOURCES = ["manual", "yahoo"] as const;
+/** Canlı değerin gösterim biçimi: yüzde mi düz sayı mı. */
+export const MACRO_DISPLAYS = ["percent", "number"] as const;
 export const BANNER_TONES = ["info", "warning", "success"] as const;
 
 export const valuationMetricSchema = z.object({
@@ -54,7 +66,8 @@ export type ReportCopyContent = z.infer<typeof reportCopySchema>;
 export const reportSchema = z.object({
   id: z.string().min(1).max(64),
   ticker: z.string().min(1).max(24),
-  category: z.enum(REPORT_CATEGORIES),
+  /** reportCategories listesindeki bir kimlik. Bilinmeyen kimlik "tümü"nde kalır. */
+  category: z.string().min(1).max(32),
   recommendationTone: z.enum(REPORT_TONES),
   targetPrice: z.string().optional(),
   currentPrice: z.string().optional(),
@@ -71,10 +84,19 @@ export type ReportContent = z.infer<typeof reportSchema>;
 
 export const macroIndicatorSchema = z.object({
   id: z.string().min(1).max(48),
+  /** Yalnızca manuel göstergelerde kullanılır; canlı olanlarda yön veriden gelir. */
   tone: z.enum(MACRO_TONES),
   label: localizedTextSchema,
+  /** Manuel göstergenin değeri. Canlı göstergelerde yok sayılır. */
   value: localizedTextSchema,
+  /** Manuel göstergenin rozeti. Canlı göstergelerde yerini günlük değişim alır. */
   note: localizedTextSchema,
+  /** Eski kayıtlarda bu alan yok; varsayılan olarak manuel sayılır. */
+  source: z.enum(MACRO_SOURCES).default("manual"),
+  /** Yahoo sembolü, örn. ^TNX. Yalnızca source === "yahoo" iken anlamlı. */
+  symbol: z.string().max(24).optional(),
+  display: z.enum(MACRO_DISPLAYS).optional(),
+  precision: z.number().int().min(0).max(4).optional(),
 });
 export type MacroIndicatorContent = z.infer<typeof macroIndicatorSchema>;
 
@@ -82,6 +104,55 @@ export const marketSessionToggleSchema = z.object({
   id: z.string().min(1).max(24),
   enabled: z.boolean(),
 });
+
+/** Profil sayfasında listelenen kişisel proje/site kaydı. */
+export const projectLinkSchema = z.object({
+  id: z.string().min(1).max(48),
+  label: localizedTextSchema,
+  description: localizedTextSchema,
+  url: z.string(),
+  enabled: z.boolean(),
+});
+export type ProjectLinkContent = z.infer<typeof projectLinkSchema>;
+
+/** Sitedeki sabit bağlantılar ve iletişim bilgisi. Boş alan koddaki değeri kullanır. */
+export const siteLinksSchema = z.object({
+  linkedin: z.string().optional(),
+  measureMoat: z.string().optional(),
+  /** İletişim formunun ve alt bilgideki mailto bağlantısının hedefi. */
+  email: z.string().optional(),
+  projects: z.array(projectLinkSchema).optional(),
+});
+export type SiteLinksContent = z.infer<typeof siteLinksSchema>;
+
+/** Panelden yüklenen görseller. Boş yuva koddaki dosyayı kullanır. */
+export const siteMediaSchema = z.object({
+  /** Profil fotoğrafı: pano kartında ve tam profilde görünür. */
+  profilePhoto: z.string().optional(),
+  /** Bağlantı paylaşımlarında çıkan 1200x630 kapak görseli. */
+  shareImage: z.string().optional(),
+});
+export type SiteMediaContent = z.infer<typeof siteMediaSchema>;
+
+/** Panelden yüklenen bir CV dosyası. */
+export const cvFileSchema = z.object({
+  url: z.string(),
+  fileName: z.string(),
+  uploadedAt: z.string().optional(),
+});
+export type CvFileContent = z.infer<typeof cvFileSchema>;
+
+/** Dört CV yuvası. Doldurulmayan yuva koddaki statik dosyayı kullanır. */
+export const cvLibrarySchema = z.object({
+  trPhoto: cvFileSchema.optional(),
+  trPlain: cvFileSchema.optional(),
+  enPhoto: cvFileSchema.optional(),
+  enPlain: cvFileSchema.optional(),
+});
+export type CvLibraryContent = z.infer<typeof cvLibrarySchema>;
+
+export const CV_SLOTS = ["trPhoto", "trPlain", "enPhoto", "enPlain"] as const;
+export type CvSlot = (typeof CV_SLOTS)[number];
 
 export const noticeSchema = z.object({
   enabled: z.boolean(),
@@ -124,6 +195,7 @@ export const siteContentSchema = z.object({
   hiddenBlocks: z.array(z.string()).optional(),
 
   reports: z.array(reportSchema).optional(),
+  reportCategories: z.array(reportCategorySchema).optional(),
   macro: z
     .object({
       snapshotDate: z.string().optional(),
@@ -132,6 +204,9 @@ export const siteContentSchema = z.object({
     .optional(),
   sessions: z.array(marketSessionToggleSchema).optional(),
   watchlist: z.array(z.string().min(1).max(24)).optional(),
+  cv: cvLibrarySchema.optional(),
+  links: siteLinksSchema.optional(),
+  media: siteMediaSchema.optional(),
   notices: z
     .object({
       researchSample: noticeSchema.optional(),

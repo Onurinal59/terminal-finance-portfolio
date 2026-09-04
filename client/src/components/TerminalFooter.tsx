@@ -7,6 +7,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useContent } from "@/content/ContentContext";
 
 interface TerminalFooterProps {
   onNavigate: (view: "DASHBOARD" | "PROFILE" | "RESEARCH" | "CONTACT") => void;
@@ -14,6 +15,7 @@ interface TerminalFooterProps {
 
 export const TerminalFooter: React.FC<TerminalFooterProps> = ({ onNavigate }) => {
   const { t } = useI18n();
+  const { links } = useContent();
 
   return (
     <footer className="terminal-master-footer" role="contentinfo" aria-label={t("footer.aria")}>
@@ -70,7 +72,7 @@ export const TerminalFooter: React.FC<TerminalFooterProps> = ({ onNavigate }) =>
             <span className="footer-nav-heading">{t("footer.externalHeading")}</span>
             <div className="footer-external-links">
               <a
-                href="https://measure-moat.vercel.app/#roadmap"
+                href={links.measureMoat}
                 target="_blank"
                 rel="noreferrer"
                 className="footer-ext-link"
@@ -79,7 +81,7 @@ export const TerminalFooter: React.FC<TerminalFooterProps> = ({ onNavigate }) =>
                 <span>{t("footer.externalMoat")}</span>
               </a>
               <a
-                href="https://www.linkedin.com/in/onur-inal-5b72182b8/"
+                href={links.linkedin}
                 target="_blank"
                 rel="noreferrer"
                 className="footer-ext-link"
@@ -88,11 +90,11 @@ export const TerminalFooter: React.FC<TerminalFooterProps> = ({ onNavigate }) =>
                 <span>{t("footer.externalLinkedin")}</span>
               </a>
               <a
-                href="mailto:onurinal815@gmail.com"
+                href={`mailto:${links.email}`}
                 className="footer-ext-link"
               >
                 <Mail size={13} />
-                <span>onurinal815@gmail.com</span>
+                <span>{links.email}</span>
               </a>
             </div>
           </div>

@@ -10,8 +10,16 @@ import type { Express, Request, Response } from "express";
 import { ADMIN_ENV } from "./env.js";
 import { readAdminSession } from "./session.js";
 
-const ALLOWED_TYPES = ["application/pdf"];
-const MAX_SIZE_BYTES = 25 * 1024 * 1024;
+/** Yükleme yolu → izin verilen tür ve boyut. Sunucu kısıtlar, istemci seçemez. */
+const UPLOAD_RULES = [
+  { prefix: "reports/", types: ["application/pdf"], maxBytes: 25 * 1024 * 1024 },
+  { prefix: "cv/", types: ["application/pdf"], maxBytes: 10 * 1024 * 1024 },
+  {
+    prefix: "media/",
+    types: ["image/png", "image/jpeg", "image/webp", "image/avif"],
+    maxBytes: 8 * 1024 * 1024,
+  },
+] as const;
 
 export function registerAdminUploadRoute(app: Express) {
   app.post("/api/admin/upload", async (req: Request, res: Response) => {
@@ -32,12 +40,15 @@ export function registerAdminUploadRoute(app: Express) {
         token: ADMIN_ENV.blobToken,
         onBeforeGenerateToken: async (pathname) => {
           // Yükleme yolunu sunucu kısıtlar; istemci rastgele bir yere yazamaz.
-          if (!pathname.startsWith("reports/")) {
-            throw new Error("Yalnızca reports/ altına yükleme yapılabilir");
+          const rule = UPLOAD_RULES.find((candidate) => pathname.startsWith(candidate.prefix));
+          if (!rule) {
+            throw new Error(
+              `Yükleme yolu izinli değil. İzinli klasörler: ${UPLOAD_RULES.map((r) => r.prefix).join(", ")}`
+            );
           }
           return {
-            allowedContentTypes: ALLOWED_TYPES,
-            maximumSizeInBytes: MAX_SIZE_BYTES,
+            allowedContentTypes: [...rule.types],
+            maximumSizeInBytes: rule.maxBytes,
             addRandomSuffix: true,
             tokenPayload: JSON.stringify({ email: session.email }),
           };

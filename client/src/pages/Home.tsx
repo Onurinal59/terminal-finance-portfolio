@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { GlobalMarketSearch } from "@/components/GlobalMarketSearch";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useContent } from "@/content/ContentContext";
+import type { CvSlot } from "@shared/siteContent";
 import { MobileModulesSheet, type MobileModuleId } from "@/components/MobileModulesSheet";
 import { ResearchLibrary } from "@/components/ResearchLibrary";
 import { ContactDesk } from "@/components/ContactDesk";
@@ -41,9 +42,6 @@ type StatementValue = { asOfDate: string; currency: string; raw: number; formatt
 type FinancialStatementsData = { symbol: string; statement: FinancialStatementKind; periods: Array<{ asOfDate: string; currency: string }>; rows: Array<{ key: string; label: string; values: Array<StatementValue | null> }>; chartAvailable: boolean; chartCurrency: string | null; source: "Yahoo Finance" };
 type DiscoveredSymbol = { symbol: string; providerSymbol: string; name: string };
 
-const profilePhoto = "/media/onur-inal.jpg";
-const linkedInUrl = "https://www.linkedin.com/in/onur%C4%B1nal/";
-const email = "onurinal815@gmail.com";
 const intervals = ["1G", "5G", "1A", "3A", "1Y"] as const;
 const defaultPanelOrder: PanelId[] = ["profile", "summary", "chart", "archive"];
 /** Depolama anahtarları tek yerde; okuma ve yazmanın ayrışmasını önler. */
@@ -53,16 +51,16 @@ const STORAGE_KEYS = {
   recentSymbols: "analiz-terminal-recent-symbols-v1",
   legacyWatchlist: "analiz-terminal-user-watchlist-v1",
 } as const;
-const cvLibrary = {
-  TR: {
-    photo: { labelKey: "cv.labelTrPhoto", href: "/cv/Onur_Inal_CV_TR_Fotografli.pdf", file: "Onur_Inal_CV_TR_Fotografli.pdf" },
-    plain: { labelKey: "cv.labelTrPlain", href: "/cv/Onur_Inal_CV_TR_ATS.pdf", file: "Onur_Inal_CV_TR_ATS.pdf" },
-  },
-  EN: {
-    photo: { labelKey: "cv.labelEnPhoto", href: "/cv/Onur_Inal_CV_EN_Fotografli.pdf", file: "Onur_Inal_CV_EN_Fotografli.pdf" },
-    plain: { labelKey: "cv.labelEnPlain", href: "/cv/Onur_Inal_CV_EN_ATS.pdf", file: "Onur_Inal_CV_EN_ATS.pdf" },
-  },
-} as const satisfies Record<"TR" | "EN", Record<"photo" | "plain", { labelKey: TranslationKey; href: string; file: string }>>;
+/** CV yuvalarının etiketleri koddan, dosyaları yönetim panelinden gelir. */
+const cvSlotKeys = {
+  TR: { photo: "trPhoto", plain: "trPlain" },
+  EN: { photo: "enPhoto", plain: "enPlain" },
+} as const satisfies Record<"TR" | "EN", Record<"photo" | "plain", CvSlot>>;
+
+const cvLabelKeys = {
+  TR: { photo: "cv.labelTrPhoto", plain: "cv.labelTrPlain" },
+  EN: { photo: "cv.labelEnPhoto", plain: "cv.labelEnPlain" },
+} as const satisfies Record<"TR" | "EN", Record<"photo" | "plain", TranslationKey>>;
 const marketSeeds: MarketRow[] = [
   // BIST / Türkiye
   ["BIST 100", "XU100.IS", "TÜRKİYE", "ENDEKS", 2, "TRY"],
@@ -945,19 +943,22 @@ function StatementExplorer({
 
 function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) {
   const { t } = useI18n();
-  const { isBlockVisible } = useContent();
+  const { isBlockVisible, links, media, cvFiles } = useContent();
   const [downloadStep, setDownloadStep] = useState<"idle" | "language" | "format" | "ready" | "downloading">("idle");
   const [cvLanguage, setCvLanguage] = useState<"TR" | "EN">("TR");
   const [format, setFormat] = useState<"photo" | "plain">("photo");
-  const cv = cvLibrary[cvLanguage][format];
+  const cv = {
+    ...cvFiles[cvSlotKeys[cvLanguage][format]],
+    labelKey: cvLabelKeys[cvLanguage][format],
+  };
   const chooseLanguage = (next: "TR" | "EN") => { setCvLanguage(next); setDownloadStep("format"); };
   const chooseFormat = (next: "photo" | "plain") => { setFormat(next); setDownloadStep("ready"); };
   const beginDownload = () => {
     setDownloadStep("downloading");
     window.setTimeout(() => {
       const anchor = document.createElement("a");
-      anchor.href = cv.href;
-      anchor.download = cv.file;
+      anchor.href = cv.url;
+      anchor.download = cv.fileName;
       anchor.click();
       setDownloadStep("ready");
     }, 600);
@@ -967,7 +968,7 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
     <div className="profile-terminal profile-card-modern">
       <div className="profile-identity">
         <div className="profile-photo-wrapper">
-          <img src={profilePhoto} alt="Onur İnal" />
+          <img src={media.profilePhoto} alt={t("profile.name")} />
           <span className="profile-badge-dot" title={t("profile.badgeTitle")} />
         </div>
         <div className="profile-bio-text">
@@ -976,7 +977,7 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
           <p>{t("profile.role")}</p>
           <div className="profile-links">
             {isBlockVisible("profile.linkedin") && (
-              <a href={linkedInUrl} target="_blank" rel="noreferrer" className="profile-social-link">
+              <a href={links.linkedin} target="_blank" rel="noreferrer" className="profile-social-link">
                 <Linkedin size={13} /> {t("profile.linkedin")} <ExternalLink size={11} />
               </a>
             )}
@@ -1070,7 +1071,7 @@ function ProfilePanel({ onOpenFullProfile }: { onOpenFullProfile: () => void }) 
 
 function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () => void }) {
   const { t } = useI18n();
-  const { isBlockVisible } = useContent();
+  const { isBlockVisible, links, media, cvFiles, projects } = useContent();
   const downloadCv = (href: string, filename: string) => {
     const a = document.createElement("a");
     a.href = href;
@@ -1101,7 +1102,7 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
         <aside className="profile-sidebar-card">
           <div className="analyst-head">
             <div className="analyst-avatar-box">
-              <img src={profilePhoto} alt="Onur İnal" />
+              <img src={media.profilePhoto} alt={t("profile.name")} />
             </div>
             <h2>{t("profile.name")}</h2>
             <p>{t("profileView.role")}</p>
@@ -1145,13 +1146,13 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
           </div>
 
           <div className="analyst-social-stack">
-            <a href={linkedInUrl} target="_blank" rel="noreferrer">
+            <a href={links.linkedin} target="_blank" rel="noreferrer">
               <Linkedin size={15} /> {t("profileView.linkedinLink")} <ExternalLink size={12} />
             </a>
-            <a href={`mailto:${email}`}>
-              <Mail size={15} /> {email} <ArrowUpRight size={12} />
+            <a href={`mailto:${links.email}`}>
+              <Mail size={15} /> {links.email} <ArrowUpRight size={12} />
             </a>
-            <a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer">
+            <a href={links.measureMoat} target="_blank" rel="noreferrer">
               <BookOpen size={15} /> {t("profileView.moatLink")} <ExternalLink size={12} />
             </a>
           </div>
@@ -1162,28 +1163,28 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
               <span>{t("profileView.cvCenter")}</span>
             </div>
             <div className="cv-cards-grid">
-              <button onClick={() => downloadCv("/cv/Onur_Inal_CV_TR_Fotografli.pdf", "Onur_Inal_CV_TR_Fotografli.pdf")}>
+              <button onClick={() => downloadCv(cvFiles.trPhoto.url, cvFiles.trPhoto.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvTrPhoto")}</b>
                   <small>{t("profileView.cvTrPhotoNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv("/cv/Onur_Inal_CV_TR_ATS.pdf", "Onur_Inal_CV_TR_ATS.pdf")}>
+              <button onClick={() => downloadCv(cvFiles.trPlain.url, cvFiles.trPlain.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvTrAts")}</b>
                   <small>{t("profileView.cvTrAtsNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv("/cv/Onur_Inal_CV_EN_Fotografli.pdf", "Onur_Inal_CV_EN_Fotografli.pdf")}>
+              <button onClick={() => downloadCv(cvFiles.enPhoto.url, cvFiles.enPhoto.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvEnPhoto")}</b>
                   <small>{t("profileView.cvEnPhotoNote")}</small>
                 </div>
               </button>
-              <button onClick={() => downloadCv("/cv/Onur_Inal_CV_EN_ATS.pdf", "Onur_Inal_CV_EN_ATS.pdf")}>
+              <button onClick={() => downloadCv(cvFiles.enPlain.url, cvFiles.enPlain.fileName)}>
                 <Download size={13} />
                 <div>
                   <b>{t("profileView.cvEnAts")}</b>
@@ -1293,7 +1294,7 @@ function ProfileView({ onBack, onContact }: { onBack: () => void; onContact: () 
             </div>
             <p>{t("profileView.moatDesc")}</p>
             <div className="project-action-row">
-              <a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer" className="btn-accent">
+              <a href={links.measureMoat} target="_blank" rel="noreferrer" className="btn-accent">
                 <ExternalLink size={14} /> {t("profileView.moatCta")}
               </a>
               <button onClick={onContact} className="btn-outline">
@@ -1612,27 +1613,83 @@ function MacroEconomyPanel() {
   const { t, locale, language } = useI18n();
   const { macroIndicators, macroSnapshotDate } = useContent();
 
+  // Canlı göstergeler tek bir istekte çekilir; dakikada bir tazelenir.
+  const liveSymbols = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          macroIndicators
+            .filter((item) => item.source === "yahoo" && item.symbol)
+            .map((item) => item.symbol as string)
+        )
+      ),
+    [macroIndicators]
+  );
+
+  const liveQuotes = trpc.market.quotes.useQuery(
+    { symbols: liveSymbols },
+    { enabled: liveSymbols.length > 0, refetchInterval: 60_000, staleTime: 40_000, retry: 1 }
+  );
+
+  const quoteMap = useMemo(
+    () => new Map((liveQuotes.data ?? []).map((quote) => [quote.symbol, quote])),
+    [liveQuotes.data]
+  );
+
+  const hasManual = macroIndicators.some((item) => item.source !== "yahoo");
+
   const snapshotDate = useMemo(() => {
     const parsed = new Date(`${macroSnapshotDate}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) return macroSnapshotDate;
     return parsed.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   }, [macroSnapshotDate, locale]);
 
+  /** Canlı bir göstergenin ekranda görünecek değeri, rozeti ve rengi. */
+  const resolveLive = (item: (typeof macroIndicators)[number]) => {
+    const quote = item.symbol ? quoteMap.get(item.symbol) : undefined;
+    if (!quote) {
+      return { value: "—", note: t("macro.live"), tone: "flat" as const };
+    }
+    const precision = item.precision ?? 2;
+    const formatted = formatDecimal(quote.price, precision);
+    const value = item.display === "percent" ? formatPercent(formatted) : formatted;
+    const changePercent = quote.changePercent;
+    if (changePercent === null || changePercent === undefined) {
+      return { value, note: t("macro.live"), tone: "flat" as const };
+    }
+    // İşaret yüzde imlecinin dışında kalmalı: Türkçede "-%0,32", "%-0,32" değil.
+    const sign = changePercent > 0 ? "+" : changePercent < 0 ? "-" : "";
+    return {
+      value,
+      note: `${sign}${formatPercent(formatDecimal(Math.abs(changePercent), 2))}`,
+      tone: changePercent > 0 ? ("up" as const) : changePercent < 0 ? ("down" as const) : ("flat" as const),
+    };
+  };
+
   return (
     <div className="macro-economy-panel">
       <div className="macro-grid">
-        {macroIndicators.map((item) => (
-          <div key={item.id} className="macro-item">
-            <span className="macro-item-label">{item.label[language]}</span>
-            <div className="macro-item-val-row">
-              <b className="macro-item-val">{item.value[language]}</b>
-              <small className={`macro-item-tag ${item.tone}`}>{item.note[language]}</small>
+        {macroIndicators.map((item) => {
+          const live = item.source === "yahoo" ? resolveLive(item) : null;
+          return (
+            <div key={item.id} className="macro-item">
+              <span className="macro-item-label">
+                {item.label[language]}
+                {live && <i className="macro-live-dot" title={t("macro.live")} />}
+              </span>
+              <div className="macro-item-val-row">
+                <b className="macro-item-val">{live ? live.value : item.value[language]}</b>
+                <small className={`macro-item-tag ${live ? live.tone : item.tone}`}>
+                  {live ? live.note : item.note[language]}
+                </small>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="macro-snapshot-note">
-        <span>{t("macro.snapshotLabel", { date: snapshotDate })}</span>
+        {liveSymbols.length > 0 && <span>{t("macro.liveLabel")}</span>}
+        {hasManual && <span>{t("macro.snapshotLabel", { date: snapshotDate })}</span>}
         <small>{t("macro.snapshotSources")}</small>
       </div>
     </div>
@@ -2110,7 +2167,7 @@ type MobileModuleFilter = "ALL" | "CHART" | "WATCH" | "FINANCIALS" | "SUMMARY" |
 
 export default function Home() {
   const { t, language } = useI18n();
-  const { isBlockVisible, watchlistOverride } = useContent();
+  const { isBlockVisible, watchlistOverride, links } = useContent();
   const [activeView, setActiveView] = useState<TerminalView>(() => { const view = new URLSearchParams(window.location.search).get("view"); return view === "PROFILE" ? "PROFILE" : view === "RESEARCH" ? "RESEARCH" : view === "CONTACT" ? "CONTACT" : "DASHBOARD"; });
   const [mobileFilter, setMobileFilter] = useState<MobileModuleFilter>("ALL");
   const [mobileModulesOpen, setMobileModulesOpen] = useState(false);
@@ -2472,7 +2529,7 @@ export default function Home() {
       </TerminalPanel>
     ),
     summary: <TerminalPanel key="summary" id="summary" title={t("panels.summary")} code="MARKET_PULSE" className="summary-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("summary")} onToggleLock={() => togglePanelLock("summary")}><SummaryPanel markets={markets} isRefreshing={quotes.isFetching} selectedSymbol={selectedSymbol} onSelect={chooseSymbol}/></TerminalPanel>,
-    archive: <TerminalPanel key="archive" id="archive" title={t("panels.archive")} code="RESEARCH_DESK" className="archive-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("archive")} onToggleLock={() => togglePanelLock("archive")}><div className="education-bar"><div><span>{t("archive.educationLabel")}</span><b>{t("archive.university")}</b><small>{t("archive.program")}</small></div><div><span>{t("archive.skillsLabel")}</span><b>{t("archive.skillsValue")}</b><small>{t("archive.skillsNote")}</small></div><a href="https://measure-moat.vercel.app/#roadmap" target="_blank" rel="noreferrer"><BookOpen size={15}/> Measure Moat<ExternalLink size={12}/></a></div><div className="archive-compact"><div className="archive-copy"><span>{t("archive.title")}</span><b>{t("archive.headline")}</b><small>{t("archive.note")}</small></div><button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("archive.cta")} <ArrowUpRight size={13}/></button></div></TerminalPanel>,
+    archive: <TerminalPanel key="archive" id="archive" title={t("panels.archive")} code="RESEARCH_DESK" className="archive-panel" dragged={draggedPanel} onDragStart={setDraggedPanel} onDrop={reorder} locked={lockedPanels.includes("archive")} onToggleLock={() => togglePanelLock("archive")}><div className="education-bar"><div><span>{t("archive.educationLabel")}</span><b>{t("archive.university")}</b><small>{t("archive.program")}</small></div><div><span>{t("archive.skillsLabel")}</span><b>{t("archive.skillsValue")}</b><small>{t("archive.skillsNote")}</small></div><a href={links.measureMoat} target="_blank" rel="noreferrer"><BookOpen size={15}/> Measure Moat<ExternalLink size={12}/></a></div><div className="archive-compact"><div className="archive-copy"><span>{t("archive.title")}</span><b>{t("archive.headline")}</b><small>{t("archive.note")}</small></div><button onClick={() => changeView("RESEARCH")}><BookOpen size={15}/> {t("archive.cta")} <ArrowUpRight size={13}/></button></div></TerminalPanel>,
   };
   const content = activeView === "PROFILE" ? (
     <TerminalPanel id="profile" title={t("panels.profileFull")} code="ANALYST_PROFILE" dragged={null} onDragStart={() => {}} onDrop={() => {}} movable={false} className="module-panel">

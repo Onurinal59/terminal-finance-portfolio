@@ -1,6 +1,7 @@
 import type { Language } from "@/i18n";
 
-export type ReportCategory = "ALL" | "EQUITY" | "MOAT" | "SECTOR" | "MACRO";
+/** "ALL" sanal filtre; diğerleri panelde tanımlı kategori kimlikleridir. */
+export type ReportCategory = string;
 
 export interface ValuationMetric {
   label: string;
@@ -13,7 +14,7 @@ export interface ValuationMetric {
 interface ReportBase {
   id: string;
   ticker: string;
-  category: Exclude<ReportCategory, "ALL">;
+  category: ReportCategory;
   recommendationTone: "bullish" | "moat" | "neutral" | "highlight";
   targetPrice?: string;
   currentPrice?: string;

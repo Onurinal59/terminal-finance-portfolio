@@ -20,16 +20,13 @@ import { toast } from "sonner";
 import { buildContactMailto } from "../lib/contactMailto";
 import { gsap, useGSAP } from "../lib/gsap";
 import { useI18n, type TranslationKey } from "@/i18n";
+import { useContent } from "@/content/ContentContext";
 
 interface ContactDeskProps {
   onBack: () => void;
   initialSubject?: string;
 }
 
-const EMAIL = "onurinal815@gmail.com";
-const LINKEDIN_URL = "https://www.linkedin.com/in/onur%C4%B1nal/";
-const MEASURE_MOAT_URL = "https://measure-moat.vercel.app/";
-const PROFILE_PHOTO = "/media/onur-inal.jpg";
 
 interface QuickTopicDefinition {
   id: string;
@@ -72,6 +69,10 @@ const QUICK_TOPICS: QuickTopicDefinition[] = [
 
 export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject }) => {
   const { t, language } = useI18n();
+  const { links, media } = useContent();
+  const EMAIL = links.email;
+  const LINKEDIN_URL = links.linkedin;
+  const MEASURE_MOAT_URL = links.measureMoat;
   const [selectedTopicId, setSelectedTopicId] = useState<string>("VALUATION");
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
@@ -363,7 +364,7 @@ export const ContactDesk: React.FC<ContactDeskProps> = ({ onBack, initialSubject
           {/* Analyst Card */}
           <div className="analyst-badge-card">
             <div className="analyst-avatar-wrapper">
-              <img src={PROFILE_PHOTO} alt="Onur İnal" className="analyst-img" />
+              <img src={media.profilePhoto} alt={t("profile.name")} className="analyst-img" />
               <span className="online-indicator" title={t("contact.openTitle")} />
             </div>
             <div className="analyst-info">

@@ -9,8 +9,12 @@
 import { useCallback, useMemo, useState } from "react";
 import type { LocalizedText, SiteContent, SiteContentDraft } from "@shared/siteContent";
 import {
+  DEFAULT_EMAIL,
+  DEFAULT_LINKEDIN_URL,
   DEFAULT_MACRO_INDICATORS,
+  DEFAULT_MEASURE_MOAT_URL,
   DEFAULT_MACRO_SNAPSHOT_DATE,
+  DEFAULT_REPORT_CATEGORIES,
   DEFAULT_RESEARCH_NOTICE,
   DEFAULT_SESSION_IDS,
   defaultReports,
@@ -20,10 +24,17 @@ import { tr } from "@/i18n/tr";
 import type { TranslationKey } from "@/i18n";
 
 /** Taslakta her alan dolu; kaydetmeden önce seyrekleştirilir. */
-export type WorkingDraft = Required<Omit<SiteContentDraft, "seo" | "notices" | "macro">> & {
+export type WorkingDraft = Required<Omit<SiteContentDraft, "seo" | "notices" | "macro" | "links" | "media">> & {
   macro: { snapshotDate: string; indicators: NonNullable<NonNullable<SiteContentDraft["macro"]>["indicators"]> };
   notices: NonNullable<SiteContentDraft["notices"]>;
   seo: NonNullable<SiteContentDraft["seo"]>;
+  links: {
+    linkedin: string;
+    measureMoat: string;
+    email: string;
+    projects: NonNullable<NonNullable<SiteContentDraft["links"]>["projects"]>;
+  };
+  media: NonNullable<SiteContentDraft["media"]>;
 };
 
 function text(key: TranslationKey): LocalizedText {
@@ -35,12 +46,21 @@ export function buildWorkingDraft(stored: SiteContent, defaultWatchlist: string[
     translations: stored.translations ?? {},
     hiddenBlocks: stored.hiddenBlocks ?? [],
     reports: stored.reports ?? defaultReports(),
+    reportCategories: stored.reportCategories ?? DEFAULT_REPORT_CATEGORIES,
     macro: {
       snapshotDate: stored.macro?.snapshotDate || DEFAULT_MACRO_SNAPSHOT_DATE,
       indicators: stored.macro?.indicators ?? DEFAULT_MACRO_INDICATORS,
     },
     sessions: stored.sessions ?? DEFAULT_SESSION_IDS.map((id) => ({ id, enabled: true })),
     watchlist: stored.watchlist ?? defaultWatchlist,
+    cv: stored.cv ?? {},
+    media: stored.media ?? {},
+    links: {
+      linkedin: stored.links?.linkedin || DEFAULT_LINKEDIN_URL,
+      measureMoat: stored.links?.measureMoat || DEFAULT_MEASURE_MOAT_URL,
+      email: stored.links?.email || DEFAULT_EMAIL,
+      projects: stored.links?.projects ?? [],
+    },
     notices: {
       researchSample: stored.notices?.researchSample ?? DEFAULT_RESEARCH_NOTICE,
       banner: stored.notices?.banner ?? {

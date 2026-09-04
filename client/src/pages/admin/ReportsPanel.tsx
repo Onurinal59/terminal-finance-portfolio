@@ -4,9 +4,9 @@ import { upload } from "@vercel/blob/client";
 import { Copy, FileUp, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
-  REPORT_CATEGORIES,
   REPORT_TONES,
   type Locale,
+  type ReportCategoryContent,
   type ReportContent,
   type ReportCopyContent,
 } from "@shared/siteContent";
@@ -31,12 +31,7 @@ const EMPTY_COPY: ReportCopyContent = {
   source: "",
 };
 
-const CATEGORY_LABELS: Record<(typeof REPORT_CATEGORIES)[number], string> = {
-  EQUITY: "Hisse değerleme",
-  MOAT: "Ekonomik hendek",
-  SECTOR: "Sektör analizi",
-  MACRO: "Makro & TMS 29",
-};
+
 
 const TONE_LABELS: Record<(typeof REPORT_TONES)[number], string> = {
   bullish: "Pozitif (yeşil)",
@@ -55,11 +50,11 @@ function makeId(existing: ReportContent[]) {
   return candidate;
 }
 
-function emptyReport(existing: ReportContent[]): ReportContent {
+function emptyReport(existing: ReportContent[], defaultCategory: string): ReportContent {
   return {
     id: makeId(existing),
     ticker: "YENİ",
-    category: "EQUITY",
+    category: defaultCategory,
     recommendationTone: "neutral",
     author: "Onur İnal",
     link: "",
@@ -70,9 +65,11 @@ function emptyReport(existing: ReportContent[]): ReportContent {
 
 export function ReportsPanel({
   reports,
+  categories,
   onChange,
 }: {
   reports: ReportContent[];
+  categories: ReportCategoryContent[];
   onChange: (next: ReportContent[]) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(reports[0]?.id ?? null);
@@ -98,7 +95,7 @@ export function ReportsPanel({
   };
 
   const addReport = () => {
-    const created = emptyReport(reports);
+    const created = emptyReport(reports, categories[0]?.id ?? "EQUITY");
     onChange([...reports, created]);
     setSelectedId(created.id);
   };
@@ -224,13 +221,16 @@ export function ReportsPanel({
                   <select
                     className="adm-input"
                     value={selected.category}
-                    onChange={(event) => patchReport({ category: event.target.value as ReportContent["category"] })}
+                    onChange={(event) => patchReport({ category: event.target.value })}
                   >
-                    {REPORT_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {CATEGORY_LABELS[category]}
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.label.tr || category.id}
                       </option>
                     ))}
+                    {!categories.some((category) => category.id === selected.category) && (
+                      <option value={selected.category}>{selected.category} (tanımsız kategori)</option>
+                    )}
                   </select>
                 </Field>
                 <Field label="Tavsiye rozeti rengi">

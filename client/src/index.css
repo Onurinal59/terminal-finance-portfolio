@@ -5332,6 +5332,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: rgba(56, 189, 248, 0.1);
 }
 
+.macro-live-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 5px;
+  vertical-align: middle;
+  background: var(--accent, #00f59b);
+  border-radius: 50%;
+  animation: macro-live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes macro-live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 .macro-snapshot-note {
   display: flex;
   flex-direction: column;

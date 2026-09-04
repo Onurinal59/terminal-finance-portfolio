@@ -108,24 +108,69 @@ varsayılanların *üzerine* uygular:
 - Her kaydetmede `revision` sayacı artar. İki sekmeden aynı anda kaydetmeye
   çalışırsan ikincisi reddedilir ve sayfayı yenilemen istenir.
 
-### Sekmeler
+### Bölümler
 
-| Sekme | Ne yapar |
+Panel sol kenar çubuğundan dört gruba ayrılır.
+
+**İçerik**
+
+| Bölüm | Ne yapar |
 | --- | --- |
-| **Raporlar** | Rapor ekle/sil/kopyala, sırala, TR ve EN metinlerini yaz, PDF yükle, taslak veya yayında yap |
-| **Metinler** | Sitedeki ~500 yazının tamamı. Ara, değiştir, tek tuşla varsayılana döndür |
-| **Görünürlük** | GPA rozeti, CV indirme, panolardaki modüller gibi blokları aç/kapat |
-| **Uyarılar** | Rapor kütüphanesindeki "örnek çalışma" kutusu ve site geneli duyuru bandı |
-| **Makro** | Gösterge ekle/sil, değerleri ve anlık görüntü tarihini güncelle |
-| **Seanslar** | Hangi borsaların listeleneceği (açık/kapalı durumu otomatik hesaplanır) |
-| **İzleme listesi** | Panodaki varsayılan sembol listesi ve sırası |
+| Raporlar | Rapor ekle/sil/kopyala, sırala, TR ve EN metinlerin tamamı, PDF yükle, taslak veya yayında yap |
+| Kategoriler | Kütüphanenin filtre sekmeleri. Yeni kategori ekle, adını değiştir, sırala. Bir kategoriye bağlı rapor varsa silinemez |
+| Site metinleri | Sözlükteki ~500 anahtarın tamamı. Ara, değiştir, tek tuşla varsayılana döndür |
 
-### PDF yükleme
+**Profil**
 
-Rapor düzenleyicideki **PDF yükle** düğmesi dosyayı doğrudan tarayıcıdan Blob'a
-gönderir (sunucudan geçmez, bu yüzden büyük dosyalar da sorun olmaz). Yalnızca
-`application/pdf` ve en fazla 25 MB kabul edilir. Yükleme bittiğinde raporda bir
-"PDF" düğmesi belirir; yüklemezsen o düğme hiç çıkmaz.
+| Bölüm | Ne yapar |
+| --- | --- |
+| Görseller | Profil fotoğrafı ve paylaşım kapağı (og:image) yükle |
+| CV dosyaları | TR/EN × fotoğraflı/ATS dört yuva; her birine ayrı PDF |
+| Bağlantılar | LinkedIn, e-posta, Measure Moat adresleri + proje listesi |
+
+**Pano**
+
+| Bölüm | Ne yapar |
+| --- | --- |
+| Makro göstergeler | Gösterge ekle/sil/sırala. Her gösterge ya elle girilir ya Yahoo'dan canlı gelir |
+| Piyasa seansları | Hangi borsalar listelensin (açık/kapalı otomatik hesaplanır) |
+| İzleme listesi | Panodaki varsayılan sembol listesi ve sırası |
+
+**Görünüm**
+
+| Bölüm | Ne yapar |
+| --- | --- |
+| Görünürlük | GPA rozeti, CV indirme, LinkedIn butonu, pano modülleri gibi 11 blok |
+| Uyarılar | Rapor kütüphanesindeki uyarı kutusu ve site geneli duyuru bandı |
+
+### Makro göstergeler: canlı ve manuel
+
+Her göstergenin bir **veri kaynağı** vardır:
+
+- **Yahoo Finance'ten canlı** — bir sembol girersin (`^TNX`, `DX-Y.NYB`, `^VIX`, `USDTRY=X`,
+  `GC=F`, `XU100.IS` …), değer ve günlük değişim otomatik gelir, dakikada bir yenilenir.
+  Rozetin rengi değişimin yönüne göre belirlenir. Etiketin başında yanıp sönen yeşil
+  bir nokta çıkar.
+- **Elle girilen değer** — değeri ve rozeti sen yazarsın.
+
+Politika faizleri (TCMB, Fed, ECB), enflasyon verileri ve CDS primi borsada işlem gören
+enstrümanlar olmadıkları için **Yahoo Finance'te yok**; onlar elle güncellenir. Panelde
+"Manuel göstergelerin tarihi" alanını da tazelemeyi unutma — sitenin altında
+"Manuel anlık görüntü · …" satırında görünür.
+
+### Dosya yükleme
+
+Rapor PDF'i, CV ve görseller doğrudan tarayıcıdan Blob'a gider (sunucudan geçmez, bu
+yüzden büyük dosyalar sorun olmaz). Sunucu izin verilen klasörü, türü ve boyutu kısıtlar:
+
+| Klasör | Tür | En fazla |
+| --- | --- | --- |
+| `reports/` | PDF | 25 MB |
+| `cv/` | PDF | 10 MB |
+| `media/` | PNG, JPG, WEBP, AVIF | 8 MB |
+
+Yüklediğin her dosyanın yanında "Varsayılana dön" düğmesi vardır; basınca kodla gelen
+dosyaya geri döner.
 
 ### Güvenlik notları
 

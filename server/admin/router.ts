@@ -67,7 +67,9 @@ export const adminRouter = router({
     ),
 
   files: router({
-    list: adminProcedure.query(() => guardStorage(() => listReportFiles())),
+    list: adminProcedure
+      .input(z.object({ prefix: z.string().max(64).optional() }).optional())
+      .query(({ input }) => guardStorage(() => listReportFiles(input?.prefix ?? ""))),
     remove: adminProcedure
       .input(z.object({ url: z.string().url() }))
       .mutation(({ input }) => guardStorage(async () => {

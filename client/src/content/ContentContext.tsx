@@ -8,8 +8,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type {
   BannerContent,
+  CvSlot,
   MacroIndicatorContent,
   NoticeContent,
+  ProjectLinkContent,
+  ReportCategoryContent,
   ReportContent,
   SiteContent,
 } from "@shared/siteContent";
@@ -17,7 +20,14 @@ import { EMPTY_SITE_CONTENT, siteContentSchema } from "@shared/siteContent";
 import { trpc } from "@/lib/trpc";
 import { setTranslationOverrides } from "@/i18n/overrides";
 import {
+  DEFAULT_CV_FILES,
+  DEFAULT_EMAIL,
+  DEFAULT_LINKEDIN_URL,
   DEFAULT_MACRO_INDICATORS,
+  DEFAULT_MEASURE_MOAT_URL,
+  DEFAULT_REPORT_CATEGORIES,
+  DEFAULT_PROFILE_PHOTO,
+  DEFAULT_SHARE_IMAGE,
   DEFAULT_MACRO_SNAPSHOT_DATE,
   DEFAULT_RESEARCH_NOTICE,
   defaultReports,
@@ -29,11 +39,18 @@ interface ContentContextValue {
   /** `t()` yeniden üretilsin diye artan sayaç. */
   overridesRevision: number;
   reports: ReportContent[];
+  reportCategories: ReportCategoryContent[];
   macroIndicators: MacroIndicatorContent[];
   macroSnapshotDate: string;
   researchNotice: NoticeContent;
   banner: BannerContent | null;
   watchlistOverride: string[] | null;
+  /** Sabit bağlantılar; panelde boş bırakılmışsa koddaki adres döner. */
+  links: { linkedin: string; measureMoat: string; email: string };
+  projects: ProjectLinkContent[];
+  media: { profilePhoto: string; shareImage: string };
+  /** Dört CV yuvası; yüklenmemiş olan koddaki dosyayı gösterir. */
+  cvFiles: Record<CvSlot, { url: string; fileName: string }>;
   isBlockVisible: (blockId: string) => boolean;
   isSessionEnabled: (sessionId: string) => boolean;
 }
@@ -95,11 +112,28 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       raw,
       overridesRevision,
       reports: raw.reports ?? defaultReports(),
+      reportCategories: raw.reportCategories ?? DEFAULT_REPORT_CATEGORIES,
       macroIndicators: raw.macro?.indicators ?? DEFAULT_MACRO_INDICATORS,
       macroSnapshotDate: raw.macro?.snapshotDate || DEFAULT_MACRO_SNAPSHOT_DATE,
       researchNotice: raw.notices?.researchSample ?? DEFAULT_RESEARCH_NOTICE,
       banner: raw.notices?.banner?.enabled ? raw.notices.banner : null,
       watchlistOverride: raw.watchlist?.length ? raw.watchlist : null,
+      links: {
+        linkedin: raw.links?.linkedin || DEFAULT_LINKEDIN_URL,
+        measureMoat: raw.links?.measureMoat || DEFAULT_MEASURE_MOAT_URL,
+        email: raw.links?.email || DEFAULT_EMAIL,
+      },
+      projects: (raw.links?.projects ?? []).filter((project) => project.enabled),
+      media: {
+        profilePhoto: raw.media?.profilePhoto || DEFAULT_PROFILE_PHOTO,
+        shareImage: raw.media?.shareImage || DEFAULT_SHARE_IMAGE,
+      },
+      cvFiles: {
+        trPhoto: raw.cv?.trPhoto ?? DEFAULT_CV_FILES.trPhoto,
+        trPlain: raw.cv?.trPlain ?? DEFAULT_CV_FILES.trPlain,
+        enPhoto: raw.cv?.enPhoto ?? DEFAULT_CV_FILES.enPhoto,
+        enPlain: raw.cv?.enPlain ?? DEFAULT_CV_FILES.enPlain,
+      },
       isBlockVisible: (blockId: string) => !hidden.has(blockId),
       // Listede adı geçmeyen seans varsayılan olarak açıktır.
       isSessionEnabled: (sessionId: string) => sessionMap.get(sessionId) ?? true,

@@ -9,36 +9,77 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
+  BellRing,
+  BookOpen,
   Check,
+  Clock3,
+  Eye,
+  FolderTree,
+  Gauge,
+  Image as ImageIcon,
+  Languages,
+  Link2,
+  ListOrdered,
   Loader2,
   LogOut,
+  Menu,
   Plus,
   RotateCcw,
   Save,
   Trash2,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
-import { HIDEABLE_BLOCKS, MACRO_TONES, BANNER_TONES } from "@shared/siteContent";
+import { BANNER_TONES, HIDEABLE_BLOCKS, MACRO_DISPLAYS, MACRO_SOURCES, MACRO_TONES } from "@shared/siteContent";
 import type { MacroIndicatorContent } from "@shared/siteContent";
 import { trpc } from "@/lib/trpc";
 import { DEFAULT_SESSION_IDS } from "@/content/defaults";
 import { DEFAULT_WATCHLIST_SYMBOLS } from "./Home";
+import { CategoriesTab, CvTab, LinksTab, MediaTab } from "./admin/AssetPanels";
 import { BilingualField, Field, Section, TextInput, Toggle } from "./admin/fields";
 import { ReportsPanel } from "./admin/ReportsPanel";
 import { TextsPanel } from "./admin/TextsPanel";
 import { buildWorkingDraft, toDraftPayload, useDraft, type WorkingDraft } from "./admin/useDraft";
 import "./admin/admin.css";
 
-const TABS = [
-  { id: "reports", label: "Raporlar" },
-  { id: "texts", label: "Metinler" },
-  { id: "visibility", label: "Görünürlük" },
-  { id: "notices", label: "Uyarılar" },
-  { id: "macro", label: "Makro" },
-  { id: "sessions", label: "Seanslar" },
-  { id: "watchlist", label: "İzleme listesi" },
+/** Kenar çubuğu grupları; panelin zihinsel haritasını verir. */
+const NAV_GROUPS = [
+  {
+    title: "İçerik",
+    items: [
+      { id: "reports", label: "Raporlar", icon: BookOpen, hint: "Araştırma dosyaları ve PDF'ler" },
+      { id: "categories", label: "Kategoriler", icon: FolderTree, hint: "Kütüphane filtre sekmeleri" },
+      { id: "texts", label: "Site metinleri", icon: Languages, hint: "Sitedeki her yazı" },
+    ],
+  },
+  {
+    title: "Profil",
+    items: [
+      { id: "media", label: "Görseller", icon: ImageIcon, hint: "Profil fotoğrafı ve paylaşım kapağı" },
+      { id: "cv", label: "CV dosyaları", icon: User, hint: "Dört dil ve biçim yuvası" },
+      { id: "links", label: "Bağlantılar", icon: Link2, hint: "LinkedIn, e-posta, projeler" },
+    ],
+  },
+  {
+    title: "Pano",
+    items: [
+      { id: "macro", label: "Makro göstergeler", icon: Gauge, hint: "Canlı ve elle girilen veriler" },
+      { id: "sessions", label: "Piyasa seansları", icon: Clock3, hint: "Listelenen borsalar" },
+      { id: "watchlist", label: "İzleme listesi", icon: ListOrdered, hint: "Varsayılan semboller" },
+    ],
+  },
+  {
+    title: "Görünüm",
+    items: [
+      { id: "visibility", label: "Görünürlük", icon: Eye, hint: "Blokları aç ve kapat" },
+      { id: "notices", label: "Uyarılar", icon: BellRing, hint: "Duyuru bandı ve rapor uyarısı" },
+    ],
+  },
 ] as const;
-type TabId = (typeof TABS)[number]["id"];
+
+type NavItem = (typeof NAV_GROUPS)[number]["items"][number];
+type TabId = NavItem["id"];
+const ALL_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => [...group.items]);
 
 const BLOCK_LABELS: Record<string, string> = {
   "profile.gpa": "Pano profil kartındaki GPA rozeti",
@@ -65,6 +106,16 @@ const MACRO_TONE_LABELS: Record<(typeof MACRO_TONES)[number], string> = {
   up: "Yeşil (yukarı)",
   down: "Mavi (aşağı)",
   flat: "Gri (yatay)",
+};
+
+const MACRO_SOURCE_LABELS: Record<(typeof MACRO_SOURCES)[number], string> = {
+  manual: "Elle girilen değer",
+  yahoo: "Yahoo Finance'ten canlı",
+};
+
+const MACRO_DISPLAY_LABELS: Record<(typeof MACRO_DISPLAYS)[number], string> = {
+  percent: "Yüzde · %4,79",
+  number: "Düz sayı · 99,33",
 };
 
 const BANNER_TONE_LABELS: Record<(typeof BANNER_TONES)[number], string> = {
@@ -98,20 +149,12 @@ export default function Admin() {
     );
   }
 
-  const missingConfig = status.data?.missingConfig ?? [];
   const session = status.data?.session ?? null;
-
   if (!session) {
-    return <LoginScreen missingConfig={missingConfig} loginError={loginError} />;
+    return <LoginScreen missingConfig={status.data?.missingConfig ?? []} loginError={loginError} />;
   }
 
-  return (
-    <Editor
-      email={session.email}
-      name={session.name}
-      storageReady={status.data?.storageReady ?? false}
-    />
-  );
+  return <Editor email={session.email} name={session.name} storageReady={status.data?.storageReady ?? false} />;
 }
 
 function LoginScreen({ missingConfig, loginError }: { missingConfig: string[]; loginError: string | null }) {
@@ -164,11 +207,12 @@ function Editor({ email, name, storageReady }: { email: string; name: string; st
   const saveMutation = trpc.admin.save.useMutation();
 
   const [tab, setTab] = useState<TabId>("reports");
+  const [navOpen, setNavOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [revision, setRevision] = useState(0);
   const { draft, update, isDirty, reset } = useDraft(
     buildWorkingDraft({ schemaVersion: 1, revision: 0, updatedAt: "" }, DEFAULT_WATCHLIST_SYMBOLS)
   );
-  const [revision, setRevision] = useState(0);
 
   // Depodan gelen belge bir kez taslağa yüklenir; sonrası tamamen yereldir.
   useEffect(() => {
@@ -229,79 +273,125 @@ function Editor({ email, name, storageReady }: { email: string; name: string; st
     );
   }
 
-  return (
-    <div className="adm-shell">
-      <header className="adm-topbar">
-        <div className="adm-topbar-left">
-          <a href="/" className="adm-back-link">
-            <ArrowLeft size={14} /> Site
-          </a>
-          <span className="adm-title">Yönetim Paneli</span>
-          <span className="adm-revision">sürüm {revision}</span>
-        </div>
-        <div className="adm-topbar-right">
-          <span className="adm-user" title={email}>
-            {name}
-          </span>
-          <button type="button" className="adm-btn ghost small" onClick={logout}>
-            <LogOut size={13} /> Çıkış
-          </button>
-          <button
-            type="button"
-            className="adm-btn primary"
-            onClick={save}
-            disabled={!isDirty || saveMutation.isPending}
-          >
-            {saveMutation.isPending ? <Loader2 size={14} className="adm-spin" /> : <Save size={14} />}
-            {isDirty ? "Kaydet" : "Kaydedildi"}
-          </button>
-        </div>
-      </header>
+  const active = ALL_ITEMS.find((item) => item.id === tab) ?? ALL_ITEMS[0];
 
-      {!storageReady && (
-        <div className="adm-alert warn adm-inline-alert">
-          <AlertTriangle size={15} />
+  return (
+    <div className={`adm-shell adm-layout ${navOpen ? "nav-open" : ""}`}>
+      <aside className="adm-sidebar">
+        <div className="adm-brand">
+          <span className="adm-brand-mark" />
           <div>
-            <b>Depo bağlı değil</b>
-            <p>
-              Vercel panelinden bir Blob Store oluşturup projeye bağlayın (<code>BLOB_READ_WRITE_TOKEN</code>).
-              O zamana kadar kaydetme çalışmaz.
-            </p>
+            <b>Yönetim Paneli</b>
+            <small>onurinal.vercel.app</small>
           </div>
         </div>
-      )}
 
-      <nav className="adm-tabs">
-        {TABS.map((item) => (
-          <button
-            type="button"
-            key={item.id}
-            className={tab === item.id ? "is-active" : ""}
-            onClick={() => setTab(item.id)}
-          >
-            {item.label}
+        <nav className="adm-nav">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.title} className="adm-nav-group">
+              <span className="adm-nav-title">{group.title}</span>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={`adm-nav-item ${tab === item.id ? "is-active" : ""}`}
+                    onClick={() => {
+                      setTab(item.id);
+                      setNavOpen(false);
+                    }}
+                  >
+                    <Icon size={15} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+
+        <div className="adm-sidebar-foot">
+          <div className="adm-user-card">
+            <span className="adm-user-avatar">{name.trim().charAt(0) || "?"}</span>
+            <div>
+              <b>{name}</b>
+              <small title={email}>{email}</small>
+            </div>
+          </div>
+          <div className="adm-sidebar-links">
+            <a href="/" className="adm-back-link">
+              <ArrowLeft size={13} /> Siteye dön
+            </a>
+            <button type="button" className="adm-back-link as-button" onClick={logout}>
+              <LogOut size={13} /> Çıkış
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <button type="button" className="adm-scrim" tabIndex={-1} aria-hidden onClick={() => setNavOpen(false)} />
+
+      <div className="adm-content">
+        <header className="adm-header">
+          <button type="button" className="adm-nav-toggle" onClick={() => setNavOpen(true)} aria-label="Menü">
+            <Menu size={18} />
           </button>
-        ))}
-      </nav>
+          <div className="adm-header-title">
+            <h1>{active.label}</h1>
+            <p>{active.hint}</p>
+          </div>
+          <div className="adm-header-actions">
+            <span className={`adm-save-state ${isDirty ? "dirty" : "clean"}`}>
+              {isDirty ? "Kaydedilmemiş değişiklik" : `Kayıtlı · sürüm ${revision}`}
+            </span>
+            <button
+              type="button"
+              className="adm-btn primary"
+              onClick={save}
+              disabled={!isDirty || saveMutation.isPending}
+            >
+              {saveMutation.isPending ? <Loader2 size={14} className="adm-spin" /> : <Save size={14} />}
+              Kaydet
+            </button>
+          </div>
+        </header>
 
-      <main className="adm-main">
-        {tab === "reports" && (
-          <ReportsPanel reports={draft.reports} onChange={(reports) => update({ reports })} />
-        )}
+        <main className="adm-main">
+          {!storageReady && (
+            <div className="adm-alert warn">
+              <AlertTriangle size={15} />
+              <div>
+                <b>Depo bağlı değil</b>
+                <p>
+                  Vercel panelinden bir Blob Store oluşturup projeye bağlayın (<code>BLOB_READ_WRITE_TOKEN</code>).
+                  O zamana kadar kaydetme ve dosya yükleme çalışmaz.
+                </p>
+              </div>
+            </div>
+          )}
 
-        {tab === "texts" && (
-          <TextsPanel
-            overrides={draft.translations}
-            onChange={(translations) => update({ translations })}
-          />
-        )}
-
-        {tab === "visibility" && <VisibilityTab draft={draft} update={update} />}
-        {tab === "notices" && <NoticesTab draft={draft} update={update} />}
-        {tab === "macro" && <MacroTab draft={draft} update={update} />}
-        {tab === "sessions" && <SessionsTab draft={draft} update={update} />}
-        {tab === "watchlist" && <WatchlistTab draft={draft} update={update} />}
-      </main>
+          {tab === "reports" && (
+            <ReportsPanel
+              reports={draft.reports}
+              categories={draft.reportCategories}
+              onChange={(reports) => update({ reports })}
+            />
+          )}
+          {tab === "categories" && <CategoriesTab draft={draft} update={update} />}
+          {tab === "texts" && (
+            <TextsPanel overrides={draft.translations} onChange={(translations) => update({ translations })} />
+          )}
+          {tab === "media" && <MediaTab draft={draft} update={update} />}
+          {tab === "cv" && <CvTab draft={draft} update={update} />}
+          {tab === "links" && <LinksTab draft={draft} update={update} />}
+          {tab === "macro" && <MacroTab draft={draft} update={update} />}
+          {tab === "sessions" && <SessionsTab draft={draft} update={update} />}
+          {tab === "watchlist" && <WatchlistTab draft={draft} update={update} />}
+          {tab === "visibility" && <VisibilityTab draft={draft} update={update} />}
+          {tab === "notices" && <NoticesTab draft={draft} update={update} />}
+        </main>
+      </div>
     </div>
   );
 }
@@ -324,7 +414,7 @@ function VisibilityTab({ draft, update }: TabProps) {
   return (
     <Section
       title="Görünürlük"
-      description="Sitede görünmesini istemediğin bölümleri kapat. Kapatılan bölüm hiç render edilmez."
+      description="Sitede görünmesini istemediğin bölümleri kapat. Kapatılan bölüm hiç çizilmez."
     >
       <div className="adm-toggle-list">
         {HIDEABLE_BLOCKS.map((blockId) => (
@@ -333,7 +423,6 @@ function VisibilityTab({ draft, update }: TabProps) {
             checked={!hidden.has(blockId)}
             onChange={(visible) => toggle(blockId, visible)}
             label={BLOCK_LABELS[blockId] ?? blockId}
-            description={blockId}
           />
         ))}
       </div>
@@ -411,81 +500,184 @@ function MacroTab({ draft, update }: TabProps) {
 
   const patch = (index: number, value: Partial<MacroIndicatorContent>) =>
     update({
-      macro: {
-        snapshotDate,
-        indicators: indicators.map((item, i) => (i === index ? { ...item, ...value } : item)),
-      },
+      macro: { snapshotDate, indicators: indicators.map((item, i) => (i === index ? { ...item, ...value } : item)) },
     });
 
   const setIndicators = (next: MacroIndicatorContent[]) => update({ macro: { snapshotDate, indicators: next } });
 
-  return (
-    <Section
-      title="Makro göstergeler"
-      description="Bu değerler canlı bir kaynaktan gelmez; elle güncellenir. Tarihi de güncellemeyi unutma."
-      actions={
-        <button
-          type="button"
-          className="adm-btn"
-          onClick={() =>
-            setIndicators([
-              ...indicators,
-              {
-                id: `gosterge-${indicators.length + 1}`,
-                tone: "flat",
-                label: { tr: "", en: "" },
-                value: { tr: "", en: "" },
-                note: { tr: "", en: "" },
-              },
-            ])
-          }
-        >
-          <Plus size={14} /> Gösterge ekle
-        </button>
-      }
-    >
-      <Field label="Anlık görüntü tarihi" hint="Panelin altında 'Manuel anlık görüntü · …' satırında görünür.">
-        <TextInput
-          type="date"
-          value={snapshotDate}
-          onChange={(next) => update({ macro: { snapshotDate: next, indicators } })}
-        />
-      </Field>
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= indicators.length) return;
+    const next = [...indicators];
+    [next[index], next[target]] = [next[target], next[index]];
+    setIndicators(next);
+  };
 
-      <div className="adm-card-list">
-        {indicators.map((item, index) => (
-          <div key={item.id} className="adm-card">
-            <div className="adm-card-head">
-              <b>{item.label.tr || item.id}</b>
-              <button
-                type="button"
-                className="adm-icon-btn danger"
-                onClick={() => setIndicators(indicators.filter((_, i) => i !== index))}
-                aria-label="Sil"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-            <BilingualField label="Etiket" value={item.label} onChange={(label) => patch(index, { label })} />
-            <BilingualField label="Değer" value={item.value} onChange={(value) => patch(index, { value })} />
-            <BilingualField label="Not rozeti" value={item.note} onChange={(note) => patch(index, { note })} />
-            <Field label="Rozet rengi">
-              <select
-                className="adm-input"
-                value={item.tone}
-                onChange={(event) => patch(index, { tone: event.target.value as MacroIndicatorContent["tone"] })}
-              >
-                {MACRO_TONES.map((tone) => (
-                  <option key={tone} value={tone}>
-                    {MACRO_TONE_LABELS[tone]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-        ))}
-      </div>
-    </Section>
+  const hasManual = indicators.some((item) => item.source !== "yahoo");
+
+  return (
+    <>
+      <Section
+        title="Nasıl çalışıyor"
+        description="Politika faizleri, enflasyon ve CDS gibi veriler borsada işlem gören enstrüman olmadıkları için Yahoo Finance'te yok; onlar elle güncellenir. Tahvil getirisi, endeks, kur ve emtia gibi piyasa verileri canlı çekilebilir."
+      >
+        <Field
+          label="Manuel göstergelerin tarihi"
+          hint="Panelin altında 'Manuel anlık görüntü · …' satırında görünür. Elle girdiğin değerleri tazeledikçe bunu da güncelle."
+        >
+          <TextInput
+            type="date"
+            value={snapshotDate}
+            onChange={(next) => update({ macro: { snapshotDate: next, indicators } })}
+          />
+        </Field>
+        {!hasManual && <p className="adm-count">Şu an tüm göstergeler canlı; bu tarih sitede görünmüyor.</p>}
+      </Section>
+
+      <Section
+        title="Göstergeler"
+        description="Canlı göstergelerde değer ve günlük değişim Yahoo'dan gelir; sen yalnızca etiketi ve sembolü belirlersin."
+        actions={
+          <button
+            type="button"
+            className="adm-btn"
+            onClick={() =>
+              setIndicators([
+                ...indicators,
+                {
+                  id: `gosterge-${indicators.length + 1}`,
+                  source: "manual",
+                  tone: "flat",
+                  label: { tr: "", en: "" },
+                  value: { tr: "", en: "" },
+                  note: { tr: "", en: "" },
+                },
+              ])
+            }
+          >
+            <Plus size={14} /> Gösterge ekle
+          </button>
+        }
+      >
+        <div className="adm-card-list">
+          {indicators.map((item, index) => {
+            const isLive = item.source === "yahoo";
+            return (
+              <div key={item.id} className={`adm-card ${isLive ? "is-live" : ""}`}>
+                <div className="adm-card-head">
+                  <b>
+                    {item.label.tr || item.id}
+                    {isLive && <span className="adm-live-chip">CANLI</span>}
+                  </b>
+                  <div className="adm-row-actions">
+                    <button type="button" className="adm-icon-btn" onClick={() => move(index, -1)} aria-label="Yukarı">
+                      ↑
+                    </button>
+                    <button type="button" className="adm-icon-btn" onClick={() => move(index, 1)} aria-label="Aşağı">
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      className="adm-icon-btn danger"
+                      onClick={() => setIndicators(indicators.filter((_, i) => i !== index))}
+                      aria-label="Sil"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <Field label="Veri kaynağı">
+                  <select
+                    className="adm-input"
+                    value={item.source}
+                    onChange={(event) => {
+                      const source = event.target.value as MacroIndicatorContent["source"];
+                      patch(index, {
+                        source,
+                        symbol: source === "yahoo" ? item.symbol || "^TNX" : item.symbol,
+                        display: source === "yahoo" ? item.display || "percent" : item.display,
+                        precision: source === "yahoo" ? item.precision ?? 2 : item.precision,
+                      });
+                    }}
+                  >
+                    {MACRO_SOURCES.map((source) => (
+                      <option key={source} value={source}>
+                        {MACRO_SOURCE_LABELS[source]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <BilingualField label="Etiket" value={item.label} onChange={(label) => patch(index, { label })} />
+
+                {isLive ? (
+                  <>
+                    <Field
+                      label="Yahoo sembolü"
+                      hint="Örnekler: ^TNX (ABD 10Y), ^TYX (30Y), ^VIX, DX-Y.NYB (dolar endeksi), USDTRY=X, GC=F (altın), XU100.IS (BIST 100)."
+                    >
+                      <TextInput value={item.symbol ?? ""} onChange={(symbol) => patch(index, { symbol })} />
+                    </Field>
+                    <div className="adm-grid-2">
+                      <Field label="Gösterim">
+                        <select
+                          className="adm-input"
+                          value={item.display ?? "percent"}
+                          onChange={(event) =>
+                            patch(index, { display: event.target.value as MacroIndicatorContent["display"] })
+                          }
+                        >
+                          {MACRO_DISPLAYS.map((display) => (
+                            <option key={display} value={display}>
+                              {MACRO_DISPLAY_LABELS[display]}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label="Ondalık basamak">
+                        <select
+                          className="adm-input"
+                          value={String(item.precision ?? 2)}
+                          onChange={(event) => patch(index, { precision: Number(event.target.value) })}
+                        >
+                          {[0, 1, 2, 3, 4].map((digits) => (
+                            <option key={digits} value={digits}>
+                              {digits}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    </div>
+                    <p className="adm-field-hint">
+                      Rozette günlük değişim yüzdesi görünür, rengi yönüne göre otomatik belirlenir.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <BilingualField label="Değer" value={item.value} onChange={(value) => patch(index, { value })} />
+                    <BilingualField label="Not rozeti" value={item.note} onChange={(note) => patch(index, { note })} />
+                    <Field label="Rozet rengi">
+                      <select
+                        className="adm-input"
+                        value={item.tone}
+                        onChange={(event) => patch(index, { tone: event.target.value as MacroIndicatorContent["tone"] })}
+                      >
+                        {MACRO_TONES.map((tone) => (
+                          <option key={tone} value={tone}>
+                            {MACRO_TONE_LABELS[tone]}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+    </>
   );
 }
 
@@ -498,26 +690,21 @@ function SessionsTab({ draft, update }: TabProps) {
       description="Açık/kapalı durumu borsanın saat diliminden otomatik hesaplanır; buradan yalnızca hangi borsaların listeleneceğini seçersin."
     >
       <div className="adm-toggle-list">
-        {DEFAULT_SESSION_IDS.map((id) => {
-          const entry = sessions.find((session) => session.id === id);
-          const enabled = entry?.enabled ?? true;
-          return (
-            <Toggle
-              key={id}
-              checked={enabled}
-              label={SESSION_LABELS[id] ?? id}
-              onChange={(next) =>
-                update({
-                  sessions: DEFAULT_SESSION_IDS.map((sessionId) => ({
-                    id: sessionId,
-                    enabled:
-                      sessionId === id ? next : sessions.find((s) => s.id === sessionId)?.enabled ?? true,
-                  })),
-                })
-              }
-            />
-          );
-        })}
+        {DEFAULT_SESSION_IDS.map((id) => (
+          <Toggle
+            key={id}
+            checked={sessions.find((session) => session.id === id)?.enabled ?? true}
+            label={SESSION_LABELS[id] ?? id}
+            onChange={(next) =>
+              update({
+                sessions: DEFAULT_SESSION_IDS.map((sessionId) => ({
+                  id: sessionId,
+                  enabled: sessionId === id ? next : sessions.find((s) => s.id === sessionId)?.enabled ?? true,
+                })),
+              })
+            }
+          />
+        ))}
       </div>
     </Section>
   );

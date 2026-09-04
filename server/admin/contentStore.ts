@@ -111,9 +111,9 @@ export async function writeSiteContent(
   return next;
 }
 
-/** Rapor PDF'lerini listeler; panelde "yüklü dosyalar" bölümünü besler. */
-export async function listReportFiles() {
-  const { blobs } = await list({ prefix: "reports/", token: requireToken(), limit: 200 });
+/** Yüklenmiş dosyaları listeler; panelde "yüklü dosyalar" bölümünü besler. */
+export async function listReportFiles(prefix = "") {
+  const { blobs } = await list({ prefix, token: requireToken(), limit: 500 });
   return blobs.map((blob) => ({
     pathname: blob.pathname,
     url: blob.url,
