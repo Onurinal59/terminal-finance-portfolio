@@ -109,8 +109,11 @@ for (const [gorunum, secici] of [["PROFILE", ".cv-download-center button"], ["CO
   const dugmeler = await p.locator(secici).all();
   for (const dugme of dugmeler) {
     await dugme.click({ force: true }).catch(() => {});
-    // Indirme surerken butonlar kilitleniyor; bir sonraki tiklama icin serbest kalmasini bekle.
-    await p.waitForTimeout(700);
+    // Indirme surerken butonlar kilitleniyor; ayrica biriken bildirimler bir
+    // sonraki butonun ustune gelebiliyor. Ikisini de temizleyip devam ediyoruz.
+    await p.waitForTimeout(500);
+    await p.evaluate(() => document.querySelectorAll("[data-sonner-toast] [data-close-button]").forEach((b) => b.click()));
+    await p.waitForTimeout(200);
   }
   const sonuc = await p.evaluate(() => {
     const w = window;

@@ -1267,3 +1267,16 @@ select.adm-input {
 .adm-text-group .adm-text-row {
   margin-top: 8px;
 }
+
+/* ==========================================================================
+   Dokunmatik ergonomisi
+   Tablet ve telefonda 17px yüksekliğinde metin bağlantıları vardı; WCAG 2.2'nin
+   24px asgari hedef boyutunun altında kalıyor, parmakla ıskalanıyordu.
+   ========================================================================== */
+@media (max-width: 1080px) {
+  .adm-back-link,
+  .adm-slot-link {
+    min-height: 32px;
+    padding-block: 6px;
+  }
+}
