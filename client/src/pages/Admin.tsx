@@ -28,10 +28,12 @@ import {
   Save,
   Trash2,
   User,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BANNER_TONES, HIDEABLE_BLOCKS, MACRO_DISPLAYS, MACRO_SOURCES, MACRO_TONES } from "@shared/siteContent";
 import type { MacroIndicatorContent } from "@shared/siteContent";
+import { DEFAULT_MACRO_SERIES, MACRO_SERIES_SUGGESTIONS, type MacroSeriesDefault } from "@shared/macroDefaults";
 import { trpc } from "@/lib/trpc";
 import { DEFAULT_SESSION_IDS } from "@/content/defaults";
 import { DEFAULT_WATCHLIST_SYMBOLS } from "./Home";
@@ -509,6 +511,54 @@ function NoticesTab({ draft, update }: TabProps) {
   );
 }
 
+/**
+ * Elle güncellenen bir göstergenin bağlanabileceği kaynak varsa onu döndürür.
+ * Kullanıcının açık "manuel" seçimini asla kendiliğinden ezmiyoruz; bunun
+ * yerine tek tıkla bağlanacak bir öneri gösteriyoruz.
+ */
+function suggestionFor(id: string): (MacroSeriesDefault & { requiresKey?: string }) | null {
+  return DEFAULT_MACRO_SERIES[id] ?? MACRO_SERIES_SUGGESTIONS[id] ?? null;
+}
+
+function ConnectSuggestion({
+  suggestion,
+  providerReady,
+  onApply,
+}: {
+  suggestion: MacroSeriesDefault & { requiresKey?: string };
+  providerReady: Partial<Record<(typeof MACRO_SOURCES)[number], boolean>>;
+  onApply: (preset: Partial<MacroIndicatorContent>) => void;
+}) {
+  const needsKey = suggestion.requiresKey && providerReady[suggestion.source] === false;
+
+  return (
+    <div className="adm-suggestion">
+      <div>
+        <b>Bu gösterge otomatikleştirilebilir</b>
+        <small>
+          Kaynak: {MACRO_SOURCE_LABELS[suggestion.source]} · seri {suggestion.symbol}
+          {needsKey ? ` — önce ${suggestion.requiresKey} tanımlanmalı` : ""}
+        </small>
+      </div>
+      <button
+        type="button"
+        className="adm-btn small"
+        disabled={Boolean(needsKey)}
+        onClick={() =>
+          onApply({
+            source: suggestion.source,
+            symbol: suggestion.symbol,
+            display: suggestion.display,
+            precision: suggestion.precision,
+          })
+        }
+      >
+        <Zap size={13} /> Kaynağa bağla
+      </button>
+    </div>
+  );
+}
+
 function MacroTab({ draft, update }: TabProps) {
   const { indicators, snapshotDate } = draft.macro;
   const providers = trpc.macro.providers.useQuery(undefined, { staleTime: 60_000 });
@@ -586,7 +636,7 @@ function MacroTab({ draft, update }: TabProps) {
       >
         <div className="adm-card-list">
           {indicators.map((item, index) => {
-            const isLive = item.source === "yahoo";
+            const isLive = item.source !== "manual";
             return (
               <div key={item.id} className={`adm-card ${isLive ? "is-live" : ""}`}>
                 <div className="adm-card-head">
@@ -618,11 +668,14 @@ function MacroTab({ draft, update }: TabProps) {
                     value={item.source}
                     onChange={(event) => {
                       const source = event.target.value as MacroIndicatorContent["source"];
+                      // Kaynak değişince seri kimliğini sıfırlıyoruz: bir kaynağın
+                      // kodu diğerinde geçerli değil, eski değer sessizce hata verirdi.
+                      const keepsSeries = source === item.source;
                       patch(index, {
                         source,
-                        symbol: source === "yahoo" ? item.symbol || "^TNX" : item.symbol,
-                        display: source === "yahoo" ? item.display || "percent" : item.display,
-                        precision: source === "yahoo" ? item.precision ?? 2 : item.precision,
+                        symbol: source === "manual" ? undefined : keepsSeries ? item.symbol : "",
+                        display: source === "manual" ? item.display : item.display ?? "percent",
+                        precision: source === "manual" ? item.precision : item.precision ?? 2,
                       });
                     }}
                   >
@@ -635,6 +688,14 @@ function MacroTab({ draft, update }: TabProps) {
                 </Field>
 
                 <BilingualField label="Etiket" value={item.label} onChange={(label) => patch(index, { label })} />
+
+                {!isLive && suggestionFor(item.id) && (
+                  <ConnectSuggestion
+                    suggestion={suggestionFor(item.id)!}
+                    providerReady={providerReady}
+                    onApply={(preset) => patch(index, preset)}
+                  />
+                )}
 
                 {isLive ? (
                   <>

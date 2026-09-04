@@ -1124,3 +1124,33 @@ select.adm-input {
 .adm-provider.is-off small {
   color: #fbbf24;
 }
+
+/* ---------- Kaynağa bağla önerisi ---------- */
+
+.adm-suggestion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 245, 155, 0.06);
+  border: 1px dashed rgba(0, 245, 155, 0.36);
+  border-radius: 7px;
+}
+
+.adm-suggestion b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adm-accent);
+}
+
+.adm-suggestion small {
+  display: block;
+  margin-top: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--adm-muted);
+}
