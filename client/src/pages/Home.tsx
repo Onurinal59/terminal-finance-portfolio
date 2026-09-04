@@ -1585,17 +1585,28 @@ function FinancialAnalysisPanel({ row, points, statement, onOpenResearch }: { ro
 
 const macroIndicators: Array<{ id: string; labelKey: TranslationKey; valueKey: TranslationKey; noteKey: TranslationKey; tone: string }> = [
   { id: "cbrt", labelKey: "macro.cbrtLabel", valueKey: "macro.cbrtValue", noteKey: "macro.cbrtNote", tone: "flat" },
-  { id: "fed", labelKey: "macro.fedLabel", valueKey: "macro.fedValue", noteKey: "macro.fedNote", tone: "down" },
-  { id: "ecb", labelKey: "macro.ecbLabel", valueKey: "macro.ecbValue", noteKey: "macro.ecbNote", tone: "down" },
+  { id: "fed", labelKey: "macro.fedLabel", valueKey: "macro.fedValue", noteKey: "macro.fedNote", tone: "flat" },
+  { id: "ecb", labelKey: "macro.ecbLabel", valueKey: "macro.ecbValue", noteKey: "macro.ecbNote", tone: "up" },
   { id: "tr10y", labelKey: "macro.tr10yLabel", valueKey: "macro.tr10yValue", noteKey: "macro.tr10yNote", tone: "flat" },
-  { id: "us10y", labelKey: "macro.us10yLabel", valueKey: "macro.us10yValue", noteKey: "macro.us10yNote", tone: "up" },
+  { id: "us10y", labelKey: "macro.us10yLabel", valueKey: "macro.us10yValue", noteKey: "macro.us10yNote", tone: "flat" },
   { id: "cds", labelKey: "macro.cdsLabel", valueKey: "macro.cdsValue", noteKey: "macro.cdsNote", tone: "down" },
   { id: "cpiTr", labelKey: "macro.cpiTrLabel", valueKey: "macro.cpiTrValue", noteKey: "macro.cpiTrNote", tone: "down" },
-  { id: "cpiUs", labelKey: "macro.cpiUsLabel", valueKey: "macro.cpiUsValue", noteKey: "macro.cpiUsNote", tone: "flat" },
+  { id: "cpiUs", labelKey: "macro.cpiUsLabel", valueKey: "macro.cpiUsValue", noteKey: "macro.cpiUsNote", tone: "down" },
 ];
 
+/**
+ * Makro göstergeler canlı bir veri kaynağından değil, elle güncellenen bir anlık görüntüden gelir.
+ * Değerleri tazeledikçe bu tarihi de güncelleyin; panelin altbilgisinde okuyucuya gösterilir.
+ */
+const MACRO_SNAPSHOT_DATE = "2026-09-04";
+
 function MacroEconomyPanel() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const snapshotDate = new Date(`${MACRO_SNAPSHOT_DATE}T00:00:00`).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
   return (
     <div className="macro-economy-panel">
       <div className="macro-grid">
@@ -1609,33 +1620,98 @@ function MacroEconomyPanel() {
           </div>
         ))}
       </div>
+      <div className="macro-snapshot-note">
+        <span>{t("macro.snapshotLabel", { date: snapshotDate })}</span>
+        <small>{t("macro.snapshotSources")}</small>
+      </div>
     </div>
   );
 }
 
-const marketSessions: Array<{ id: string; marketKey: TranslationKey; hoursKey: TranslationKey; live: boolean }> = [
-  { id: "bist", marketKey: "hours.bist", hoursKey: "hours.bistTime", live: true },
-  { id: "nyse", marketKey: "hours.nyse", hoursKey: "hours.nyseTime", live: false },
-  { id: "lse", marketKey: "hours.lse", hoursKey: "hours.lseTime", live: false },
-  { id: "tse", marketKey: "hours.tse", hoursKey: "hours.tseTime", live: false },
+/**
+ * Seans tanımları. Saatler borsanın kendi yerel saatiyle, dakika cinsinden tutulur;
+ * açık/kapalı rozeti IANA saat dilimi üzerinden hesaplandığı için yaz saati geçişlerinde kaymaz.
+ */
+type MarketSession = {
+  id: string;
+  marketKey: TranslationKey;
+  cityKey: TranslationKey;
+  timeZone: string;
+  open: number;
+  close: number;
+  /** Öğle arası gibi seans içi molalar (Tokyo). */
+  breaks?: Array<[number, number]>;
+};
+
+const marketSessions: MarketSession[] = [
+  { id: "bist", marketKey: "hours.bist", cityKey: "hours.bistCity", timeZone: "Europe/Istanbul", open: 600, close: 1080 },
+  { id: "nyse", marketKey: "hours.nyse", cityKey: "hours.nyseCity", timeZone: "America/New_York", open: 570, close: 960 },
+  { id: "lse", marketKey: "hours.lse", cityKey: "hours.lseCity", timeZone: "Europe/London", open: 480, close: 990 },
+  {
+    id: "tse",
+    marketKey: "hours.tse",
+    cityKey: "hours.tseCity",
+    timeZone: "Asia/Tokyo",
+    open: 540,
+    close: 930,
+    breaks: [[690, 750]],
+  },
 ];
+
+function minutesLabel(minutes: number) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+/** Borsanın kendi saat diliminde o anki gün ve dakika. */
+function marketLocalTime(timeZone: string, now: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  const hour = Number(pick("hour")) % 24;
+  return { weekday: pick("weekday"), minutes: hour * 60 + Number(pick("minute")) };
+}
+
+/** Resmî tatiller kapsam dışıdır; hafta sonu ve seans saatleri dikkate alınır. */
+function isSessionOpen(session: MarketSession, now: Date) {
+  const { weekday, minutes } = marketLocalTime(session.timeZone, now);
+  if (weekday === "Sat" || weekday === "Sun") return false;
+  if (minutes < session.open || minutes >= session.close) return false;
+  return !session.breaks?.some(([from, to]) => minutes >= from && minutes < to);
+}
 
 function MarketHoursPanel() {
   const { t } = useI18n();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
     <div className="market-hours-panel">
       <div className="hours-list">
-        {marketSessions.map((session) => (
-          <div key={session.id} className="hours-row">
-            <div className="hours-info">
-              <b>{t(session.marketKey)}</b>
-              <small>{t(session.hoursKey)}</small>
+        {marketSessions.map((session) => {
+          const live = isSessionOpen(session, now);
+          return (
+            <div key={session.id} className="hours-row">
+              <div className="hours-info">
+                <b>{t(session.marketKey)}</b>
+                <small>
+                  {minutesLabel(session.open)} — {minutesLabel(session.close)} · {t(session.cityKey)}
+                </small>
+              </div>
+              <span className={`hours-badge ${live ? "live" : "closed"}`}>
+                <i /> {live ? t("hours.open") : t("hours.closed")}
+              </span>
             </div>
-            <span className={`hours-badge ${session.live ? "live" : "closed"}`}>
-              <i /> {session.live ? t("hours.open") : t("hours.closed")}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

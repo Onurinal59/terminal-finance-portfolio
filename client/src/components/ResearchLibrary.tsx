@@ -6,11 +6,10 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock,
-  Download,
   ExternalLink,
-  FileText,
   Filter,
   Grid2X2,
+  Info,
   LineChart,
   Mail,
   Printer,
@@ -109,23 +108,6 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleOpenPdf = (report: ResearchReport) => {
-    if (report.pdfUrl) {
-      const link = document.createElement("a");
-      link.href = report.pdfUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success(t("research.toastPdfOpening", { ticker: report.ticker }), {
-        description: t("research.toastPdfOpeningDesc"),
-      });
-    } else {
-      toast.info(t("research.toastPdfPending", { ticker: report.ticker }));
-    }
-  };
-
   const handleCopyShare = (report: ResearchReport) => {
     const text = t("research.shareText", {
       title: report.title,
@@ -207,6 +189,14 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
       {/* 2. MODE: CATALOG (GRID VIEW WITH FEATURED REPORT) */}
       {readingMode === "CATALOG" && (
         <div className="research-catalog-wrapper">
+          {/* Kütüphane genelinde örnek çalışma uyarısı */}
+          <div className="research-sample-notice">
+            <Info size={16} className="notice-icon" />
+            <p>
+              <strong>{t("research.sampleNoticeTitle")}</strong> {t("research.sampleNoticeText")}
+            </p>
+          </div>
+
           {/* Spotlight Featured Report */}
           {featured && (
             <div className="featured-research-spotlight">
@@ -236,26 +226,12 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
                   </p>
 
                   <div className="spotlight-actions">
-                    <a
-                      href={featured.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-spotlight-read"
-                      title={t("research.openPdfTitle")}
-                      onClick={() => {
-                        toast.success(t("research.toastPdfOpening", { ticker: featured.ticker }));
-                      }}
-                    >
-                      <FileText size={15} /> {t("research.readPdf")}
-                      <ExternalLink size={14} />
-                    </a>
-
                     <button
                       onClick={() => handleOpenDossier(featured.id)}
-                      className="btn-spotlight-summary"
-                      title={t("research.summaryThesisTitle")}
+                      className="btn-spotlight-read"
+                      title={t("research.readDossierTitle")}
                     >
-                      <BookOpen size={14} /> {t("research.summaryThesis")}
+                      <BookOpen size={15} /> {t("research.readDossier")}
                     </button>
 
                     {onOpenSymbolChart && (
@@ -405,25 +381,11 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
 
                       <button
                         onClick={() => handleOpenDossier(report.id)}
-                        className="btn-card-dossier"
-                        title={t("research.cardSummaryTitle")}
-                      >
-                        <BookOpen size={13} /> {t("research.cardSummary")}
-                      </button>
-
-                      <a
-                        href={report.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="btn-card-read"
-                        title={t("research.openPdfTitle")}
-                        onClick={() => {
-                          toast.success(t("research.toastPdfOpening", { ticker: report.ticker }));
-                        }}
+                        title={t("research.readDossierTitle")}
                       >
-                        <FileText size={13} /> {t("research.cardRead")}
-                        <ExternalLink size={12} />
-                      </a>
+                        <BookOpen size={13} /> {t("research.cardReadDossier")}
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -448,14 +410,6 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
             </div>
 
             <div className="reader-action-group">
-              <button
-                onClick={() => handleOpenPdf(activeReport)}
-                className="btn-reader-pdf"
-                title={t("research.openPdfNewTab")}
-              >
-                <FileText size={14} /> {t("research.openPdf")} <ExternalLink size={12} />
-              </button>
-
               {onOpenSymbolChart && activeReport.ticker && !activeReport.ticker.includes("-") && (
                 <button
                   onClick={() => onOpenSymbolChart(activeReport.ticker)}
@@ -511,23 +465,15 @@ export const ResearchLibrary: React.FC<ResearchLibraryProps> = ({
                 </div>
               </div>
 
-              {/* PDF Direct Access Banner */}
-              <div className="paper-pdf-callout">
-                <div className="pdf-callout-info">
-                  <FileText size={18} className="text-emerald-400" />
+              {/* Örnek çalışma uyarısı */}
+              <div className="paper-notice-callout">
+                <div className="notice-callout-info">
+                  <Info size={18} className="notice-icon" />
                   <div>
-                    <strong>{t("research.pdfCalloutTitle")}</strong>
-                    <p>{t("research.pdfCalloutDesc")}</p>
+                    <strong>{t("research.sampleNoticeTitle")}</strong>
+                    <p>{t("research.sampleNoticeText")}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleOpenPdf(activeReport)}
-                  className="btn-callout-pdf"
-                  title={t("research.openPdfNewTab")}
-                >
-                  <Download size={14} /> {t("research.pdfCalloutCta")}
-                  <ExternalLink size={13} />
-                </button>
               </div>
             </div>
 

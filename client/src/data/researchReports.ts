@@ -20,7 +20,6 @@ interface ReportBase {
   upsidePotential?: string;
   author: string;
   link: string;
-  pdfUrl: string;
 }
 
 /** Dile göre değişen metinler. */
@@ -48,7 +47,7 @@ export type ResearchReport = ReportBase & ReportCopy;
 /**
  * Onur İnal Araştırma Masası - Rapor Veritabanı
  * Yeni rapor eklemek için REPORT_BASE listesine bir kayıt, ardından REPORT_COPY içindeki
- * her dile aynı id ile metin bloğu ekleyin. PDF dosyaları /client/public/reports/ altındadır.
+ * her dile aynı id ile metin bloğu ekleyin. Raporlar site içinde okunur; ayrı PDF dosyası tutulmaz.
  */
 const REPORT_BASE: ReportBase[] = [
   {
@@ -61,7 +60,6 @@ const REPORT_BASE: ReportBase[] = [
     upsidePotential: "+48.8%",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/THYAO-Hisse-Degerleme-Raporu-Onur-Inal.pdf",
   },
   {
     id: "R-02B",
@@ -73,7 +71,6 @@ const REPORT_BASE: ReportBase[] = [
     upsidePotential: "+42.6%",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/BIMAS-Hisse-Degerleme-Raporu-Onur-Inal.pdf",
   },
   {
     id: "R-02C",
@@ -85,7 +82,6 @@ const REPORT_BASE: ReportBase[] = [
     upsidePotential: "+36.6%",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/TUPRS-Hisse-Degerleme-Raporu-Onur-Inal.pdf",
   },
   {
     id: "R-02",
@@ -94,7 +90,6 @@ const REPORT_BASE: ReportBase[] = [
     recommendationTone: "moat",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/BIST-Ekonomik-Hendek-Analizi-Onur-Inal.pdf",
   },
   {
     id: "R-03",
@@ -106,7 +101,6 @@ const REPORT_BASE: ReportBase[] = [
     upsidePotential: "+40.6%",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/FROTO-Hisse-Degerleme-Raporu-Onur-Inal.pdf",
   },
   {
     id: "R-04",
@@ -115,7 +109,6 @@ const REPORT_BASE: ReportBase[] = [
     recommendationTone: "highlight",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/TMS29-Enflasyon-Muhasebesi-Raporu-Onur-Inal.pdf",
   },
   {
     id: "R-05",
@@ -127,7 +120,6 @@ const REPORT_BASE: ReportBase[] = [
     upsidePotential: "+40.5%",
     author: "Onur İnal",
     link: "https://measure-moat.vercel.app/#roadmap",
-    pdfUrl: "/reports/PGSUS-Hisse-Degerleme-Raporu-Onur-Inal.pdf",
   },
 ];
 

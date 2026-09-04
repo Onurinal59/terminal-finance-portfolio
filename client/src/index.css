@@ -5331,6 +5331,29 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: rgba(56, 189, 248, 0.1);
 }
 
+.macro-snapshot-note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.22);
+  font-family: var(--font-mono);
+  line-height: 1.4;
+}
+
+.macro-snapshot-note span {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #94a3b8;
+}
+
+.macro-snapshot-note small {
+  font-size: 9px;
+  color: #64748b;
+}
+
 .market-hours-panel {
   display: flex;
   flex-direction: column;
@@ -9412,79 +9435,44 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    RESEARCH DESK: PDF BUTTONS & CALLOUT ACCENTS
    ========================================================================== */
 
-.btn-spotlight-summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  color: #e2e8f0;
-  font-family: var(--font-display);
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+
+
+
+
+
+
+.research-sample-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 14px;
+  margin-bottom: 16px;
+  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 6px;
 }
 
-.btn-spotlight-summary:hover {
-  background: rgba(148, 163, 184, 0.16);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+.research-sample-notice .notice-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #fbbf24;
 }
 
-.btn-card-dossier {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 10px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+.research-sample-notice p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
   color: #cbd5e1;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.btn-card-dossier:hover {
-  background: rgba(148, 163, 184, 0.16);
-  color: #ffffff;
-  border-color: rgba(148, 163, 184, 0.4);
-}
-
-.btn-reader-pdf {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  background: #00f59b !important;
-  color: #03080e !important;
+.research-sample-notice strong {
   font-family: var(--font-display);
-  font-size: 11.5px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  border: none !important;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 245, 155, 0.3);
-  transition: all 0.15s ease;
+  color: #fbbf24;
+  letter-spacing: 0.02em;
 }
 
-.btn-reader-pdf:hover {
-  background: #00e08c !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 245, 155, 0.45);
-}
-
-.paper-pdf-callout {
+.paper-notice-callout {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -9492,19 +9480,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   gap: 12px;
   padding: 14px 18px;
   margin-top: 18px;
-  background: linear-gradient(180deg, rgba(0, 245, 155, 0.08) 0%, rgba(0, 245, 155, 0.02) 100%);
-  border: 1px solid rgba(0, 245, 155, 0.32);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.09) 0%, rgba(251, 191, 36, 0.02) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.34);
   border-radius: 6px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
-.pdf-callout-info {
+.notice-callout-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.pdf-callout-info strong {
+.notice-callout-info .notice-icon {
+  flex-shrink: 0;
+  color: #fbbf24;
+}
+
+.notice-callout-info strong {
   display: block;
   font-family: var(--font-display);
   font-size: 13px;
@@ -9513,46 +9506,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   letter-spacing: 0.02em;
 }
 
-.pdf-callout-info p {
+.notice-callout-info p {
   margin: 2px 0 0;
   font-size: 11.5px;
   color: #94a3b8;
 }
 
-.btn-callout-pdf {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 16px;
-  background: #00f59b;
-  color: #03080e;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0, 245, 155, 0.35);
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
 
-.btn-callout-pdf:hover {
-  background: #00e08c;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 245, 155, 0.5);
-}
 
 @media (max-width: 640px) {
-  .paper-pdf-callout {
+  .paper-notice-callout {
     flex-direction: column;
     align-items: stretch;
-  }
-  .btn-callout-pdf {
-    width: 100%;
-    justify-content: center;
   }
 }
 
