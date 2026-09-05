@@ -105,8 +105,13 @@ varsayılanların *üzerine* uygular:
   kullanılmadan da hiçbir şey bozulmaz.
 - Bir alanı panelden değiştirmediysen, o alan kodda kalır. İleride kodda bir
   düzeltme yaparsan o düzeltmeyi alırsın.
-- Her kaydetmede `revision` sayacı artar. İki sekmeden aynı anda kaydetmeye
-  çalışırsan ikincisi reddedilir ve sayfayı yenilemen istenir.
+- Her kaydetmede `revision` sayacı artar. Depodaki sürüm senin yüklediğinden
+  ilerideyse (telefondan kaydedip bilgisayarda açık kalan sekmeye dönmek gibi)
+  panel hata vermez: depodaki hâli çeker, üç yönlü birleştirir ve tekrar
+  kaydeder. Dokunmadığın bölümler depodaki hâliyle gelir, dokunduğun bölümler
+  senin hâlinle kalır; bildirimde hangi bölümlerin dışarıdan alındığı yazar.
+  Yalnızca **aynı** bölümü iki yerde farklı değiştirdiysen sorulur — o zaman da
+  kararı sen verirsin, sayfa yenilemeye gerek olmaz.
 
 ### Bölümler
 

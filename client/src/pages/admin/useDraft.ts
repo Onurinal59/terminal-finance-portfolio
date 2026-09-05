@@ -98,26 +98,23 @@ export function toDraftPayload(working: WorkingDraft): SiteContentDraft {
 
 export function useDraft(initial: WorkingDraft) {
   const [draft, setDraft] = useState<WorkingDraft>(initial);
-  const [baseline, setBaseline] = useState(() => JSON.stringify(initial));
+  /** Son yüklenen/kaydedilen hâl. Hem "değişti mi" sorusunu hem de sürüm
+      çakışmasındaki üç yönlü birleştirmenin ortak atasını besler. */
+  const [baseline, setBaseline] = useState<WorkingDraft>(initial);
 
   const update = useCallback((patch: Partial<WorkingDraft> | ((current: WorkingDraft) => WorkingDraft)) => {
     setDraft((current) => (typeof patch === "function" ? patch(current) : { ...current, ...patch }));
   }, []);
 
   /** Kaydedilenle karşılaştırma; "kaydedilmemiş değişiklik" uyarısını besler. */
-  const isDirty = useMemo(() => JSON.stringify(draft) !== baseline, [draft, baseline]);
+  const isDirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(baseline), [draft, baseline]);
 
-  const markSaved = useCallback((saved: WorkingDraft) => {
-    setBaseline(JSON.stringify(saved));
+  const markSaved = useCallback((saved: WorkingDraft) => setBaseline(saved), []);
+
+  const reset = useCallback((next: WorkingDraft) => {
+    setDraft(next);
+    setBaseline(next);
   }, []);
 
-  const reset = useCallback(
-    (next: WorkingDraft) => {
-      setDraft(next);
-      setBaseline(JSON.stringify(next));
-    },
-    []
-  );
-
-  return { draft, update, isDirty, markSaved, reset };
+  return { draft, baseline, update, isDirty, markSaved, reset };
 }

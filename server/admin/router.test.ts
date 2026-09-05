@@ -1,7 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { __testing } from "./router.js";
+import { ContentStoreError, RevisionConflictError } from "./contentStore.js";
 
-const { assertUniqueMacroSeries } = __testing;
+const { assertUniqueMacroSeries, toTrpcError } = __testing;
+
+describe("toTrpcError", () => {
+  it("sürüm çakışmasını CONFLICT koduyla döndürür", () => {
+    // Panel bu kodu görüp taslağını depodakiyle birleştiriyor; kod değişirse
+    // otomatik toparlanma sessizce bozulur.
+    const mapped = toTrpcError(new RevisionConflictError(10, 9)) as { code?: string };
+    expect(mapped.code).toBe("CONFLICT");
+  });
+
+  it("diğer depo hatalarını CONFLICT saymaz", () => {
+    const mapped = toTrpcError(new ContentStoreError("depo yok")) as { code?: string };
+    expect(mapped.code).toBe("PRECONDITION_FAILED");
+  });
+
+  it("ilgisiz hataları olduğu gibi bırakır", () => {
+    const original = new Error("başka bir şey");
+    expect(toTrpcError(original)).toBe(original);
+  });
+});
 
 describe("assertUniqueMacroSeries", () => {
   it("aynı seriye bağlı iki göstergeyi reddeder", () => {

@@ -33,8 +33,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BANNER_TONES, HIDEABLE_BLOCKS, MACRO_DISPLAYS, MACRO_SOURCES, MACRO_TONES } from "@shared/siteContent";
-import type { MacroIndicatorContent } from "@shared/siteContent";
+import type { MacroIndicatorContent, SiteContent } from "@shared/siteContent";
 import { DEFAULT_MACRO_SERIES, MACRO_SERIES_SUGGESTIONS, type MacroSeriesDefault } from "@shared/macroDefaults";
+import { TRPCClientError } from "@trpc/client";
 import { trpc } from "@/lib/trpc";
 import { DEFAULT_SESSION_IDS } from "@/content/defaults";
 import { DEFAULT_WATCHLIST_SYMBOLS } from "./Home";
@@ -44,6 +45,18 @@ import { ProfilePanel } from "./admin/ProfilePanel";
 import { ReportsPanel } from "./admin/ReportsPanel";
 import { TextsPanel } from "./admin/TextsPanel";
 import { buildWorkingDraft, toDraftPayload, useDraft, type WorkingDraft } from "./admin/useDraft";
+import { mergeDrafts } from "./admin/mergeDraft";
+
+/**
+ * Sunucu sürüm çakışmasını CONFLICT koduyla bildiriyor; onu diğer
+ * hatalardan ayırt edebilmek için tek yer.
+ */
+function isRevisionConflict(error: unknown): boolean {
+  return (
+    error instanceof TRPCClientError &&
+    (error.data as { code?: string } | undefined)?.code === "CONFLICT"
+  );
+}
 import "./admin/admin.css";
 
 /** Kenar çubuğu grupları; panelin zihinsel haritasını verir. */
@@ -229,7 +242,7 @@ function Editor({ email, name, storageReady }: { email: string; name: string; st
   const [navOpen, setNavOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [revision, setRevision] = useState(0);
-  const { draft, update, isDirty, reset } = useDraft(
+  const { draft, baseline, update, isDirty, reset } = useDraft(
     buildWorkingDraft({ schemaVersion: 1, revision: 0, updatedAt: "" }, DEFAULT_WATCHLIST_SYMBOLS)
   );
 
@@ -249,17 +262,64 @@ function Editor({ email, name, storageReady }: { email: string; name: string; st
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
+  /** Kaydetme sonrası ortak temizlik: sürüm, taslak ve sitenin önbelleği. */
+  const applySaved = async (saved: SiteContent) => {
+    setRevision(saved.revision);
+    reset(buildWorkingDraft(saved, DEFAULT_WATCHLIST_SYMBOLS));
+    await utils.content.get.invalidate();
+  };
+
+  /**
+   * Kaydeder. Depodaki sürüm ilerlemişse (telefondan kaydetmişsin, sekme açık
+   * kalmış, ya da bir yanıt yolda kaybolmuş) hata göstermek yerine depodaki
+   * hâlle taslağı birleştirip tekrar dener. Yalnızca aynı bölümü iki yerde
+   * farklı değiştirdiysen karar sana sorulur.
+   */
   const save = async () => {
+    const attempt = (payload: WorkingDraft, expectedRevision: number) =>
+      saveMutation.mutateAsync({ draft: toDraftPayload(payload), expectedRevision });
+
     try {
-      const saved = await saveMutation.mutateAsync({
-        draft: toDraftPayload(draft),
-        expectedRevision: revision,
-      });
-      setRevision(saved.revision);
-      reset(buildWorkingDraft(saved, DEFAULT_WATCHLIST_SYMBOLS));
-      await utils.content.get.invalidate();
+      await applySaved(await attempt(draft, revision));
       toast.success("Kaydedildi. Site birkaç saniye içinde güncellenir.");
+      return;
     } catch (error) {
+      if (!isRevisionConflict(error)) {
+        toast.error(error instanceof Error ? error.message : "Kaydedilemedi");
+        return;
+      }
+    }
+
+    // Çakışma: depodaki güncel belgeyi al, üç yönlü birleştir, tekrar dene.
+    try {
+      const latest = await utils.admin.content.fetch();
+      const merge = mergeDrafts(baseline, draft, buildWorkingDraft(latest, DEFAULT_WATCHLIST_SYMBOLS));
+
+      if (merge.conflicts.length) {
+        const onay = window.confirm(
+          `Şu bölümler hem burada hem başka bir yerde değiştirilmiş:\n\n` +
+            `• ${merge.conflicts.join("\n• ")}\n\n` +
+            `Buradaki hâliyle kaydedilsin mi? (İptal edersen değişikliklerin durur, ` +
+            `sayfayı yenileyip diğer hâli görebilirsin.)`
+        );
+        if (!onay) return;
+      }
+
+      await applySaved(await attempt(merge.merged, latest.revision));
+      toast.success(
+        merge.adopted.length
+          ? `Kaydedildi. Başka bir yerden gelen değişiklikler de alındı: ${merge.adopted.join(", ")}.`
+          : "Kaydedildi. Site birkaç saniye içinde güncellenir."
+      );
+    } catch (error) {
+      // Birleştirme sırasında üçüncü bir kayıt araya girdiyse: değişiklikler
+      // duruyor, tekrar Kaydet demek yeterli. Sayfa yenilemeye gerek yok.
+      if (isRevisionConflict(error)) {
+        toast.error("Kaydetme sırasında içerik yine değişti.", {
+          description: "Değişikliklerin duruyor; Kaydet'e bir kez daha bas.",
+        });
+        return;
+      }
       toast.error(error instanceof Error ? error.message : "Kaydedilemedi");
     }
   };

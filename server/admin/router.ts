@@ -5,6 +5,7 @@ import { siteContentDraftSchema } from "../../shared/siteContent.js";
 import { publicProcedure, router } from "../_core/trpc.js";
 import {
   ContentStoreError,
+  RevisionConflictError,
   deleteBlobByUrl,
   isStorageConfigured,
   listReportFiles,
@@ -44,14 +45,26 @@ function assertUniqueMacroSeries(draft: { macro?: { indicators?: Array<{ id: str
 }
 
 /** Depo hatalarını kullanıcıya gösterilebilir tRPC hatasına çevirir. */
+/**
+ * Depo hatalarını tRPC koduna çevirir. Sürüm çakışması ayrı bir kodla dönüyor:
+ * panel bunu yakalayıp depodaki hâlle kendi taslağını birleştiriyor ve
+ * kullanıcıya hata göstermeden tekrar kaydediyor.
+ */
+function toTrpcError(error: unknown): unknown {
+  if (error instanceof RevisionConflictError) {
+    return new TRPCError({ code: "CONFLICT", message: error.message });
+  }
+  if (error instanceof ContentStoreError) {
+    return new TRPCError({ code: "PRECONDITION_FAILED", message: error.message });
+  }
+  return error;
+}
+
 async function guardStorage<T>(action: () => Promise<T>): Promise<T> {
   try {
     return await action();
   } catch (error) {
-    if (error instanceof ContentStoreError) {
-      throw new TRPCError({ code: "PRECONDITION_FAILED", message: error.message });
-    }
-    throw error;
+    throw toTrpcError(error);
   }
 }
 
@@ -106,4 +119,4 @@ export const contentRouter = router({
 });
 
 /** Yalnızca testler için. */
-export const __testing = { assertUniqueMacroSeries };
+export const __testing = { assertUniqueMacroSeries, toTrpcError };

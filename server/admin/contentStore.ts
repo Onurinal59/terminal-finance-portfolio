@@ -17,6 +17,18 @@ let cached: { at: number; value: SiteContent } | null = null;
 
 export class ContentStoreError extends Error {}
 
+/**
+ * Depodaki sürüm, gönderenin beklediğinden farklı. Panel bunu ayırt edip
+ * üç yönlü birleştirmeyle kendi kendine toparlayabilsin diye ayrı bir tür.
+ */
+export class RevisionConflictError extends ContentStoreError {
+  constructor(readonly storedRevision: number, readonly sentRevision: number) {
+    super(
+      `İçerik başka bir yerden güncellenmiş (kayıtlı sürüm ${storedRevision}, gönderilen ${sentRevision}).`
+    );
+  }
+}
+
 function requireToken() {
   if (!ADMIN_ENV.blobToken) {
     throw new ContentStoreError(
@@ -151,9 +163,7 @@ export async function writeSiteContent(
   const current = await readSiteContent({ fresh: true });
 
   if (meta.expectedRevision !== undefined && meta.expectedRevision !== current.revision) {
-    throw new ContentStoreError(
-      `İçerik başka bir yerden güncellenmiş (kayıtlı sürüm ${current.revision}, gönderilen ${meta.expectedRevision}). Sayfayı yenileyip tekrar deneyin.`
-    );
+    throw new RevisionConflictError(current.revision, meta.expectedRevision);
   }
 
   const next: SiteContent = {
